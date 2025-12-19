@@ -48,6 +48,7 @@
             --spacing-md: 1.5rem;
             --spacing-lg: 2rem;
             --spacing-xl: 3rem;
+            --spacing-xxl: 4rem;
         }
 
         * { 
@@ -258,7 +259,7 @@
         /* 页面容器 */
         .page {
             display: none; 
-            min-height: calc(100vh - 80px);
+            min-height: calc(100vh - 70px);
             margin-top: 70px; 
             padding: var(--spacing-md);
             opacity: 0;
@@ -277,17 +278,22 @@
             transform: translateY(-20px);
         }
 
-        /* Hero区域 */
+        /* Hero区域 - 优化后的紧凑版本 */
         .hero {
             background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, var(--secondary) 100%);
             color: white; 
             text-align: center; 
-            padding: clamp(4rem, 10vw, 8rem) clamp(1rem, 5vw, 2rem);
+            padding: clamp(2rem, 6vw, 4rem) clamp(1rem, 5vw, 2rem);
             position: relative; 
             overflow: hidden;
             border-radius: var(--border-radius-lg);
-            margin: var(--spacing-md) 0;
+            margin: var(--spacing-sm) 0;
             box-shadow: var(--shadow-xl);
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
         }
         
         .hero::before {
@@ -317,11 +323,12 @@
         .hero-content {
             position: relative;
             z-index: 1;
+            width: 100%;
         }
-        
+
         .hero h1 {
-            font-size: clamp(2rem, 8vw, 3.5rem);
-            margin-bottom: 1.5rem; 
+            font-size: clamp(1.8rem, 6vw, 2.8rem);
+            margin-bottom: 1rem; 
             font-weight: 800; 
             line-height: 1.2;
             position: relative;
@@ -343,9 +350,9 @@
 
         /* 时间显示样式 */
         #beijingTime {
-            font-size: clamp(2.5rem, 10vw, 4rem);
+            font-size: clamp(2rem, 8vw, 3.2rem);
             font-weight: 800;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             background: linear-gradient(135deg, var(--primary), var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -362,15 +369,45 @@
                 filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.6));
             }
         }
-        
+
+        /* 日期显示 */
         .time-date {
-            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            font-size: clamp(1rem, 3vw, 1.4rem);
             color: rgba(255, 255, 255, 0.85);
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             animation: fadeInUp 1s ease-out 0.3s both;
         }
 
-        /* 功能卡片 */
+        /* UA信息显示 */
+        .ua-display {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-sm) var(--spacing-md);
+            margin-top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            color: rgba(255, 255, 255, 0.9);
+            animation: fadeInUp 1s ease-out 0.6s both;
+            transition: var(--transition-normal);
+        }
+
+        .ua-display:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .ua-icon {
+            font-size: 1.2rem;
+            color: var(--accent);
+        }
+
+        /* 功能卡片 - 优化间距 */
         .feature-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
@@ -383,6 +420,11 @@
             position: relative;
             overflow: hidden;
             margin: var(--spacing-md) 0;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         .feature-card::before {
@@ -430,15 +472,26 @@
             line-height: 1.6;
         }
 
-        /* 页脚 */
+        /* 内容区域 - 优化后的样式 */
+        .content-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-lg) 0;
+            min-height: calc(100vh - 400px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 页脚 - 优化位置 */
         footer {
             background: var(--darkest); 
             color: rgba(255, 255, 255, 0.8);
-            padding: var(--spacing-xl) clamp(1rem, 5vw, 2rem) var(--spacing-lg); 
+            padding: var(--spacing-lg) clamp(1rem, 5vw, 2rem); 
             text-align: center;
             position: relative;
             overflow: hidden;
-            margin-top: var(--spacing-xl);
+            margin-top: auto;
         }
         
         footer::before {
@@ -512,17 +565,24 @@
             }
 
             .hero {
-                margin: var(--spacing-sm) 0;
-                padding: clamp(3rem, 8vw, 6rem) clamp(1rem, 4vw, 1.5rem);
+                margin: var(--spacing-xs) 0;
+                padding: clamp(1.5rem, 5vw, 3rem) clamp(1rem, 4vw, 1.5rem);
+                min-height: 350px;
             }
 
             #beijingTime {
-                font-size: clamp(2rem, 8vw, 3rem);
+                font-size: clamp(1.8rem, 6vw, 2.5rem);
             }
 
             .feature-card {
                 padding: var(--spacing-lg);
                 margin: var(--spacing-sm) 0;
+                min-height: 250px;
+            }
+
+            .content-section {
+                padding: var(--spacing-md) 0;
+                min-height: calc(100vh - 350px);
             }
         }
 
@@ -533,15 +593,25 @@
             }
 
             .hero {
-                padding: clamp(2rem, 6vw, 4rem) clamp(0.5rem, 3vw, 1rem);
+                padding: clamp(1.2rem, 4vw, 2.5rem) clamp(0.5rem, 3vw, 1rem);
+                min-height: 320px;
             }
 
             #beijingTime {
-                font-size: clamp(1.8rem, 6vw, 2.5rem);
+                font-size: clamp(1.6rem, 5vw, 2.2rem);
             }
 
             .time-date {
-                font-size: clamp(1rem, 3vw, 1.2rem);
+                font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            }
+
+            .ua-display {
+                padding: var(--spacing-xs) var(--spacing-sm);
+                font-size: clamp(0.8rem, 2vw, 0.95rem);
+            }
+
+            .content-section {
+                min-height: calc(100vh - 320px);
             }
         }
 
@@ -581,6 +651,12 @@
         .delay-3 { animation-delay: 0.3s; }
         .delay-4 { animation-delay: 0.4s; }
         .delay-5 { animation-delay: 0.5s; }
+
+        /* 设备图标颜色 */
+        .ua-pc { color: var(--primary); }
+        .ua-ios { color: var(--success); }
+        .ua-android { color: var(--warning); }
+        .ua-mobile { color: var(--accent); }
     </style>
 </head>
 <body>
@@ -611,15 +687,20 @@
     <div class="page active" data-page="home" id="page-home">
         <section class="hero">
             <div class="hero-content">
+                <h1>GLcn 信息平台</h1>
                 <div id="beijingTime"></div>
                 <div class="time-date" id="beijingDate"></div>
+                <div class="ua-display" id="uaDisplay">
+                    <i class="fas fa-device ua-icon" id="uaIcon"></i>
+                    <span id="uaText">当前访问UA：检测中...</span>
+                </div>
             </div>
         </section>
     </div>
 
     <!-- 公告页 -->
     <div class="page" data-page="announcement" id="page-announcement">
-        <section style="max-width: 1200px; margin: 0 auto;">
+        <section class="content-section">
             <div class="feature-card">
                 <div class="feature-icon">
                     <i class="fas fa-bullhorn"></i>
@@ -632,7 +713,7 @@
 
     <!-- 作业页 -->
     <div class="page" data-page="homework" id="page-homework">
-        <section style="max-width: 1200px; margin: 0 auto;">
+        <section class="content-section">
             <div class="feature-card">
                 <div class="feature-icon">
                     <i class="fas fa-tasks"></i>
@@ -651,6 +732,56 @@
     </footer>
 
     <script>
+        // ===== UA检测功能 =====
+        function detectUA() {
+            const ua = navigator.userAgent.toLowerCase();
+            const uaDisplay = document.getElementById('uaDisplay');
+            const uaIcon = document.getElementById('uaIcon');
+            const uaText = document.getElementById('uaText');
+            
+            let deviceType = '';
+            let iconClass = '';
+            let deviceClass = '';
+            
+            // 检测iOS
+            if (/iphone|ipad|ipod/.test(ua)) {
+                deviceType = 'IOS';
+                iconClass = 'fa-mobile-alt';
+                deviceClass = 'ua-ios';
+            }
+            // 检测Android
+            else if (/android/.test(ua)) {
+                deviceType = '安卓手机端';
+                iconClass = 'fa-android';
+                deviceClass = 'ua-android';
+            }
+            // 检测Windows/Mac（PC）
+            else if (/windows|macintosh|linux/.test(ua) && !/mobile/.test(ua)) {
+                deviceType = 'PC';
+                iconClass = 'fa-desktop';
+                deviceClass = 'ua-pc';
+            }
+            // 其他移动设备
+            else if (/mobile|tablet/.test(ua)) {
+                deviceType = '手机端';
+                iconClass = 'fa-mobile-alt';
+                deviceClass = 'ua-mobile';
+            }
+            // 默认PC
+            else {
+                deviceType = 'PC';
+                iconClass = 'fa-desktop';
+                deviceClass = 'ua-pc';
+            }
+            
+            // 更新显示
+            uaText.textContent = `当前访问UA：${deviceType}`;
+            uaIcon.className = `fas ${iconClass} ua-icon ${deviceClass}`;
+            
+            // 添加动画效果
+            uaDisplay.style.animation = 'fadeInUp 0.8s ease-out 1s both';
+        }
+
         // ===== 页面导航功能 =====
         function init() {
             setupNavigation();
@@ -660,6 +791,7 @@
             setInterval(updateBeijingTime, 1000);
             setupScrollEffects();
             setupAnimations();
+            detectUA(); // 初始化UA检测
         }
 
         function setupNavigation() {
