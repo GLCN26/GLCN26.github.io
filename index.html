@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>GLcn - 现代化学习平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* 高级配色方案 */
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary: #764ba2;
+            --accent: #f093fb;
+            --accent-secondary: #f5576c;
+            --dark: #1a1a2e;
+            --darker: #16213e;
+            --darkest: #0f172a;
+            --light: #f8fafc;
+            --lighter: #e2e8f0;
+            --text: #2d3748;
+            --text-light: #718096;
+            --text-muted: #a0aec0;
+            --white: #ffffff;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --danger: #f56565;
+            
+            /* 动画变量 */
+            --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-normal: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            
+            /* 阴影和圆角 */
+            --border-radius: 16px;
+            --border-radius-sm: 8px;
+            --border-radius-lg: 24px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+            --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.3);
+            --shadow-glow: 0 0 20px rgba(102, 126, 234, 0.3);
+            
+            /* 间距 */
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+        }
+
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html { 
+            scroll-behavior: smooth; 
+            scroll-padding-top: 80px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: var(--dark);
+            color: var(--light);
+            line-height: 1.6;
+            overflow-x: hidden;
+            font-size: clamp(0.95rem, 4vw, 1.05rem);
+            transition: var(--transition-normal);
+        }
+
+        /* 背景动画效果 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(240, 147, 251, 0.05) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(5deg) scale(1.1); }
+        }
+
+        /* 加载动画 */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--darker) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: var(--transition-slow);
+        }
+
+        .loading.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            position: relative;
+        }
+
+        .loading-spinner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 3px solid transparent;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-spinner::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: calc(100% - 16px);
+            height: calc(100% - 16px);
+            border: 3px solid transparent;
+            border-bottom-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite reverse;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 导航栏 */
+        .navbar {
+            position: fixed; 
+            top: 0; 
+            width: 100%;
+            background: rgba(26, 26, 46, 0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000; 
+            transition: var(--transition-normal);
+            transform: translateY(0);
+        }
+        
+        .navbar-container {
+            max-width: 1200px; 
+            margin: 0 auto;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            padding: var(--spacing-sm) clamp(1rem, 5vw, 2rem);
+            min-height: 70px;
+        }
+        
+        .logo {
+            font-size: clamp(1.6rem, 5vw, 1.8rem); 
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent;
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem;
+            transition: var(--transition-bounce);
+            cursor: pointer;
+        }
+        
+        .logo:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.5));
+        }
+        
+        .nav-menu {
+            display: flex; 
+            gap: clamp(1rem, 3vw, 2.5rem); 
+            list-style: none;
+        }
+        
+        .nav-menu li {
+            cursor: pointer; 
+            color: rgba(255, 255, 255, 0.8); 
+            font-weight: 500;
+            padding: var(--spacing-xs) 0; 
+            position: relative; 
+            transition: var(--transition-normal);
+            user-select: none;
+        }
+        
+        .nav-menu li::after {
+            content: ''; 
+            position: absolute; 
+            bottom: 0; 
+            left: 0;
+            width: 0; 
+            height: 2px; 
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transition: var(--transition-normal);
+            border-radius: 1px;
+        }
+        
+        .nav-menu li:hover::after, 
+        .nav-menu li.active::after { 
+            width: 100%; 
+        }
+        
+        .nav-menu li:hover {
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .nav-menu li.active {
+            color: var(--primary);
+        }
+        
+        .mobile-toggle {
+            display: none; 
+            background: rgba(255, 255, 255, 0.1); 
+            border: none;
+            color: white; 
+            font-size: 1.5rem; 
+            cursor: pointer;
+            padding: 0.5rem; 
+            min-width: 44px; 
+            min-height: 44px;
+            border-radius: var(--border-radius-sm);
+            transition: var(--transition-normal);
+        }
+        
+        .mobile-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* 页面容器 */
+        .page {
+            display: none; 
+            min-height: calc(100vh - 80px);
+            margin-top: 70px; 
+            padding: var(--spacing-md);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: var(--transition-slow);
+        }
+        
+        .page.active { 
+            display: block; 
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .page.fade-out {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        /* Hero区域 */
+        .hero {
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, var(--secondary) 100%);
+            color: white; 
+            text-align: center; 
+            padding: clamp(4rem, 10vw, 8rem) clamp(1rem, 5vw, 2rem);
+            position: relative; 
+            overflow: hidden;
+            border-radius: var(--border-radius-lg);
+            margin: var(--spacing-md) 0;
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(240, 147, 251, 0.2) 0%, transparent 50%);
+            animation: heroPulse 8s ease-in-out infinite;
+        }
+        
+        @keyframes heroPulse {
+            0%, 100% { 
+                opacity: 0.3; 
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.7; 
+                transform: scale(1.05);
+            }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero h1 {
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            margin-bottom: 1.5rem; 
+            font-weight: 800; 
+            line-height: 1.2;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 时间显示样式 */
+        #beijingTime {
+            font-size: clamp(2.5rem, 10vw, 4rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            animation: timeGlow 2s ease-in-out infinite alternate;
+            letter-spacing: 0.05em;
+        }
+
+        @keyframes timeGlow {
+            from { 
+                filter: drop-shadow(0 0 5px rgba(102, 126, 234, 0.3));
+            }
+            to { 
+                filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.6));
+            }
+        }
+        
+        .time-date {
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        /* 功能卡片 */
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl);
+            text-align: center;
+            transition: var(--transition-bounce);
+            position: relative;
+            overflow: hidden;
+            margin: var(--spacing-md) 0;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: var(--transition-slow);
+        }
+
+        .feature-card:hover::before {
+            left: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: var(--shadow-xl), var(--shadow-glow);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 4rem;
+            color: var(--primary);
+            margin-bottom: var(--spacing-md);
+            transition: var(--transition-bounce);
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+            color: var(--accent);
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+            color: var(--white);
+        }
+
+        .feature-description {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* 页脚 */
+        footer {
+            background: var(--darkest); 
+            color: rgba(255, 255, 255, 0.8);
+            padding: var(--spacing-xl) clamp(1rem, 5vw, 2rem) var(--spacing-lg); 
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin-top: var(--spacing-xl);
+        }
+        
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 0%, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+        }
+        
+        .footer-content { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            position: relative;
+            z-index: 1;
+            transition: var(--transition-normal);
+        }
+        
+        .footer-content:hover {
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .nav-menu {
+                position: fixed; 
+                top: 70px; 
+                left: -100%;
+                width: 100%; 
+                height: calc(100vh - 70px); 
+                background: rgba(26, 26, 46, 0.95);
+                flex-direction: column; 
+                align-items: center; 
+                justify-content: flex-start;
+                padding-top: var(--spacing-xl); 
+                transition: left 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .nav-menu li { 
+                width: 80%; 
+                text-align: center; 
+                padding: var(--spacing-md); 
+                margin: var(--spacing-xs) 0;
+                border-radius: var(--border-radius);
+                transition: var(--transition-normal);
+            }
+
+            .nav-menu li:hover {
+                background: rgba(102, 126, 234, 0.1);
+            }
+            
+            .nav-menu li::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            
+            .nav-menu.active { 
+                left: 0; 
+            }
+            
+            .mobile-toggle { 
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+            }
+
+            .hero {
+                margin: var(--spacing-sm) 0;
+                padding: clamp(3rem, 8vw, 6rem) clamp(1rem, 4vw, 1.5rem);
+            }
+
+            #beijingTime {
+                font-size: clamp(2rem, 8vw, 3rem);
+            }
+
+            .feature-card {
+                padding: var(--spacing-lg);
+                margin: var(--spacing-sm) 0;
+            }
+        }
+
+        /* 移动端优化 */
+        @media (max-width: 480px) {
+            .page {
+                padding: var(--spacing-sm);
+            }
+
+            .hero {
+                padding: clamp(2rem, 6vw, 4rem) clamp(0.5rem, 3vw, 1rem);
+            }
+
+            #beijingTime {
+                font-size: clamp(1.8rem, 6vw, 2.5rem);
+            }
+
+            .time-date {
+                font-size: clamp(1rem, 3vw, 1.2rem);
+            }
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--primary), var(--accent));
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(var(--primary-dark), var(--accent-secondary));
+        }
+
+        /* 选择文本样式 */
+        ::selection {
+            background: rgba(102, 126, 234, 0.3);
+            color: var(--white);
+        }
+
+        /* 焦点样式 */
+        *:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        /* 动画延迟类 */
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+    </style>
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="navbar" id="navbar">
+        <div class="navbar-container">
+            <div class="logo">
+                <i class="fas fa-network-wired"></i>
+                GLcn
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li data-page="home" class="active">首页</li>
+                <li data-page="announcement">公告</li>
+                <li data-page="homework">作业</li>
+            </ul>
+            <button class="mobile-toggle" id="mobileToggle" aria-label="打开菜单">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 首页 -->
+    <div class="page active" data-page="home" id="page-home">
+        <section class="hero">
+            <div class="hero-content">
+                <div id="beijingTime"></div>
+                <div class="time-date" id="beijingDate"></div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 公告页 -->
+    <div class="page" data-page="announcement" id="page-announcement">
+        <section style="max-width: 1200px; margin: 0 auto;">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bullhorn"></i>
+                </div>
+                <h3 class="feature-title">暂无新公告</h3>
+                <p class="feature-description">请稍后查看，我们会及时更新最新信息</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- 作业页 -->
+    <div class="page" data-page="homework" id="page-homework">
+        <section style="max-width: 1200px; margin: 0 auto;">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <h3 class="feature-title">暂无作业</h3>
+                <p class="feature-description">请等待老师发布，保持关注最新动态</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 最终解释权 GLcn | 现代化学习平台</p>
+        </div>
+    </footer>
+
+    <script>
+        // ===== 页面导航功能 =====
+        function init() {
+            setupNavigation();
+            setupMobileMenu();
+            hideLoading();
+            updateBeijingTime();
+            setInterval(updateBeijingTime, 1000);
+            setupScrollEffects();
+            setupAnimations();
+        }
+
+        function setupNavigation() {
+            document.querySelectorAll('.nav-menu li[data-page]').forEach(item => {
+                item.addEventListener('click', () => navigateTo(item.dataset.page));
+            });
+        }
+
+        function navigateTo(pageName) {
+            // 获取当前活跃页面
+            const currentPage = document.querySelector('.page.active');
+            const targetPage = document.getElementById(`page-${pageName}`);
+            
+            if (currentPage === targetPage) return;
+            
+            // 添加淡出效果
+            currentPage.classList.add('fade-out');
+            
+            setTimeout(() => {
+                // 隐藏所有页面
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active');
+                    page.classList.remove('fade-out');
+                });
+                
+                // 显示目标页面
+                if (targetPage) {
+                    targetPage.style.display = 'block';
+                    setTimeout(() => {
+                        targetPage.classList.add('active');
+                    }, 10);
+                }
+            }, 250);
+            
+            // 更新导航状态
+            document.querySelectorAll('.nav-menu li').forEach(li => li.classList.remove('active'));
+            document.querySelector(`.nav-menu li[data-page="${pageName}"]`)?.classList.add('active');
+            
+            // 关闭移动端菜单
+            document.getElementById('navMenu').classList.remove('active');
+            const icon = document.querySelector('#mobileToggle i');
+            icon.classList.add('fa-bars');
+            icon.classList.remove('fa-times');
+            
+            // 滚动到顶部
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function setupMobileMenu() {
+            const mobileToggle = document.getElementById('mobileToggle');
+            const navMenu = document.getElementById('navMenu');
+            
+            mobileToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+                const icon = mobileToggle.querySelector('i');
+                icon.classList.toggle('fa-bars');
+                icon.classList.toggle('fa-times');
+            });
+            
+            navMenu.querySelectorAll('li').forEach(item => {
+                item.addEventListener('click', () => {
+                    navMenu.classList.remove('active');
+                    const icon = mobileToggle.querySelector('i');
+                    icon.classList.add('fa-bars');
+                    icon.classList.remove('fa-times');
+                });
+            });
+        }
+
+        function hideLoading() {
+            const loading = document.getElementById('loading');
+            setTimeout(() => {
+                loading.classList.add('hide');
+                setTimeout(() => {
+                    loading.style.display = 'none';
+                }, 500);
+            }, 800);
+        }
+
+        // ===== 北京时间显示 =====
+        function updateBeijingTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-CN', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const dateString = now.toLocaleDateString('zh-CN', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                weekday: 'long'
+            });
+            
+            const timeElement = document.getElementById('beijingTime');
+            const dateElement = document.getElementById('beijingDate');
+            
+            if (timeElement && dateElement) {
+                timeElement.textContent = timeString;
+                dateElement.textContent = dateString;
+            }
+        }
+
+        // ===== 滚动效果 =====
+        function setupScrollEffects() {
+            let lastScrollTop = 0;
+            const navbar = document.getElementById('navbar');
+            
+            window.addEventListener('scroll', () => {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // 导航栏隐藏/显示
+                if (scrollTop > lastScrollTop && scrollTop > 100) {
+                    navbar.style.transform = 'translateY(-100%)';
+                } else {
+                    navbar.style.transform = 'translateY(0)';
+                }
+                
+                lastScrollTop = scrollTop;
+            });
+        }
+
+        // ===== 动画设置 =====
+        function setupAnimations() {
+            // 为功能卡片添加交错动画
+            const cards = document.querySelectorAll('.feature-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('fadeInUp');
+            });
+        }
+
+        // ===== 初始化 =====
+        document.addEventListener('DOMContentLoaded', () => {
+            init();
+        });
+        
+        // ESC键处理
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const navMenu = document.getElementById('navMenu');
+                if (navMenu.classList.contains('active')) {
+                    navMenu.classList.remove('active');
+                    const icon = document.querySelector('#mobileToggle i');
+                    icon.classList.add('fa-bars');
+                    icon.classList.remove('fa-times');
+                }
+            }
+        });
+
+        // 窗口大小变化处理
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                document.getElementById('navMenu').classList.remove('active');
+                const icon = document.querySelector('#mobileToggle i');
+                icon.classList.add('fa-bars');
+                icon.classList.remove('fa-times');
+            }
+        });
+
+        // 页面可见性变化处理
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                updateBeijingTime();
+            }
+        });
+    </script>
+</body>
+</html>
