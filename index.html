@@ -1671,7 +1671,7 @@
     </footer>
 
     <script>
-        // ===== 粒子网络背景 =====
+        // ===== 增强版粒子网络背景 =====
         class ParticleNetwork {
             constructor() {
                 this.canvas = document.getElementById('particles-canvas');
@@ -1679,6 +1679,10 @@
                 this.particles = [];
                 this.mouse = { x: 0, y: 0 };
                 this.animationId = null;
+                this.mouseTrail = [];
+                this.lastMouseTime = Date.now();
+                this.lastFrameTime = 0;
+                this.clickEffects = [];
                 
                 this.init();
                 this.createParticles();
@@ -1697,7 +1701,8 @@
             }
             
             createParticles() {
-                const particleCount = Math.min(50, Math.floor((window.innerWidth * window.innerHeight) / 15000));
+                // 增加粒子数量：从50增加到120，密度计算从15000改为8000
+                const particleCount = Math.min(120, Math.floor((window.innerWidth * window.innerHeight) / 8000));
                 
                 for (let i = 0; i < particleCount; i++) {
                     this.particles.push({
@@ -1706,30 +1711,133 @@
                         vx: (Math.random() - 0.5) * 0.5,
                         vy: (Math.random() - 0.5) * 0.5,
                         radius: Math.random() * 2 + 1,
-                        opacity: Math.random() * 0.5 + 0.2
+                        opacity: Math.random() * 0.5 + 0.2,
+                        originalRadius: Math.random() * 2 + 1,
+                        originalOpacity: Math.random() * 0.5 + 0.2
                     });
                 }
             }
             
             bindEvents() {
+                // PC鼠标事件
                 window.addEventListener('mousemove', (e) => {
                     this.mouse.x = e.clientX;
                     this.mouse.y = e.clientY;
+                    
+                    // 记录鼠标轨迹，用于增强轨迹效果
+                    const now = Date.now();
+                    if (now - this.lastMouseTime > 30) {
+                        this.mouseTrail.push({ x: e.clientX, y: e.clientY, time: now });
+                        this.lastMouseTime = now;
+                        
+                        // 保持最多8个轨迹点
+                        if (this.mouseTrail.length > 8) {
+                            this.mouseTrail.shift();
+                        }
+                    }
                 });
                 
+                // 移动端触摸事件
                 window.addEventListener('touchmove', (e) => {
                     if (e.touches.length > 0) {
                         this.mouse.x = e.touches[0].clientX;
                         this.mouse.y = e.touches[0].clientY;
                     }
                 });
+                
+                // 移动端点击效果
+                window.addEventListener('click', (e) => {
+                    if (window.innerWidth <= 768) {
+                        this.createClickEffect(e.clientX, e.clientY);
+                    }
+                });
+                
+                // 鼠标离开时重置
+                window.addEventListener('mouseleave', () => {
+                    this.mouse.x = -1000;
+                    this.mouse.y = -1000;
+                    this.mouseTrail = [];
+                });
+            }
+            
+            // 创建点击爆发效果
+            createClickEffect(x, y) {
+                // 创建8个爆发粒子
+                for (let i = 0; i < 8; i++) {
+                    const angle = (Math.PI * 2) / 8 * i;
+                    const speed = Math.random() * 4 + 3;
+                    this.particles.push({
+                        x: x,
+                        y: y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        radius: Math.random() * 3 + 2,
+                        opacity: 0.9,
+                        originalRadius: Math.random() * 3 + 2,
+                        originalOpacity: 0.9,
+                        isClickEffect: true,
+                        life: 80 // 生命周期80帧
+                    });
+                }
+                
+                // 创建涟漪效果（通过临时粒子实现）
+                for (let i = 0; i < 15; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * 30 + 10;
+                    this.particles.push({
+                        x: x + Math.cos(angle) * distance,
+                        y: y + Math.sin(angle) * distance,
+                        vx: 0,
+                        vy: 0,
+                        radius: 1,
+                        opacity: 0.6,
+                        originalRadius: 1,
+                        originalOpacity: 0.6,
+                        isRipple: true,
+                        life: 40
+                    });
+                }
             }
             
             animate() {
+                // FPS控制，限制60FPS
+                const now = Date.now();
+                const deltaTime = now - (this.lastFrameTime || 0);
+                if (deltaTime < 16) {
+                    this.animationId = requestAnimationFrame(() => this.animate());
+                    return;
+                }
+                this.lastFrameTime = now;
+                
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // 绘制鼠标轨迹
+                if (this.mouseTrail.length > 1) {
+                    this.ctx.strokeStyle = 'rgba(102, 126, 234, 0.3)';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.mouseTrail.forEach((point, index) => {
+                        if (index === 0) {
+                            this.ctx.moveTo(point.x, point.y);
+                        } else {
+                            this.ctx.lineTo(point.x, point.y);
+                        }
+                    });
+                    this.ctx.stroke();
+                }
                 
                 // 更新和绘制粒子
                 this.particles.forEach((particle, i) => {
+                    // 处理生命周期
+                    if (particle.isClickEffect || particle.isRipple) {
+                        particle.life--;
+                        if (particle.life <= 0) {
+                            this.particles.splice(i, 1);
+                            i--;
+                            return;
+                        }
+                    }
+                    
                     // 更新位置
                     particle.x += particle.vx;
                     particle.y += particle.vy;
@@ -1738,41 +1846,95 @@
                     if (particle.x < 0 || particle.x > this.canvas.width) particle.vx *= -1;
                     if (particle.y < 0 || particle.y > this.canvas.height) particle.vy *= -1;
                     
-                    // 鼠标吸附效果
+                    // 增强的鼠标交互效果
                     const dx = this.mouse.x - particle.x;
                     const dy = this.mouse.y - particle.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
-                    if (distance < 100) {
-                        const force = (100 - distance) / 100;
-                        particle.x -= dx * force * 0.01;
-                        particle.y -= dy * force * 0.01;
+                    // 三层交互区域
+                    if (distance < 150) { // 增加交互半径到150px
+                        if (distance < 30) {
+                            // 过近时排斥（30px内）
+                            const force = (30 - distance) / 30 * 0.025;
+                            particle.x -= dx * force;
+                            particle.y -= dy * force;
+                        } else if (distance < 80) {
+                            // 中等距离强烈吸引（30-80px）
+                            const force = (80 - distance) / 80 * 0.02;
+                            particle.x += dx * force;
+                            particle.y += dy * force;
+                        } else {
+                            // 远距离轻微吸引（80-150px）
+                            const force = (150 - distance) / 150 * 0.008;
+                            particle.x += dx * force;
+                            particle.y += dy * force;
+                        }
+                        
+                        // 动态调整粒子大小和透明度
+                        const brightness = 1 - (distance / 150);
+                        particle.radius = Math.min(particle.originalRadius * (1 + brightness * 0.8), 5);
+                        particle.opacity = Math.min(particle.originalOpacity * (1 + brightness * 1.5), 1);
+                    } else {
+                        // 恢复原始大小
+                        particle.radius = particle.originalRadius;
+                        particle.opacity = particle.originalOpacity;
+                    }
+                    
+                    // 点击效果粒子减速
+                    if (particle.isClickEffect) {
+                        particle.vx *= 0.96;
+                        particle.vy *= 0.96;
+                        particle.opacity = (particle.life / 80) * particle.originalOpacity;
+                    }
+                    
+                    // 涟漪效果粒子
+                    if (particle.isRipple) {
+                        particle.opacity = (particle.life / 40) * 0.6;
                     }
                     
                     // 绘制粒子
                     this.ctx.beginPath();
                     this.ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-                    this.ctx.fillStyle = `rgba(102, 126, 234, ${particle.opacity})`;
+                    
+                    // 根据类型设置颜色
+                    if (particle.isClickEffect) {
+                        this.ctx.fillStyle = `rgba(236, 139, 247, ${particle.opacity})`; // 粉色
+                    } else if (particle.isRipple) {
+                        this.ctx.fillStyle = `rgba(102, 126, 234, ${particle.opacity})`; // 蓝色
+                    } else {
+                        this.ctx.fillStyle = `rgba(102, 126, 234, ${particle.opacity})`;
+                    }
+                    
                     this.ctx.fill();
                     
+                    // 为点击效果添加发光
+                    if (particle.isClickEffect && particle.life > 60) {
+                        this.ctx.shadowBlur = 10;
+                        this.ctx.shadowColor = `rgba(236, 139, 247, ${particle.opacity * 0.5})`;
+                        this.ctx.fill();
+                        this.ctx.shadowBlur = 0;
+                    }
+                    
                     // 绘制连接线
-                    this.particles.forEach((otherParticle, j) => {
-                        if (i !== j) {
-                            const dx2 = otherParticle.x - particle.x;
-                            const dy2 = otherParticle.y - particle.y;
-                            const distance2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
-                            
-                            if (distance2 < 80) {
-                                const opacity = (80 - distance2) / 80 * 0.3;
-                                this.ctx.beginPath();
-                                this.ctx.moveTo(particle.x, particle.y);
-                                this.ctx.lineTo(otherParticle.x, otherParticle.y);
-                                this.ctx.strokeStyle = `rgba(102, 126, 234, ${opacity})`;
-                                this.ctx.lineWidth = 1;
-                                this.ctx.stroke();
+                    if (!particle.isRipple) { // 涟漪粒子不连接
+                        this.particles.forEach((otherParticle, j) => {
+                            if (i !== j && !otherParticle.isRipple) {
+                                const dx2 = otherParticle.x - particle.x;
+                                const dy2 = otherParticle.y - particle.y;
+                                const distance2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+                                
+                                if (distance2 < 100) {
+                                    const opacity = (100 - distance2) / 100 * 0.4;
+                                    this.ctx.beginPath();
+                                    this.ctx.moveTo(particle.x, particle.y);
+                                    this.ctx.lineTo(otherParticle.x, otherParticle.y);
+                                    this.ctx.strokeStyle = `rgba(102, 126, 234, ${opacity})`;
+                                    this.ctx.lineWidth = 1;
+                                    this.ctx.stroke();
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 });
                 
                 this.animationId = requestAnimationFrame(() => this.animate());
