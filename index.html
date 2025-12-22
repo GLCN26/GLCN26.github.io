@@ -441,7 +441,7 @@
             gap: var(--spacing-sm);
             font-size: clamp(0.9rem, 2.5vw, 1.1rem);
             color: rgba(255, 255, 255, 0.9);
-            animation: fadeInUp 1s ease-out 0.6s both;
+            animation: fadeInUp 1s ease-out 1s both;
             transition: var(--transition-normal);
             justify-content: center;
             width: fit-content;
@@ -1026,6 +1026,7 @@
         .ua-android { color: var(--warning); }
         .ua-mobile { color: var(--accent); }
         .ua-wechat { color: #07C160; }
+        .ua-qq { color: #12B7F5; }
 
         .music-player {
             position: fixed;
@@ -2194,6 +2195,11 @@
                 deviceType = '微信端';
                 iconClass = 'fa-comment-dots';
                 deviceClass = 'ua-wechat';
+            }
+            else if (/qq\//.test(ua) || /qqbrowser/.test(ua) || /qqapp/.test(ua)) {
+                deviceType = 'QQ端';
+                iconClass = 'fa-comment';
+                deviceClass = 'ua-qq';
             }
             else if (/iphone|ipad|ipod/.test(ua)) {
                 deviceType = 'IOS';
