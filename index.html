@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>GLcn - 信息平台</title>
+    <title>GLcn - Hello</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* ===== 颜色主题和变量定义 ===== */
@@ -112,13 +112,14 @@
             will-change: transform;
         }
 
+        /* ===== 修改：全新的加载页面样式 - 白色主题 ===== */
         .loading {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, var(--dark) 0%, var(--darker) 100%);
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -136,54 +137,61 @@
         .loading-content {
             text-align: center;
             will-change: transform;
+            max-width: 90%;
         }
 
+        /* 修改：移除盾牌图标 */
         .loading-shield {
-            font-size: 4rem;
-            color: var(--success);
-            margin-bottom: var(--spacing-md);
-            animation: shieldPulse 2s ease-in-out infinite;
-            display: block;
-            filter: drop-shadow(0 0 10px rgba(72, 187, 120, 0.3));
+            display: none;
         }
 
-        @keyframes shieldPulse {
-            0%, 100% { 
-                transform: scale(1);
-                filter: drop-shadow(0 0 10px rgba(72, 187, 120, 0.3));
-            }
-            50% { 
-                transform: scale(1.1);
-                filter: drop-shadow(0 0 20px rgba(72, 187, 120, 0.6));
-            }
+        /* 修改：添加旋转圈圈样式 */
+        .loading-spinner {
+            width: 70px;
+            height: 70px;
+            border: 4px solid rgba(26, 26, 46, 0.08);
+            border-top: 4px solid #6d7aea;
+            border-radius: 50%;
+            animation: spin 2s linear 2; /* 转两圈 */
+            margin: 0 auto var(--spacing-lg);
+            position: relative;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
         }
 
+        @keyframes spin {
+            0% { transform: rotate(0deg); opacity: 1; }
+            100% { transform: rotate(720deg); opacity: 1; } /* 两圈 = 720度 */
+        }
+
+        /* 修改：文字样式调整为深色 */
         .loading-text {
-            color: var(--white);
-            font-size: 1.5rem;
+            color: #1a1a2e;
+            font-size: 1.8rem;
             font-weight: 700;
             margin-bottom: var(--spacing-sm);
-            background: linear-gradient(135deg, var(--primary), var(--success));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            transition: var(--transition-normal);
             will-change: transform;
+            letter-spacing: 0.02em;
         }
 
         .loading-subtext {
-            color: var(--text-light);
-            font-size: 0.9rem;
+            color: #718096;
+            font-size: 1rem;
             margin-top: var(--spacing-sm);
+            opacity: 0.8;
         }
 
+        /* 修改：优化打勾动画 */
         .loading-check {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--success);
+            display: none; /* 初始隐藏 */
+            width: 70px;
+            height: 70px;
+            border: 4px solid var(--success);
             border-radius: 50%;
             position: relative;
-            margin: var(--spacing-md) auto;
-            animation: checkCircle 1s ease-in-out forwards;
+            margin: var(--spacing-lg) auto;
+            animation: checkCircle 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+            box-shadow: 0 0 15px rgba(72, 187, 120, 0.3);
         }
 
         @keyframes checkCircle {
@@ -198,16 +206,16 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 1.5rem;
+            font-size: 2.2rem;
             color: var(--success);
             font-weight: bold;
             opacity: 0;
-            animation: checkMark 0.5s ease-in-out forwards 0.5s;
+            animation: checkMark 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards 0.3s;
         }
 
         @keyframes checkMark {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
-            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0) rotate(-20deg); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
         }
 
         .navbar {
@@ -312,6 +320,7 @@
             transform: scale(1.05);
         }
 
+        /* 修改：确保页面切换时正确隐藏 */
         .page {
             display: none; 
             flex: 1;
@@ -319,6 +328,8 @@
             opacity: 0;
             transform: translateY(20px);
             transition: var(--transition-slow);
+            height: auto; /* 修复高度问题 */
+            min-height: calc(100vh - 70px); /* 确保最小高度 */
         }
         
         .page.active { 
@@ -1399,7 +1410,7 @@
             box-shadow: var(--shadow-xl), 0 0 30px rgba(102, 126, 234, 0.6);
         }
 
-        /* ===== 密码验证弹窗样式 - 新增功能 ===== */
+        /* ===== 密码验证弹窗样式 ===== */
         .password-modal-overlay {
             position: fixed;
             top: 0;
@@ -1691,14 +1702,13 @@
 <body>
     <canvas id="particles-canvas"></canvas>
 
+    <!-- 修改：全新的加载页面结构 -->
     <div class="loading" id="loading">
         <div class="loading-content">
-            <div class="loading-shield">
-                <i class="fas fa-shield-alt"></i>
-            </div>
-            <div class="loading-text">已验证安全的界面</div>
-            <div class="loading-check"></div>
-            <div class="loading-subtext">正在为您加载内容...</div>
+            <div class="loading-spinner" id="loadingSpinner"></div>
+            <div class="loading-text" id="loadingText">正在验证访问安全性</div>
+            <div class="loading-check" id="loadingCheck" style="display: none;"></div>
+            <div class="loading-subtext" id="loadingSubtext">正在为您加载内容...</div>
         </div>
     </div>
 
@@ -2347,14 +2357,14 @@
             }
         };
 
-        // ===== ？？？ - ？？？ =====
-        // ？？？
+        // ===== 密码配置 - 测试功能 =====
+        // 当前测试密码是 2525CN
         const PASSWORD_CONFIG = {
-            // ？？？
+            // 测试密码（实际项目中应该从服务器获取）
             password: '2525CN',
-            // Locking times
+            // 最大尝试次数
             maxAttempts: 3,
-            // minute
+            // 锁定时间（分钟）
             lockTime: 5
         };
 
@@ -2497,6 +2507,9 @@
                     // 重置验证状态
                     this.attempts = 0;
                     this.setInputDisabled(false);
+                    
+                    // 确保body的overflow被正确设置
+                    document.body.style.overflow = '';
                 }, 800);
             }
             
@@ -2624,11 +2637,19 @@
             });
         }
 
+        /* 修改：修复页面切换时的滚动和点击问题 */
         function navigateTo(pageName) {
             const currentPage = document.querySelector('.page.active');
             const targetPage = document.getElementById(`page-${pageName}`);
             
             if (currentPage === targetPage) return;
+            
+            // 在动画开始前，确保所有页面都不可见且不可交互
+            document.body.style.overflow = 'hidden';
+            document.querySelectorAll('.page').forEach(page => {
+                page.style.pointerEvents = 'none'; // 禁用点击
+                page.style.display = 'none'; // 先隐藏所有页面
+            });
             
             currentPage.classList.add('fade-out');
             
@@ -2640,9 +2661,13 @@
                 
                 if (targetPage) {
                     targetPage.style.display = 'block';
+                    targetPage.style.pointerEvents = 'auto'; // 恢复点击
                     setTimeout(() => {
                         targetPage.classList.add('active');
                         window.scrollTo({ top: 0, behavior: 'smooth' });
+                        
+                        // 恢复body滚动
+                        document.body.style.overflow = '';
                         
                         setTimeout(() => {
                             applyStaggerAnimation();
@@ -2768,16 +2793,31 @@
             document.body.style.overflow = '';
         }
 
+        /* 修改：优化加载页面隐藏逻辑 */
         function hideLoading() {
             const loading = document.getElementById('loading');
+            const spinner = loading.querySelector('.loading-spinner');
+            const loadingText = loading.querySelector('.loading-text');
+            const loadingCheck = loading.querySelector('.loading-check');
+            const loadingSubtext = loading.querySelector('.loading-subtext');
+            
+            // 2秒后显示验证成功（转两圈的时间）
             setTimeout(() => {
-                loading.classList.add('hide');
+                spinner.style.display = 'none';
+                loadingText.textContent = '已验证安全';
+                loadingSubtext.textContent = '验证完成，正在加载界面...';
+                loadingCheck.style.display = 'block';
+                
+                // 再延迟0.8秒后隐藏整个加载页面
                 setTimeout(() => {
-                    loading.style.display = 'none';
-                    particleNetwork = new ParticleNetwork();
-                    document.getElementById('musicPlayer').classList.add('show');
-                }, 500);
-            }, 800);
+                    loading.classList.add('hide');
+                    setTimeout(() => {
+                        loading.style.display = 'none';
+                        particleNetwork = new ParticleNetwork();
+                        document.getElementById('musicPlayer').classList.add('show');
+                    }, 500);
+                }, 800);
+            }, 2000); // 2秒 = 转两圈的时间
         }
 
         function setupMusicPlayer() {
