@@ -112,7 +112,7 @@
             will-change: transform;
         }
 
-        /* ===== 修改：全新的加载页面样式 - 白色主题 ===== */
+        /* ===== 全新的加载页面样式 - 白色主题 ===== */
         .loading {
             position: fixed;
             top: 0;
@@ -140,12 +140,12 @@
             max-width: 90%;
         }
 
-        /* 修改：移除盾牌图标 */
+        /* 移除盾牌图标 */
         .loading-shield {
             display: none;
         }
 
-        /* 修改：添加旋转圈圈样式 */
+        /* 添加旋转圈圈样式 */
         .loading-spinner {
             width: 70px;
             height: 70px;
@@ -163,25 +163,7 @@
             100% { transform: rotate(720deg); opacity: 1; } /* 两圈 = 720度 */
         }
 
-        /* 修改：文字样式调整为深色 */
-        .loading-text {
-            color: #1a1a2e;
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: var(--spacing-sm);
-            transition: var(--transition-normal);
-            will-change: transform;
-            letter-spacing: 0.02em;
-        }
-
-        .loading-subtext {
-            color: #718096;
-            font-size: 1rem;
-            margin-top: var(--spacing-sm);
-            opacity: 0.8;
-        }
-
-        /* 修改：优化打勾动画 */
+        /* 优化打勾动画 */
         .loading-check {
             display: none; /* 初始隐藏 */
             width: 70px;
@@ -216,6 +198,23 @@
         @keyframes checkMark {
             0% { opacity: 0; transform: translate(-50%, -50%) scale(0) rotate(-20deg); }
             100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
+        }
+
+        .loading-text {
+            color: #1a1a2e;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+            transition: var(--transition-normal);
+            will-change: transform;
+            letter-spacing: 0.02em;
+        }
+
+        .loading-subtext {
+            color: #718096;
+            font-size: 1rem;
+            margin-top: var(--spacing-sm);
+            opacity: 0.8;
         }
 
         .navbar {
@@ -320,7 +319,7 @@
             transform: scale(1.05);
         }
 
-        /* 修改：确保页面切换时正确隐藏 */
+        /* 确保页面切换时正确隐藏 */
         .page {
             display: none; 
             flex: 1;
@@ -367,6 +366,7 @@
                 radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
                 radial-gradient(circle at 80% 70%, rgba(240, 147, 251, 0.15) 0%, transparent 50%);
             animation: heroPulse 8s ease-in-out infinite;
+            z-index: 1;
         }
         
         @keyframes heroPulse {
@@ -437,6 +437,46 @@
             color: rgba(255, 255, 255, 0.85);
             margin-bottom: 1.5rem;
             animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        /* 安全运行时间样式 */
+        .uptime-display {
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-sm) var(--spacing-md);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            animation: fadeInUp 1s ease-out 0.6s both;
+            transition: var(--transition-normal);
+            justify-content: center;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        .uptime-display:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .uptime-icon {
+            font-size: 1.2rem;
+            color: var(--success);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
         }
 
         .ua-display {
@@ -943,6 +983,25 @@
                 font-size: clamp(1.8rem, 6vw, 2.5rem);
             }
 
+            .time-date {
+                font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            }
+
+            .uptime-display {
+                font-size: clamp(0.8rem, 2vw, 0.95rem);
+                padding: var(--spacing-xs) var(--spacing-sm);
+            }
+
+            .ua-display {
+                font-size: clamp(0.8rem, 2vw, 0.95rem);
+                padding: var(--spacing-xs) var(--spacing-sm);
+            }
+
+            .stn-studio-display {
+                padding: 0.8rem 1.5rem;
+                font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+            }
+
             .homework-grid {
                 grid-template-columns: 1fr;
                 gap: var(--spacing-md);
@@ -981,14 +1040,17 @@
                 font-size: clamp(0.9rem, 2.5vw, 1.1rem);
             }
 
+            .uptime-display {
+                font-size: clamp(0.75rem, 2vw, 0.9rem);
+            }
+
             .ua-display {
-                padding: var(--spacing-xs) var(--spacing-sm);
                 font-size: clamp(0.8rem, 2vw, 0.95rem);
             }
 
             .stn-studio-display {
-                padding: 0.8rem 1.5rem;
-                font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+                padding: 0.6rem 1.2rem;
+                font-size: clamp(0.9rem, 2.5vw, 1.1rem);
             }
 
             .homework-card {
@@ -1283,11 +1345,6 @@
             animation: pulse 1s ease-in-out infinite;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 0.5; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
-
         .lyrics-progress {
             position: absolute;
             bottom: 0;
@@ -1410,7 +1467,7 @@
             box-shadow: var(--shadow-xl), 0 0 30px rgba(102, 126, 234, 0.6);
         }
 
-        /* ===== 密码验证弹窗样式 ===== */
+        /* 密码验证弹窗样式 */
         .password-modal-overlay {
             position: fixed;
             top: 0;
@@ -1702,7 +1759,7 @@
 <body>
     <canvas id="particles-canvas"></canvas>
 
-    <!-- 修改：全新的加载页面结构 -->
+    <!-- 全新的加载页面结构 -->
     <div class="loading" id="loading">
         <div class="loading-content">
             <div class="loading-spinner" id="loadingSpinner"></div>
@@ -1736,6 +1793,10 @@
                     <h1>GLcn Hello</h1>
                     <div id="beijingTime"></div>
                     <div class="time-date" id="beijingDate"></div>
+                    <div class="uptime-display" id="uptimeDisplay">
+                        <i class="fas fa-shield-alt uptime-icon"></i>
+                        <span id="uptimeText">安全运行时间：计算中...</span>
+                    </div>
                     <div class="ua-display" id="uaDisplay">
                         <i class="fas fa-device ua-icon" id="uaIcon"></i>
                         <span id="uaText">当前访问UA：检测中...</span>
@@ -2241,6 +2302,23 @@
             uaText.textContent = `当前访问UA：${deviceType}`;
             uaIcon.className = `fas ${iconClass} ua-icon ${deviceClass}`;
             uaDisplay.style.animation = 'fadeInUp 0.8s ease-out 1s both';
+        }
+
+        // 安全运行时间功能
+        function updateUptime() {
+            const startTime = new Date('2025-12-18T18:00:00');
+            const now = new Date();
+            const diff = now - startTime;
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            const uptimeText = document.getElementById('uptimeText');
+            if (uptimeText) {
+                uptimeText.textContent = `安全运行时间：${days}天 ${hours}小时 ${minutes}分钟 ${seconds}秒`;
+            }
         }
 
         const homeworkData = {
@@ -3181,6 +3259,9 @@
             // 定时更新时间
             setInterval(updateBeijingTime, 1000);
             
+            // 定时更新安全运行时间
+            setInterval(updateUptime, 1000);
+            
             // 检查锁定状态
             if (passwordSystem.checkLockStatus()) {
                 // 如果已锁定，禁用作业页面访问
@@ -3237,6 +3318,7 @@
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 updateBeijingTime();
+                updateUptime();
             }
         });
     </script>
