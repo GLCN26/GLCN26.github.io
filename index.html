@@ -651,36 +651,6 @@
             line-height: 1.6;
         }
 
-        /* 声明内容区域样式 */
-        .declaration-content {
-            color: var(--text-light);
-            line-height: 1.8;
-            text-align: left;
-            margin-top: var(--spacing-md);
-            padding: var(--spacing-md);
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: var(--border-radius);
-            border-left: 4px solid var(--primary);
-        }
-
-        .declaration-content p {
-            margin-bottom: var(--spacing-sm);
-        }
-
-        .declaration-content strong {
-            color: var(--accent);
-            font-weight: 600;
-        }
-
-        .declaration-highlight {
-            background: rgba(102, 126, 234, 0.1);
-            padding: var(--spacing-sm);
-            border-radius: var(--border-radius-sm);
-            margin-top: var(--spacing-md);
-            border-left: 3px solid var(--accent);
-            font-style: italic;
-        }
-
         .homework-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -1506,6 +1476,298 @@
             box-shadow: var(--shadow-xl), 0 0 30px rgba(102, 126, 234, 0.6);
         }
 
+        /* 密码验证弹窗 */
+        .password-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition-normal);
+        }
+
+        .password-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .password-modal-content {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl);
+            max-width: 450px;
+            width: 90%;
+            transform: scale(0.9) translateY(30px);
+            transition: var(--transition-bounce);
+            position: relative;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .password-modal-overlay.active .password-modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .password-modal-header {
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .password-modal-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: var(--spacing-sm);
+            position: relative;
+        }
+
+        .password-modal-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 2px;
+        }
+
+        .password-modal-subtitle {
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-top: var(--spacing-md);
+        }
+
+        .password-input-group {
+            margin-bottom: var(--spacing-lg);
+            position: relative;
+        }
+
+        .password-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: var(--spacing-md);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--white);
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: var(--transition-normal);
+            letter-spacing: 0.1em;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .password-input::placeholder {
+            color: var(--text-muted);
+            letter-spacing: normal;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: var(--spacing-sm);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: var(--spacing-xs);
+            font-size: 1.1rem;
+            transition: var(--transition-normal);
+            z-index: 1;
+        }
+
+        .password-toggle:hover {
+            color: var(--accent);
+            transform: scale(1.1);
+        }
+
+        .password-error {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: var(--spacing-sm);
+            display: none;
+            font-weight: 500;
+            text-align: center;
+            padding: var(--spacing-xs);
+            background: rgba(248, 113, 113, 0.1);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .password-error.show {
+            display: block;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .password-attempts {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: var(--spacing-xs);
+            text-align: center;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .password-modal-footer {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .password-button {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            min-width: 120px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .password-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: var(--transition-slow);
+        }
+
+        .password-button:hover::before {
+            left: 100%;
+        }
+
+        .password-button-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+        }
+
+        .password-button-primary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: var(--shadow-glow), 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .password-button-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .password-button-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--white);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .password-hint {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: var(--spacing-md);
+            font-style: italic;
+        }
+
+        .password-success {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: var(--success);
+            color: white;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            opacity: 0;
+            transition: var(--transition-bounce);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .password-success.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .password-success::before {
+            content: '✓';
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .password-modal-content {
+                padding: var(--spacing-lg);
+                max-width: 90%;
+            }
+
+            .password-modal-title {
+                font-size: 1.5rem;
+            }
+
+            .password-modal-footer {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .password-button {
+                width: 100%;
+                min-width: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .password-modal-content {
+                padding: var(--spacing-md);
+            }
+
+            .password-modal-title {
+                font-size: 1.3rem;
+            }
+
+            .password-input {
+                font-size: 1rem;
+                padding: var(--spacing-sm);
+            }
+        }
+
+        body.password-modal-open {
+            overflow: hidden;
+        }
+
         /* ===== 更新历史页面样式 ===== */
         .history-content {
             display: flex;
@@ -1804,7 +2066,6 @@
                 <li data-page="announcement">公告</li>
                 <li data-page="history">更新历史</li>
                 <li data-page="homework">作业</li>
-                <li data-page="declaration">声明</li>
             </ul>
             <button class="mobile-toggle" id="mobileToggle" aria-label="打开菜单">
                 <i class="fas fa-bars"></i>
@@ -1972,26 +2233,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="page" data-page="declaration" id="page-declaration">
-            <div class="announcement-content">
-                <div class="content-section">
-                    <div class="feature-card stagger-fade-in">
-                        <div class="feature-icon">
-                            <i class="fas fa-gavel"></i>
-                        </div>
-                        <h3 class="feature-title">声明</h3>
-                        <div class="declaration-content">
-                            <p><strong>根据《互联网信息服务管理办法》：</strong></p>
-                            <p>GitHub Pages的服务器位于境外（美国），因此无需进行ICP备案。</p>
-                            <p class="declaration-highlight">
-                                "因此，使用中国大陆境内的服务器提供web服务必须进行ICP备案，github page服务器在国外，则不需要进行ICP备案。"
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <div class="music-player" id="musicPlayer">
@@ -2020,6 +2261,48 @@
             <div class="modal-footer">
                 <button class="modal-button" id="modalButton">知道了</button>
             </div>
+        </div>
+    </div>
+
+    <!-- 密码验证弹窗 - 密码隐藏在JavaScript中 -->
+    <div class="password-modal-overlay" id="passwordModal">
+        <div class="password-modal-content">
+            <div class="password-success" id="passwordSuccess">
+                验证成功！
+            </div>
+            <div class="password-modal-header">
+                <h2 class="password-modal-title">验证测试码</h2>
+                <p class="password-modal-subtitle">请输入密码以访问内容</p>
+            </div>
+            <div class="password-input-group">
+                <div class="password-input-wrapper">
+                    <input type="password" 
+                           class="password-input" 
+                           id="passwordInput" 
+                           placeholder="请输入密码"
+                           maxlength="20"
+                           autocomplete="off">
+                    <button class="password-toggle" id="passwordToggle" aria-label="显示/隐藏密码">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div class="password-error" id="passwordError">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>密码错误，请重试</span>
+                </div>
+                <div class="password-attempts" id="passwordAttempts"></div>
+            </div>
+            <div class="password-modal-footer">
+                <button class="password-button password-button-secondary" id="passwordExit">
+                    <i class="fas fa-sign-out-alt"></i>
+                    退出
+                </button>
+                <button class="password-button password-button-primary" id="passwordConfirm">
+                    <i class="fas fa-check"></i>
+                    确认
+                </button>
+            </div>
+            <p class="password-hint">提示：正在测试</p>
         </div>
     </div>
 
@@ -2075,8 +2358,7 @@
                         radius: Math.random() * 2 + 1,
                         opacity: Math.random() * 0.5 + 0.2,
                         originalRadius: Math.random() * 2 + 1,
-                        originalOpacity: Math.random() * 0.5 + 2,
-                        isClick,
+                        originalOpacity: Math.random() * 0.5 + 0.2,
                         isClickEffect: false,
                         isRipple: false,
                         life: 0
