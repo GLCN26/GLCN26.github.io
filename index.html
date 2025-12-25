@@ -2436,7 +2436,7 @@
         };
 
         // ===== 密码配置 - 测试功能 =====
-        // 当前测试密码是 2525CN
+        // 当前测试密码是 2525CN（不区分大小写）
         const PASSWORD_CONFIG = {
             // 测试密码（实际项目中应该从服务器获取）
             password: '2525CN',
@@ -2561,7 +2561,8 @@
                     return;
                 }
                 
-                if (inputPassword === PASSWORD_CONFIG.password) {
+                // 修改：不区分大小写的密码验证
+                if (inputPassword.toLowerCase() === PASSWORD_CONFIG.password.toLowerCase()) {
                     // 验证成功
                     this.onSuccess();
                 } else {
@@ -2882,7 +2883,7 @@
             // 2秒后显示验证成功（转两圈的时间）
             setTimeout(() => {
                 spinner.style.display = 'none';
-                loadingText.textContent = '已验证安全Version1.23';
+                loadingText.textContent = '已验证安全Version1.24';
                 loadingSubtext.textContent = '验证完成，正在加载界面...';
                 loadingCheck.style.display = 'block';
                 
@@ -3361,7 +3362,7 @@
             // 定时更新安全运行时间
             setInterval(updateUptime, 1000);
             
-            // 定期检查是否需要重新同步服务器时间（每5分钟检查）
+            // 定期检查是否需要重新同步服务器时间（每5分钟检查一次）
             setInterval(async () => {
                 if (serverTimeManager.shouldResync()) {
                     console.log('重新同步服务器时间...');
