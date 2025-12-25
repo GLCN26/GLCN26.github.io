@@ -112,7 +112,7 @@
             will-change: transform;
         }
 
-        /* ===== 全新的加载页面样式 - 白色主题 ===== */
+        /* ===== 新的加载页面样式 - 白色主题 ===== */
         .loading {
             position: fixed;
             top: 0;
@@ -140,19 +140,17 @@
             max-width: 90%;
         }
 
-        /* 移除盾牌图标 */
         .loading-shield {
             display: none;
         }
 
-        /* 添加旋转圈圈样式 */
         .loading-spinner {
             width: 70px;
             height: 70px;
             border: 4px solid rgba(26, 26, 46, 0.08);
             border-top: 4px solid #6d7aea;
             border-radius: 50%;
-            animation: spin 2s linear 2; /* 转两圈 */
+            animation: spin 2s linear 2;
             margin: 0 auto var(--spacing-lg);
             position: relative;
             box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
@@ -160,12 +158,11 @@
 
         @keyframes spin {
             0% { transform: rotate(0deg); opacity: 1; }
-            100% { transform: rotate(720deg); opacity: 1; } /* 两圈 = 720度 */
+            100% { transform: rotate(720deg); opacity: 1; }
         }
 
-        /* 优化打勾动画 */
         .loading-check {
-            display: none; /* 初始隐藏 */
+            display: none;
             width: 70px;
             height: 70px;
             border: 4px solid var(--success);
@@ -333,7 +330,6 @@
             white-space: nowrap;
         }
 
-        /* 确保页面切换时正确隐藏 */
         .page {
             display: none; 
             flex: 1;
@@ -341,8 +337,8 @@
             opacity: 0;
             transform: translateY(20px);
             transition: var(--transition-slow);
-            height: auto; /* 修复高度问题 */
-            min-height: calc(100vh - 70px); /* 确保最小高度 */
+            height: auto;
+            min-height: calc(100vh - 70px);
         }
         
         .page.active { 
@@ -453,7 +449,6 @@
             animation: fadeInUp 1s ease-out 0.3s both;
         }
 
-        /* 安全运行时间样式 */
         .uptime-display {
             font-size: clamp(0.9rem, 2.5vw, 1.1rem);
             color: rgba(255, 255, 255, 0.8);
@@ -593,7 +588,7 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: var(--spacing-lg) 0;
-            min-height: calc(100vh - 400px);
+            min-height: calc(100vh - 300px);
         }
 
         .feature-card {
@@ -1139,7 +1134,7 @@
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 2552, 255, 0.2);
             color: var(--white);
             font-size: 1.5rem;
             cursor: pointer;
@@ -1481,7 +1476,7 @@
             box-shadow: var(--shadow-xl), 0 0 30px rgba(102, 126, 234, 0.6);
         }
 
-        /* 密码验证弹窗样式 */
+        /* 密码验证弹窗 */
         .password-modal-overlay {
             position: fixed;
             top: 0;
@@ -1628,6 +1623,13 @@
             animation: shake 0.5s ease-in-out;
         }
 
+        .password-attempts {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: var(--spacing-xs);
+            text-align: center;
+        }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
@@ -1699,7 +1701,6 @@
             font-style: italic;
         }
 
-        /* 验证成功提示 */
         .password-success {
             position: absolute;
             top: 50%;
@@ -1727,7 +1728,6 @@
             font-size: 1.2rem;
         }
 
-        /* 响应式设计 */
         @media (max-width: 768px) {
             .password-modal-content {
                 padding: var(--spacing-lg);
@@ -1764,16 +1764,288 @@
             }
         }
 
-        /* 禁用页面滚动当弹窗打开时 */
         body.password-modal-open {
             overflow: hidden;
+        }
+
+        /* ===== 更新历史页面样式 ===== */
+        .history-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--spacing-lg) 0;
+            min-height: calc(100vh - 300px);
+        }
+
+        .history-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-lg) 0;
+            width: 100%;
+        }
+
+        .history-timeline {
+            position: relative;
+            padding-left: var(--spacing-lg);
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 800px;
+        }
+
+        .history-timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: linear-gradient(to bottom, var(--primary), var(--accent));
+            border-radius: 2px;
+        }
+
+        .history-item {
+            position: relative;
+            margin-bottom: var(--spacing-xl);
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: slideInLeft 0.6s ease-out forwards;
+        }
+
+        .history-item:nth-child(even) {
+            animation: slideInRight 0.6s ease-out forwards;
+        }
+
+        @keyframes slideInLeft {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .history-item::before {
+            content: '';
+            position: absolute;
+            left: -2.5rem;
+            top: 1.5rem;
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border: 3px solid var(--dark);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--primary);
+            z-index: 1;
+            transition: var(--transition-normal);
+        }
+
+        .history-item:hover::before {
+            transform: scale(1.2);
+            box-shadow: 0 0 15px var(--accent);
+            background: var(--accent);
+        }
+
+        .history-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg);
+            transition: var(--transition-bounce);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        .history-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl), var(--shadow-glow);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .history-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+            transition: var(--transition-slow);
+        }
+
+        .history-card:hover::before {
+            left: 100%;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+        }
+
+        .history-date {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .history-date i {
+            font-size: 0.9rem;
+            color: var(--primary);
+        }
+
+        .history-version {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--white);
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .history-changes {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .history-change {
+            padding: var(--spacing-xs) 0;
+            color: var(--text-light);
+            position: relative;
+            padding-left: var(--spacing-md);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .history-change::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .history-change:not(:last-child) {
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+        }
+
+        .history-banner {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+            padding: var(--spacing-lg);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .history-banner-icon {
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: var(--spacing-md);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .history-banner-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .history-banner-subtitle {
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .history-timeline {
+                padding-left: var(--spacing-md);
+            }
+
+            .history-item::before {
+                left: -2rem;
+                width: 14px;
+                height: 14px;
+            }
+
+            .history-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .history-version {
+                align-self: flex-start;
+            }
+
+            .history-banner {
+                margin: 0 var(--spacing-sm) var(--spacing-lg);
+                padding: var(--spacing-md);
+            }
+
+            .history-banner-title {
+                font-size: 1.5rem;
+            }
+
+            .history-banner-icon {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .history-timeline {
+                padding-left: var(--spacing-sm);
+            }
+
+            .history-item::before {
+                left: -1.8rem;
+                width: 12px;
+                height: 12px;
+            }
+
+            .history-card {
+                padding: var(--spacing-md);
+            }
+
+            .history-date {
+                font-size: 1rem;
+            }
+
+            .history-change {
+                font-size: 0.85rem;
+            }
         }
     </style>
 </head>
 <body>
     <canvas id="particles-canvas"></canvas>
 
-    <!-- 全新的加载页面结构 -->
+    <!-- 加载页面 -->
     <div class="loading" id="loading">
         <div class="loading-content">
             <div class="loading-spinner" id="loadingSpinner"></div>
@@ -1792,6 +2064,7 @@
             <ul class="nav-menu" id="navMenu">
                 <li data-page="home" class="active">首页</li>
                 <li data-page="announcement">公告</li>
+                <li data-page="history">更新历史</li>
                 <li data-page="homework">作业</li>
             </ul>
             <button class="mobile-toggle" id="mobileToggle" aria-label="打开菜单">
@@ -1864,6 +2137,24 @@
             </div>
         </div>
 
+        <div class="page" data-page="history" id="page-history">
+            <div class="history-content">
+                <div class="history-container">
+                    <div class="history-banner stagger-fade-in">
+                        <div class="history-banner-icon">
+                            <i class="fas fa-code-branch"></i>
+                        </div>
+                        <h2 class="history-banner-title">更新历史</h2>
+                        <p class="history-banner-subtitle">记录每一次进步的足迹</p>
+                    </div>
+                    
+                    <div class="history-timeline" id="historyTimeline">
+                        <!-- 更新历史内容将通过JavaScript动态渲染 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="page" data-page="homework" id="page-homework">
             <div class="homework-content">
                 <div class="homework-container">
@@ -1891,7 +2182,7 @@
                             </div>
                             <h4 class="homework-title">数学作业</h4>
                             <p class="homework-subtitle">暂无</p>
-                            <span class="homework-status pending">12月24日</span>
+                            <span class="homework-status pending">未更新</span>
                         </div>
 
                         <div class="homework-card english stagger-fade-in" data-subject="english">
@@ -1950,7 +2241,7 @@
         </button>
     </div>
 
-    <audio id="bgMusic" loop>
+    <audio id="bgMusic" loop preload="none">
         <source src="音乐.mp3" type="audio/mpeg">
     </audio>
 
@@ -1973,7 +2264,7 @@
         </div>
     </div>
 
-    <!-- 密码验证弹窗 - 新增功能 -->
+    <!-- 密码验证弹窗 - 密码隐藏在JavaScript中 -->
     <div class="password-modal-overlay" id="passwordModal">
         <div class="password-modal-content">
             <div class="password-success" id="passwordSuccess">
@@ -1999,6 +2290,7 @@
                     <i class="fas fa-exclamation-circle"></i>
                     <span>密码错误，请重试</span>
                 </div>
+                <div class="password-attempts" id="passwordAttempts"></div>
             </div>
             <div class="password-modal-footer">
                 <button class="password-button password-button-secondary" id="passwordExit">
@@ -2026,12 +2318,13 @@
                 this.canvas = document.getElementById('particles-canvas');
                 this.ctx = this.canvas.getContext('2d');
                 this.particles = [];
-                this.mouse = { x: 0, y: 0 };
+                this.mouse = { x: -1000, y: -1000 };
                 this.animationId = null;
                 this.mouseTrail = [];
                 this.lastMouseTime = Date.now();
                 this.lastFrameTime = 0;
                 this.clickEffects = [];
+                this.isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                 
                 this.init();
                 this.createParticles();
@@ -2046,11 +2339,15 @@
                 window.addEventListener('resize', () => {
                     this.canvas.width = window.innerWidth;
                     this.canvas.height = window.innerHeight;
+                    this.particles = [];
+                    this.createParticles();
                 });
             }
             
             createParticles() {
-                const particleCount = Math.min(120, Math.floor((window.innerWidth * window.innerHeight) / 8000));
+                const isMobile = window.innerWidth <= 768;
+                const baseCount = isMobile ? 60 : 100;
+                const particleCount = Math.min(baseCount, Math.floor((window.innerWidth * window.innerHeight) / 10000));
                 
                 for (let i = 0; i < particleCount; i++) {
                     this.particles.push({
@@ -2061,13 +2358,16 @@
                         radius: Math.random() * 2 + 1,
                         opacity: Math.random() * 0.5 + 0.2,
                         originalRadius: Math.random() * 2 + 1,
-                        originalOpacity: Math.random() * 0.5 + 0.2
+                        originalOpacity: Math.random() * 0.5 + 0.2,
+                        isClickEffect: false,
+                        isRipple: false,
+                        life: 0
                     });
                 }
             }
             
             bindEvents() {
-                window.addEventListener('mousemove', (e) => {
+                const updateMouse = (e) => {
                     this.mouse.x = e.clientX;
                     this.mouse.y = e.clientY;
                     
@@ -2080,12 +2380,12 @@
                             this.mouseTrail.shift();
                         }
                     }
-                });
-                
+                };
+
+                window.addEventListener('mousemove', updateMouse);
                 window.addEventListener('touchmove', (e) => {
                     if (e.touches.length > 0) {
-                        this.mouse.x = e.touches[0].clientX;
-                        this.mouse.y = e.touches[0].clientY;
+                        updateMouse(e.touches[0]);
                     }
                 });
                 
@@ -2099,6 +2399,14 @@
                     this.mouse.x = -1000;
                     this.mouse.y = -1000;
                     this.mouseTrail = [];
+                });
+
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        this.stop();
+                    } else {
+                        this.start();
+                    }
                 });
             }
             
@@ -2116,11 +2424,12 @@
                         originalRadius: Math.random() * 3 + 2,
                         originalOpacity: 0.9,
                         isClickEffect: true,
+                        isRipple: false,
                         life: 80
                     });
                 }
                 
-                for (let i = 0; i < 15; i++) {
+                for (let i = 0; i < 12; i++) {
                     const angle = Math.random() * Math.PI * 2;
                     const distance = Math.random() * 30 + 10;
                     this.particles.push({
@@ -2133,16 +2442,22 @@
                         originalRadius: 1,
                         originalOpacity: 0.6,
                         isRipple: true,
+                        isClickEffect: false,
                         life: 40
                     });
                 }
             }
             
             animate() {
+                if (this.isReducedMotion) {
+                    this.animationId = setTimeout(() => this.animate(), 100);
+                } else {
+                    this.animationId = requestAnimationFrame(() => this.animate());
+                }
+
                 const now = Date.now();
                 const deltaTime = now - (this.lastFrameTime || 0);
-                if (deltaTime < 16) {
-                    this.animationId = requestAnimationFrame(() => this.animate());
+                if (deltaTime < 16 && !this.isReducedMotion) {
                     return;
                 }
                 this.lastFrameTime = now;
@@ -2163,13 +2478,11 @@
                     this.ctx.stroke();
                 }
                 
-                this.particles.forEach((particle, i) => {
+                this.particles = this.particles.filter(particle => {
                     if (particle.isClickEffect || particle.isRipple) {
                         particle.life--;
                         if (particle.life <= 0) {
-                            this.particles.splice(i, 1);
-                            i--;
-                            return;
+                            return false;
                         }
                     }
                     
@@ -2183,7 +2496,7 @@
                     const dy = this.mouse.y - particle.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
-                    if (distance < 150) {
+                    if (distance < 150 && distance > 0) {
                         if (distance < 30) {
                             const force = (30 - distance) / 30 * 0.025;
                             particle.x -= dx * force;
@@ -2236,9 +2549,9 @@
                         this.ctx.shadowBlur = 0;
                     }
                     
-                    if (!particle.isRipple) {
-                        this.particles.forEach((otherParticle, j) => {
-                            if (i !== j && !otherParticle.isRipple) {
+                    if (!this.isReducedMotion && !particle.isRipple) {
+                        this.particles.forEach((otherParticle) => {
+                            if (particle !== otherParticle && !otherParticle.isRipple) {
                                 const dx2 = otherParticle.x - particle.x;
                                 const dy2 = otherParticle.y - particle.y;
                                 const distance2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
@@ -2255,15 +2568,30 @@
                             }
                         });
                     }
+                    
+                    return true;
                 });
-                
-                this.animationId = requestAnimationFrame(() => this.animate());
+            }
+            
+            start() {
+                if (!this.animationId) {
+                    this.animate();
+                }
+            }
+            
+            stop() {
+                if (this.animationId) {
+                    if (this.isReducedMotion) {
+                        clearTimeout(this.animationId);
+                    } else {
+                        cancelAnimationFrame(this.animationId);
+                    }
+                    this.animationId = null;
+                }
             }
             
             destroy() {
-                if (this.animationId) {
-                    cancelAnimationFrame(this.animationId);
-                }
+                this.stop();
             }
         }
 
@@ -2318,7 +2646,6 @@
             uaDisplay.style.animation = 'fadeInUp 0.8s ease-out 1s both';
         }
 
-        // 安全运行时间功能
         function updateUptime() {
             const startTime = new Date('2025-12-18T18:00:00');
             const now = new Date();
@@ -2359,8 +2686,8 @@
                 content: {
                     subject: '数学',
                     teacher: '殷老师',
-                    deadline: '2025-12-24日',
-                    status: '已更新',
+                    deadline: '2025-12-00日',
+                    status: '未更新',
                     description: '暂无。',
                     requirements: [
                         '暂无。'
@@ -2450,19 +2777,78 @@
             }
         };
 
-        // ===== 密码配置 - 测试功能 =====
-        // 当前测试密码是 2525CN（不区分大小写）
-        const PASSWORD_CONFIG = {
-            // 测试密码（实际项目中应该从服务器获取）
-            password: '2525CN',
-            // 最大尝试次数
-            maxAttempts: 3,
-            // 锁定时间（分钟）
-            lockTime: 5
-        };
+        // 更新历史数据 - 按时间倒序排列
+        const updateHistory = [
+            {
+                date: '2025-12-25',
+                version: 'Version1.26',
+                changes: ['哈希算法修改']
+            },
+            {
+                date: '2025-12-25',
+                version: 'Version1.24',
+                changes: ['导航栏优化']
+            },
+            {
+                date: '2025-12-24',
+                version: 'Version1.19',
+                changes: ['API北京时间修复']
+            },
+            {
+                date: '2025-12-24',
+                version: 'Version1.17',
+                changes: ['修复安全访问问题']
+            },
+            {
+                date: '2025-12-23',
+                version: 'Version1.15',
+                changes: ['新增安全时间']
+            },
+            {
+                date: '2025-12-23',
+                version: 'Version1.14',
+                changes: ['修改优化过渡动画']
+            },
+            {
+                date: '2025-12-22',
+                version: 'Version1.12',
+                changes: ['新增测试码功能']
+            },
+            {
+                date: '2025-12-21',
+                version: 'Version1.1',
+                changes: ['新增歌词Lrc显示']
+            },
+            {
+                date: '2025-12-21',
+                version: 'Version1.09',
+                changes: ['新增音乐播放器']
+            },
+            {
+                date: '2025-12-21',
+                version: 'Version1.07',
+                changes: ['粒子版本上线']
+            },
+            {
+                date: '2025-12-20',
+                version: 'Version1.05',
+                changes: ['UI优化大版本']
+            },
+            {
+                date: '2025-12-18',
+                version: 'Version1.0',
+                changes: ['18:00正式测试']
+            }
+        ];
 
+        // 密码验证系统 - 密码隐藏在代码内部，不区分大小写
         class PasswordVerificationSystem {
             constructor() {
+                // ===== 密码设置：2525CN（不区分大小写）=====
+                this.CORRECT_PASSWORD = '2525CN';
+                this.MAX_ATTEMPTS = 3;
+                this.LOCK_TIME = 5; // 分钟
+
                 this.modal = document.getElementById('passwordModal');
                 this.input = document.getElementById('passwordInput');
                 this.toggle = document.getElementById('passwordToggle');
@@ -2470,6 +2856,7 @@
                 this.exitBtn = document.getElementById('passwordExit');
                 this.error = document.getElementById('passwordError');
                 this.success = document.getElementById('passwordSuccess');
+                this.attemptsDisplay = document.getElementById('passwordAttempts');
                 
                 this.attempts = 0;
                 this.isLocked = false;
@@ -2479,7 +2866,6 @@
             }
             
             init() {
-                // 密码可见性切换
                 this.toggle.addEventListener('click', () => {
                     const type = this.input.getAttribute('type');
                     const icon = this.toggle.querySelector('i');
@@ -2492,45 +2878,36 @@
                         icon.className = 'fas fa-eye';
                     }
                     
-                    // 保持焦点在输入框
                     this.input.focus();
                 });
                 
-                // 确认按钮
                 this.confirmBtn.addEventListener('click', () => {
                     this.verifyPassword();
                 });
                 
-                // 退出按钮
                 this.exitBtn.addEventListener('click', () => {
                     this.hide();
-                    // 返回首页
                     navigateTo('home');
                 });
                 
-                // 输入框回车确认
                 this.input.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
                         this.verifyPassword();
                     }
                 });
                 
-                // 输入框输入时隐藏错误提示
                 this.input.addEventListener('input', () => {
                     this.hideError();
                 });
                 
-                // 点击遮罩层不关闭（必须验证）
                 this.modal.addEventListener('click', (e) => {
                     if (e.target === this.modal) {
-                        // 添加轻微震动效果
                         this.shakeModal();
                     }
                 });
             }
             
             show() {
-                // 检查是否锁定
                 if (this.checkLockStatus()) {
                     this.showLockMessage();
                     return;
@@ -2539,15 +2916,13 @@
                 this.modal.classList.add('active');
                 document.body.classList.add('password-modal-open');
                 
-                // 重置状态
                 this.reset();
+                this.updateAttemptsDisplay();
                 
-                // 聚焦输入框
                 setTimeout(() => {
                     this.input.focus();
                 }, 300);
                 
-                // 防止页面滚动
                 document.body.style.overflow = 'hidden';
             }
             
@@ -2555,8 +2930,6 @@
                 this.modal.classList.remove('active');
                 document.body.classList.remove('password-modal-open');
                 document.body.style.overflow = '';
-                
-                // 重置输入
                 this.reset();
             }
             
@@ -2566,6 +2939,7 @@
                 this.hideSuccess();
                 this.input.setAttribute('type', 'password');
                 this.toggle.querySelector('i').className = 'fas fa-eye';
+                this.setInputDisabled(false);
             }
             
             verifyPassword() {
@@ -2576,12 +2950,10 @@
                     return;
                 }
                 
-                // 修改：不区分大小写的密码验证
-                if (inputPassword.toLowerCase() === PASSWORD_CONFIG.password.toLowerCase()) {
-                    // 验证成功
+                // 不区分大小写比较
+                if (inputPassword.toLowerCase() === this.CORRECT_PASSWORD.toLowerCase()) {
                     this.onSuccess();
                 } else {
-                    // 验证失败
                     this.onError();
                 }
             }
@@ -2589,20 +2961,13 @@
             onSuccess() {
                 this.hideError();
                 this.showSuccess();
-                
-                // 禁用输入和按钮
                 this.setInputDisabled(true);
                 
-                // 延迟关闭并进入作业页面
                 setTimeout(() => {
                     this.hide();
-                    // 显示作业页面
                     navigateTo('homework');
-                    // 重置验证状态
                     this.attempts = 0;
                     this.setInputDisabled(false);
-                    
-                    // 确保body的overflow被正确设置
                     document.body.style.overflow = '';
                 }, 800);
             }
@@ -2610,16 +2975,23 @@
             onError() {
                 this.attempts++;
                 this.showError('密码错误，请重试');
-                
-                // 震动输入框
                 this.shakeInput();
-                
-                // 清空输入
                 this.input.value = '';
+                this.updateAttemptsDisplay();
                 
-                // 检查是否达到最大尝试次数
-                if (this.attempts >= PASSWORD_CONFIG.maxAttempts) {
+                if (this.attempts >= this.MAX_ATTEMPTS) {
                     this.lockSystem();
+                }
+            }
+            
+            updateAttemptsDisplay() {
+                const remaining = this.MAX_ATTEMPTS - this.attempts;
+                if (remaining > 0) {
+                    this.attemptsDisplay.textContent = `剩余尝试次数：${remaining}次`;
+                    this.attemptsDisplay.style.color = remaining === 1 ? 'var(--danger)' : 'var(--text-muted)';
+                } else {
+                    this.attemptsDisplay.textContent = '已达到最大尝试次数';
+                    this.attemptsDisplay.style.color = 'var(--danger)';
                 }
             }
             
@@ -2661,26 +3033,17 @@
                 this.exitBtn.disabled = disabled;
                 this.toggle.disabled = disabled;
                 
-                if (disabled) {
-                    this.input.style.opacity = '0.6';
-                    this.confirmBtn.style.opacity = '0.6';
-                    this.exitBtn.style.opacity = '0.6';
-                    this.toggle.style.opacity = '0.6';
-                } else {
-                    this.input.style.opacity = '1';
-                    this.confirmBtn.style.opacity = '1';
-                    this.exitBtn.style.opacity = '1';
-                    this.toggle.style.opacity = '1';
-                }
+                const opacity = disabled ? '0.6' : '1';
+                this.input.style.opacity = opacity;
+                this.confirmBtn.style.opacity = opacity;
+                this.exitBtn.style.opacity = opacity;
+                this.toggle.style.opacity = opacity;
             }
             
             lockSystem() {
                 this.isLocked = true;
-                this.lockEndTime = Date.now() + (PASSWORD_CONFIG.lockTime * 60 * 1000);
-                
-                // 存储锁定时间
+                this.lockEndTime = Date.now() + (this.LOCK_TIME * 60 * 1000);
                 localStorage.setItem('passwordLockEndTime', this.lockEndTime.toString());
-                
                 this.showLockMessage();
                 this.hide();
             }
@@ -2694,7 +3057,6 @@
                         this.lockEndTime = lockEndTime;
                         return true;
                     } else {
-                        // 锁定时间已过
                         this.isLocked = false;
                         localStorage.removeItem('passwordLockEndTime');
                         this.attempts = 0;
@@ -2707,21 +3069,11 @@
                 const remainingMinutes = Math.ceil((this.lockEndTime - Date.now()) / (60 * 1000));
                 alert(`密码输入错误次数过多！\n请 ${remainingMinutes} 分钟后再试。`);
             }
-            
-            // 外部访问检查
-            checkAccess() {
-                if (this.checkLockStatus()) {
-                    this.showLockMessage();
-                    return false;
-                }
-                return true;
-            }
         }
 
         function setupNavigation() {
             document.querySelectorAll('.nav-menu li[data-page]').forEach(item => {
                 item.addEventListener('click', () => {
-                    // 如果是点击作业页面，先显示密码验证
                     if (item.dataset.page === 'homework') {
                         passwordSystem.show();
                     } else {
@@ -2731,18 +3083,16 @@
             });
         }
 
-        /* 修改：修复页面切换时的滚动和点击问题 */
         function navigateTo(pageName) {
             const currentPage = document.querySelector('.page.active');
             const targetPage = document.getElementById(`page-${pageName}`);
             
             if (currentPage === targetPage) return;
             
-            // 在动画开始前，确保所有页面都不可见且不可交互
             document.body.style.overflow = 'hidden';
             document.querySelectorAll('.page').forEach(page => {
-                page.style.pointerEvents = 'none'; // 禁用点击
-                page.style.display = 'none'; // 先隐藏所有页面
+                page.style.pointerEvents = 'none';
+                page.style.display = 'none';
             });
             
             currentPage.classList.add('fade-out');
@@ -2755,14 +3105,11 @@
                 
                 if (targetPage) {
                     targetPage.style.display = 'block';
-                    targetPage.style.pointerEvents = 'auto'; // 恢复点击
+                    targetPage.style.pointerEvents = 'auto';
                     setTimeout(() => {
                         targetPage.classList.add('active');
                         window.scrollTo({ top: 0, behavior: 'smooth' });
-                        
-                        // 恢复body滚动
                         document.body.style.overflow = '';
-                        
                         setTimeout(() => {
                             applyStaggerAnimation();
                         }, 100);
@@ -2777,6 +3124,39 @@
             const icon = document.querySelector('#mobileToggle i');
             icon.classList.add('fa-bars');
             icon.classList.remove('fa-times');
+
+            // 如果是更新历史页面，渲染历史记录
+            if (pageName === 'history') {
+                renderUpdateHistory();
+            }
+        }
+
+        // 渲染更新历史
+        function renderUpdateHistory() {
+            const timeline = document.getElementById('historyTimeline');
+            if (!timeline) return;
+
+            // 已按照时间倒序排列的数据，最新的在前
+            timeline.innerHTML = updateHistory.map((item, index) => `
+                <div class="history-item stagger-fade-in" style="animation-delay: ${index * 0.1}s">
+                    <div class="history-card">
+                        <div class="history-header">
+                            <div class="history-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                ${item.date}
+                            </div>
+                            <div class="history-version">
+                                ${item.version}
+                            </div>
+                        </div>
+                        <ul class="history-changes">
+                            ${item.changes.map(change => `
+                                <li class="history-change">${change}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `).join('');
         }
 
         function setupMobileMenu() {
@@ -2805,7 +3185,9 @@
             homeworkCards.forEach(card => {
                 card.addEventListener('click', () => {
                     const subject = card.dataset.subject;
-                    showHomeworkModal(subject);
+                    if (subject) {
+                        showHomeworkModal(subject);
+                    }
                 });
             });
         }
@@ -2887,7 +3269,6 @@
             document.body.style.overflow = '';
         }
 
-        /* 修改：优化加载页面隐藏逻辑 */
         function hideLoading() {
             const loading = document.getElementById('loading');
             const spinner = loading.querySelector('.loading-spinner');
@@ -2895,14 +3276,12 @@
             const loadingCheck = loading.querySelector('.loading-check');
             const loadingSubtext = loading.querySelector('.loading-subtext');
             
-            // 2秒后显示验证成功（转两圈的时间）
             setTimeout(() => {
                 spinner.style.display = 'none';
-                loadingText.textContent = '已验证安全Version1.25';
+                loadingText.textContent = '已验证安全Version1.26';
                 loadingSubtext.textContent = '验证完成，正在加载界面...';
                 loadingCheck.style.display = 'block';
                 
-                // 再延迟0.8秒后隐藏整个加载页面
                 setTimeout(() => {
                     loading.classList.add('hide');
                     setTimeout(() => {
@@ -2911,7 +3290,7 @@
                         document.getElementById('musicPlayer').classList.add('show');
                     }, 500);
                 }, 800);
-            }, 2000); // 2秒 = 转两圈的时间
+            }, 2000);
         }
 
         function setupMusicPlayer() {
@@ -2941,20 +3320,23 @@
                 musicButton.classList.remove('playing');
                 isPlaying = false;
             });
+
+            document.addEventListener('click', () => {
+                if (!bgMusic.src && !isPlaying) {
+                    bgMusic.load();
+                }
+            }, { once: true });
         }
 
-        // ===== 服务器时间管理系统 =====
         class ServerTimeManager {
             constructor() {
-                this.serverTimeOffset = 0; // 服务器与本地时间差（毫秒）
+                this.serverTimeOffset = 0;
                 this.lastSyncTime = 0;
                 this.isInitialized = false;
             }
             
-            // 从API获取北京时间
             async fetchBeijingTime() {
                 try {
-                    // 使用多个API源确保可靠性
                     const apis = [
                         'https://worldtimeapi.org/api/timezone/Asia/Shanghai',
                         'https://api.github.com'
@@ -2964,7 +3346,8 @@
                         try {
                             const response = await fetch(api, { 
                                 method: 'GET',
-                                cache: 'no-cache'
+                                cache: 'no-cache',
+                                signal: AbortSignal.timeout(5000)
                             });
                             
                             if (api.includes('worldtimeapi')) {
@@ -2972,65 +3355,49 @@
                                 const serverTime = new Date(data.datetime).getTime();
                                 return serverTime;
                             } else {
-                                // GitHub API 返回头包含Date
                                 const dateString = response.headers.get('Date');
                                 const serverTime = new Date(dateString).getTime();
                                 return serverTime;
                             }
                         } catch (e) {
-                            console.warn(`API ${api} 失败，尝试下一个`);
                             continue;
                         }
                     }
                     
                     throw new Error('所有时间API均不可用');
                 } catch (error) {
-                    console.error('获取服务器时间失败:', error);
+                    console.warn('获取服务器时间失败:', error);
                     return null;
                 }
             }
             
-            // 同步服务器时间
             async syncTime() {
                 const startTime = Date.now();
                 const serverTime = await this.fetchBeijingTime();
                 const endTime = Date.now();
                 
                 if (serverTime) {
-                    // 计算网络延迟并补偿
                     const networkDelay = (endTime - startTime) / 2;
                     this.serverTimeOffset = (serverTime + networkDelay) - Date.now();
                     this.lastSyncTime = Date.now();
                     this.isInitialized = true;
-                    
-                    console.log(`时间同步成功！偏差: ${this.serverTimeOffset}ms`);
                     return true;
                 }
                 
                 return false;
             }
             
-            // 获取当前北京时间（基于服务器时间）
             getBeijingTime() {
-                if (!this.isInitialized) {
-                    // 未初始化时返回本地时间作为后备
-                    return new Date();
-                }
-                
-                return new Date(Date.now() + this.serverTimeOffset);
+                return this.isInitialized ? new Date(Date.now() + this.serverTimeOffset) : new Date();
             }
             
-            // 检查是否需要重新同步（每5分钟同步一次）
             shouldResync() {
-                const timeSinceLastSync = Date.now() - this.lastSyncTime;
-                return timeSinceLastSync > 5 * 60 * 1000; // 5分钟
+                return Date.now() - this.lastSyncTime > 5 * 60 * 1000;
             }
         }
         
-        // 创建全局时间管理器实例
         const serverTimeManager = new ServerTimeManager();
         
-        // 更新北京时间显示（使用服务器时间）
         function updateBeijingTime() {
             const beijingTime = serverTimeManager.getBeijingTime();
             
@@ -3053,13 +3420,7 @@
             if (timeElement && dateElement) {
                 timeElement.textContent = timeString;
                 dateElement.textContent = dateString;
-                
-                // 添加时间同步状态提示
-                if (!serverTimeManager.isInitialized) {
-                    timeElement.style.opacity = '0.6';
-                } else {
-                    timeElement.style.opacity = '1';
-                }
+                timeElement.style.opacity = serverTimeManager.isInitialized ? '1' : '0.6';
             }
         }
 
@@ -3077,13 +3438,7 @@
                 }
                 
                 lastScrollTop = scrollTop;
-            });
-        }
-
-        function setupAnimations() {
-            setTimeout(() => {
-                applyStaggerAnimation();
-            }, 1000);
+            }, { passive: true });
         }
 
         function applyStaggerAnimation() {
@@ -3133,7 +3488,6 @@
                 });
                 
                 this.lyrics.sort((a, b) => a.time - b.time);
-                
                 return {
                     lyrics: this.lyrics,
                     title: this.title,
@@ -3154,6 +3508,7 @@
                 this.toggle = document.getElementById('lyricsToggle');
                 this.title = document.getElementById('lyricsTitle');
                 this.isCollapsed = true;
+                this.isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                 
                 this.setupToggle();
                 this.bindEvents();
@@ -3188,39 +3543,52 @@
                 });
             }
             
-            loadLyrics(url) {
+            async loadLyrics(url) {
                 this.showStatus('loading', '正在加载歌词...');
                 
-                fetch(url)
-                    .then(response => {
-                        if (!response.ok) throw new Error('歌词文件加载失败');
-                        return response.text();
-                    })
-                    .then(lrcContent => {
-                        const parser = new LyricParser();
-                        const result = parser.parse(lrcContent);
-                        
-                        this.lyrics = result.lyrics;
-                        this.renderLyrics();
-                        this.showStatus('success', `歌词加载成功：${result.title || '音乐'}`);
-                        
-                        if (result.title) {
-                            this.title.textContent = result.title;
-                        }
-                        
-                        if (this.lyrics.length > 0) {
-                            setTimeout(() => {
-                                if (this.isCollapsed) {
-                                    this.toggle.click();
-                                }
-                            }, 500);
-                        }
-                    })
-                    .catch(error => {
-                        this.showStatus('error', '歌词加载失败：' + error.message);
-                        this.title.textContent = '暂无歌词';
-                        console.error('歌词加载错误:', error);
+                try {
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 5000);
+                    
+                    const response = await fetch(url, { 
+                        signal: controller.signal,
+                        cache: 'no-cache'
                     });
+                    
+                    clearTimeout(timeout);
+                    
+                    if (!response.ok) throw new Error('歌词文件加载失败');
+                    
+                    const lrcContent = await response.text();
+                    const parser = new LyricParser();
+                    const result = parser.parse(lrcContent);
+                    
+                    this.lyrics = result.lyrics;
+                    this.renderLyrics();
+                    this.showStatus('success', `歌词加载成功：${result.title || '音乐'}`);
+                    
+                    if (result.title) {
+                        this.title.textContent = result.title;
+                    }
+                    
+                    if (this.lyrics.length > 0) {
+                        setTimeout(() => {
+                            if (this.isCollapsed) {
+                                this.toggle.click();
+                            }
+                        }, 500);
+                    }
+                } catch (error) {
+                    let message = '歌词加载失败';
+                    if (error.name === 'AbortError') {
+                        message = '歌词加载超时';
+                    } else if (error.message) {
+                        message += '：' + error.message;
+                    }
+                    this.showStatus('error', message);
+                    this.title.textContent = '暂无歌词';
+                    console.error('歌词加载错误:', error);
+                }
             }
             
             renderLyrics() {
@@ -3265,11 +3633,12 @@
                     if (activeLine) {
                         activeLine.classList.add('active');
                         
-                        const containerHeight = this.linesContainer.parentElement.clientHeight;
-                        const lineHeight = activeLine.offsetHeight;
-                        const offset = activeLine.offsetTop - (containerHeight / 2) + (lineHeight / 2);
-                        
-                        this.linesContainer.style.transform = `translateY(-${offset}px)`;
+                        if (!this.isReducedMotion) {
+                            const containerHeight = this.linesContainer.parentElement.clientHeight;
+                            const lineHeight = activeLine.offsetHeight;
+                            const offset = activeLine.offsetTop - (containerHeight / 2) + (lineHeight / 2);
+                            this.linesContainer.style.transform = `translateY(-${offset}px)`;
+                        }
                     }
                 }
             }
@@ -3321,7 +3690,7 @@
             lyricDisplay.loadLyrics('歌词.lrc');
             
             audio.addEventListener('timeupdate', () => {
-                if (!audio.paused) {
+                if (!audio.paused && audio.readyState >= 2) {
                     lyricDisplay.update(audio.currentTime);
                 }
             });
@@ -3344,61 +3713,51 @@
             });
             
             audio.addEventListener('error', (e) => {
-                lyricDisplay.showStatus('error', `音乐加载失败：${e.message}`);
+                lyricDisplay.showStatus('error', '音乐加载失败');
             });
         }
 
         let particleNetwork = null;
-        let passwordSystem = null; // 密码系统实例
+        let passwordSystem = null;
         
         async function initializeApp() {
-            // 初始化密码验证系统
             passwordSystem = new PasswordVerificationSystem();
             
-            // ===== 初始化服务器时间（关键修改）=====
-            // 在页面加载时立即同步时间
             await serverTimeManager.syncTime();
             
-            // 绑定所有功能
             setupNavigation();
             setupMobileMenu();
             setupHomeworkCards();
             setupModal();
             setupMusicPlayer();
-            updateBeijingTime(); // 使用服务器时间更新
+            updateBeijingTime();
             setupScrollEffects();
-            setupAnimations();
+            applyStaggerAnimation();
             setupLyricsIntegration();
             detectUA();
             
-            // 定时更新时间（每秒更新）
             setInterval(updateBeijingTime, 1000);
-            
-            // 定时更新安全运行时间
             setInterval(updateUptime, 1000);
             
-            // 定期检查是否需要重新同步服务器时间（每5分钟检查一次）
             setInterval(async () => {
                 if (serverTimeManager.shouldResync()) {
-                    console.log('重新同步服务器时间...');
                     await serverTimeManager.syncTime();
                 }
-            }, 5 * 60 * 1000); // 5分钟
+            }, 5 * 60 * 1000);
             
-            // 检查锁定状态
             if (passwordSystem.checkLockStatus()) {
-                // 如果已锁定，禁用作业页面访问
                 const homeworkNavItem = document.querySelector('.nav-menu li[data-page="homework"]');
-                homeworkNavItem.style.opacity = '0.5';
-                homeworkNavItem.style.pointerEvents = 'none';
-                homeworkNavItem.title = '密码尝试次数过多，请稍后再试';
+                if (homeworkNavItem) {
+                    homeworkNavItem.style.opacity = '0.5';
+                    homeworkNavItem.style.pointerEvents = 'none';
+                    homeworkNavItem.title = '密码尝试次数过多，请稍后再试';
+                }
             }
         }
         
         document.addEventListener('DOMContentLoaded', () => {
-            // 页面加载完成后，延迟执行初始化以避免阻塞
             setTimeout(() => {
-                initializeApp();
+                initializeApp().catch(console.error);
                 hideLoading();
             }, 500);
         });
@@ -3407,7 +3766,6 @@
             if (e.key === 'Escape') {
                 const navMenu = document.getElementById('navMenu');
                 const modalOverlay = document.getElementById('homeworkModal');
-                const passwordModal = document.getElementById('passwordModal');
                 
                 if (navMenu.classList.contains('active')) {
                     navMenu.classList.remove('active');
@@ -3419,8 +3777,6 @@
                 if (modalOverlay.classList.contains('active')) {
                     hideHomeworkModal();
                 }
-                
-                // ESC键在密码弹窗中不关闭（必须验证）
             }
         });
 
@@ -3430,11 +3786,6 @@
                 const icon = document.querySelector('#mobileToggle i');
                 icon.classList.add('fa-bars');
                 icon.classList.remove('fa-times');
-            }
-            
-            if (particleNetwork) {
-                particleNetwork.canvas.width = window.innerWidth;
-                particleNetwork.canvas.height = window.innerHeight;
             }
         });
 
