@@ -2364,8 +2364,8 @@
         </button>
     </div>
 
-    <audio id="bgMusic" loop preload="none">
-        <source src="音乐.mp3" type="audio/mpeg">
+    <audio id="bgMusic" loop preload="metadata">
+        <source src="music.mp3" type="audio/mpeg">
     </audio>
 
     <div class="modal-overlay" id="homeworkModal">
@@ -2905,12 +2905,12 @@
             {
                 date: '2025-12-29',
                 version: 'Version1.3',
-                changes: ['新增安卓客户端', '更新下载链接']
+                changes: ['新增安卓客户端', '更新下载链接','优化播放逻辑']
             },
             {
                 date: '2025-12-25',
                 version: 'Version1.26',
-                changes: ['哈希算法修改，新增端侧省流（Lazy Loading策略）省流量']
+                changes: ['哈希算法修改','新增端侧省流（Lazy Loading策略）省流量']
             },
             {
                 date: '2025-12-25',
@@ -3425,35 +3425,120 @@
             const musicButton = document.getElementById('musicButton');
             const musicIcon = document.getElementById('musicIcon');
             const bgMusic = document.getElementById('bgMusic');
+            const statusElement = document.getElementById('lyricsStatus');
             
             let isPlaying = false;
+            let isLoaded = false;
+            let retryCount = 0;
+            const maxRetries = 3;
+            
+            const updateButtonState = (state) => {
+                switch(state) {
+                    case 'loading':
+                        musicIcon.className = 'fas fa-spinner fa-pulse';
+                        musicButton.disabled = true;
+                        break;
+                    case 'ready':
+                        musicIcon.className = 'fas fa-play';
+                        musicButton.disabled = false;
+                        isLoaded = true;
+                        break;
+                    case 'error':
+                        musicIcon.className = 'fas fa-exclamation-triangle';
+                        musicButton.disabled = true;
+                        if(statusElement) {
+                            statusElement.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span>音乐文件加载失败</span>';
+                            statusElement.className = 'lyrics-status error';
+                        }
+                        break;
+                    case 'playing':
+                        musicIcon.className = 'fas fa-pause';
+                        musicButton.classList.add('playing');
+                        break;
+                    case 'paused':
+                        musicIcon.className = 'fas fa-play';
+                        musicButton.classList.remove('playing');
+                        break;
+                }
+            };
+            
+            const loadAudio = () => {
+                if(isLoaded) return;
+                
+                updateButtonState('loading');
+                
+                // GitHub Pages建议使用英文文件名和相对路径
+                bgMusic.src = 'music.mp3';
+                bgMusic.load();
+                
+                const onCanPlay = () => {
+                    updateButtonState('ready');
+                    if(statusElement) {
+                        statusElement.innerHTML = '<i class="fas fa-check-circle"></i> <span>音乐已加载，点击播放</span>';
+                        statusElement.className = 'lyrics-status success';
+                    }
+                };
+                
+                const onError = (e) => {
+                    console.error('音频加载错误:', e);
+                    retryCount++;
+                    if(retryCount < maxRetries) {
+                        setTimeout(() => {
+                            bgMusic.load();
+                        }, 1000 * retryCount);
+                    } else {
+                        updateButtonState('error');
+                    }
+                };
+                
+                bgMusic.addEventListener('canplaythrough', onCanPlay, { once: true });
+                bgMusic.addEventListener('error', onError, { once: true });
+            };
+            
+            // 首次用户交互时加载音频
+            document.addEventListener('click', loadAudio, { once: true });
             
             musicButton.addEventListener('click', () => {
+                if(!isLoaded) {
+                    loadAudio();
+                    return;
+                }
+                
                 if (isPlaying) {
                     bgMusic.pause();
-                    musicIcon.className = 'fas fa-play';
-                    musicButton.classList.remove('playing');
+                    updateButtonState('paused');
                 } else {
                     bgMusic.play().catch(e => {
-                        console.log('音乐播放失败:', e);
+                        console.error('播放失败:', e);
+                        let errorMessage = '播放失败：';
+                        switch(e.name) {
+                            case 'NotAllowedError':
+                                errorMessage += '需要用户交互才能播放';
+                                break;
+                            case 'NotSupportedError':
+                                errorMessage += '音频格式不支持';
+                                break;
+                            default:
+                                errorMessage += e.message;
+                        }
+                        alert(errorMessage);
+                        updateButtonState('error');
                     });
-                    musicIcon.className = 'fas fa-pause';
-                    musicButton.classList.add('playing');
+                    updateButtonState('playing');
                 }
                 isPlaying = !isPlaying;
             });
             
             bgMusic.addEventListener('ended', () => {
-                musicIcon.className = 'fas fa-play';
-                musicButton.classList.remove('playing');
                 isPlaying = false;
+                updateButtonState('paused');
             });
-
-            document.addEventListener('click', () => {
-                if (!bgMusic.src && !isPlaying) {
-                    bgMusic.load();
+            
+            bgMusic.addEventListener('loadedmetadata', () => {
+                if(statusElement && isLoaded) {
+                    statusElement.innerHTML = `<i class="fas fa-check-circle"></i> <span>音乐已加载：${bgMusic.duration.toFixed(1)}秒</span>`;
                 }
-            }, { once: true });
+            });
         }
 
         class ServerTimeManager {
@@ -3922,6 +4007,23 @@
                 updateBeijingTime();
                 updateUptime();
             }
+        });
+
+        // 添加音乐文件存在性检查
+        document.addEventListener('DOMContentLoaded', () => {
+            // 在控制台提示音乐文件检查
+            console.log('正在检查音乐文件...');
+            fetch('music.mp3', { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('✅ 音乐文件存在');
+                    } else {
+                        console.error('❌ 音乐文件不存在或无法访问');
+                    }
+                })
+                .catch(() => {
+                    console.error('❌ 音乐文件加载失败，请确保文件名为 music.mp3（小写）');
+                });
         });
     </script>
 </body>
