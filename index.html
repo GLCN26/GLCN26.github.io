@@ -33,19 +33,30 @@
             --subject-chemistry: #805ad5;
             --subject-politics: #dd6b20;
             --subject-other: #718096;
-            --transition-fast: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            --transition-normal: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            --transition-slow: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            
+            /* 优化缓动曲线 - 更自然的物理效果 */
+            --transition-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --transition-ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            
+            /* 优化动画时长 */
+            --duration-fast: 0.25s;
+            --duration-normal: 0.4s;
+            --duration-slow: 0.6s;
+            --duration-mega-slow: 0.8s;
+            
             --border-radius: 16px;
             --border-radius-sm: 8px;
             --border-radius-lg: 24px;
             --border-radius-xl: 32px;
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
-            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
-            --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.3);
-            --shadow-glow: 0 0 20px rgba(102, 126, 234, 0.3);
+            
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.2);
+            --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.3);
+            --shadow-glow: 0 0 30px rgba(102, 126, 234, 0.4);
+            
             --spacing-xs: 0.5rem;
             --spacing-sm: 1rem;
             --spacing-md: 1.5rem;
@@ -75,10 +86,11 @@
             line-height: 1.6;
             overflow-x: hidden;
             font-size: clamp(0.95rem, 4vw, 1.05rem);
-            transition: var(--transition-normal);
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            /* 优化整体过渡 */
+            transition: all var(--duration-normal) var(--transition-smooth);
         }
 
         body::before {
@@ -94,11 +106,18 @@
                 radial-gradient(circle at 40% 80%, rgba(240, 147, 251, 0.04) 0%, transparent 50%);
             animation: backgroundShift 25s ease-in-out infinite;
             z-index: -1;
+            will-change: transform; /* 硬件加速 */
         }
 
         @keyframes backgroundShift {
-            0%, 100% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(3deg) scale(1.05); }
+            0%, 100% { 
+                opacity: 0.3; 
+                transform: rotate(0deg) scale(1);
+            }
+            50% { 
+                opacity: 0.6; 
+                transform: rotate(3deg) scale(1.05);
+            }
         }
 
         #particles-canvas {
@@ -109,29 +128,22 @@
             height: 100%;
             z-index: -2;
             pointer-events: none;
-            will-change: transform;
+            will-change: transform; /* 硬件加速 */
         }
 
-        /* ===== 新的加载页面样式 - 白色主题 ===== */
+        /* ===== 优化加载页面样式 ===== */
         .loading {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            transition: var(--transition-slow);
+            transition: all var(--duration-mega-slow) var(--transition-ease-out);
             will-change: opacity, visibility;
             backdrop-filter: blur(10px);
-        }
-
-        .loading.hide {
-            opacity: 0;
-            visibility: hidden;
         }
 
         .loading-content {
@@ -144,52 +156,59 @@
             display: none;
         }
 
+        /* 优化加载动画 */
         .loading-spinner {
-            width: 70px;
-            height: 70px;
+            width: 70px; height: 70px;
             border: 4px solid rgba(26, 26, 46, 0.08);
             border-top: 4px solid #6d7aea;
             border-radius: 50%;
-            animation: spin 2s linear 2;
+            animation: spin 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) 2;
             margin: 0 auto var(--spacing-lg);
             position: relative;
             box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
+            will-change: transform; /* 硬件加速 */
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); opacity: 1; }
-            100% { transform: rotate(720deg); opacity: 1; }
+            0% { 
+                transform: rotate(0deg) scale(1); 
+                opacity: 1; 
+            }
+            50% { 
+                transform: rotate(360deg) scale(1.1); 
+                opacity: 0.8; 
+            }
+            100% { 
+                transform: rotate(720deg) scale(1); 
+                opacity: 1; 
+            }
         }
 
         .loading-check {
             display: none;
-            width: 70px;
-            height: 70px;
+            width: 70px; height: 70px;
             border: 4px solid var(--success);
             border-radius: 50%;
             position: relative;
             margin: var(--spacing-lg) auto;
-            animation: checkCircle 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+            animation: checkCircle 0.6s var(--transition-spring) forwards;
             box-shadow: 0 0 15px rgba(72, 187, 120, 0.3);
+            will-change: transform; /* 硬件加速 */
         }
 
         @keyframes checkCircle {
-            0% { transform: scale(0); opacity: 0; }
-            50% { transform: scale(1.1); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            50% { transform: scale(1.1) rotate(-90deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
 
         .loading-check::after {
             content: '✓';
-            position: absolute;
-            top: 50%;
-            left: 50%;
+            position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 2.2rem;
-            color: var(--success);
-            font-weight: bold;
-            opacity: 0;
-            animation: checkMark 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards 0.3s;
+            font-size: 2.2rem; color: var(--success);
+            font-weight: bold; opacity: 0;
+            animation: checkMark 0.4s var(--transition-spring) forwards 0.3s;
         }
 
         @keyframes checkMark {
@@ -198,89 +217,84 @@
         }
 
         .loading-text {
-            color: #1a1a2e;
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: var(--spacing-sm);
-            transition: var(--transition-normal);
+            color: #1a1a2e; font-size: 1.8rem;
+            font-weight: 800; margin-bottom: 1rem; 
+            transition: all var(--duration-normal) var(--transition-smooth);
             will-change: transform;
             letter-spacing: 0.02em;
+            /* 优化文字动画 */
+            animation: textFadeIn 0.6s var(--transition-ease-out) forwards;
+        }
+
+        @keyframes textFadeIn {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
 
         .loading-subtext {
-            color: #718096;
-            font-size: 1rem;
+            color: #718096; font-size: 1rem;
             margin-top: var(--spacing-sm);
-            opacity: 0.8;
+            opacity: 0;
+            animation: subtextFadeIn 0.6s var(--transition-ease-out) forwards 0.3s;
         }
 
+        @keyframes subtextFadeIn {
+            0% { opacity: 0; transform: translateY(5px); }
+            100% { opacity: 0.8; transform: translateY(0); }
+        }
+
+        /* ===== 优化导航栏动画 ===== */
         .navbar {
-            position: fixed; 
-            top: 0; 
-            width: 100%;
+            position: fixed; top: 0; width: 100%;
             background: rgba(26, 26, 46, 0.8);
             backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             z-index: 1000; 
-            transition: var(--transition-normal);
+            transition: all var(--duration-normal) var(--transition-smooth);
             transform: translateY(0);
+            will-change: transform; /* 硬件加速 */
         }
         
         .navbar-container {
-            max-width: 1200px; 
-            margin: 0 auto;
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
+            max-width: 1200px; margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: center;
             padding: var(--spacing-sm) clamp(1rem, 5vw, 2rem);
             min-height: 70px;
+            transition: all var(--duration-normal) var(--transition-smooth);
         }
         
         .logo {
-            font-size: clamp(1.6rem, 5vw, 1.8rem); 
-            font-weight: 800;
+            font-size: clamp(1.6rem, 5vw, 1.8rem); font-weight: 800;
             background: linear-gradient(135deg, var(--primary), var(--accent));
-            -webkit-background-clip: text; 
-            -webkit-text-fill-color: transparent;
-            display: flex; 
-            align-items: center; 
-            gap: 0.5rem;
-            transition: var(--transition-bounce);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            display: flex; align-items: center; gap: 0.5rem;
+            transition: all var(--duration-slow) var(--transition-spring);
             cursor: pointer;
+            will-change: transform, filter;
         }
         
         .logo:hover {
-            transform: scale(1.05);
+            transform: scale(1.05) translateY(-2px);
             filter: drop-shadow(0 0 15px rgba(102, 126, 234, 0.4));
         }
         
         .nav-menu {
-            display: flex; 
-            gap: clamp(1rem, 3vw, 2.5rem); 
+            display: flex; gap: clamp(1rem, 3vw, 2.5rem); 
             list-style: none;
         }
         
         .nav-menu li {
-            cursor: pointer; 
-            color: rgba(255, 255, 255, 0.8); 
-            font-weight: 500;
-            padding: var(--spacing-xs) 0; 
-            position: relative; 
-            transition: var(--transition-normal);
-            user-select: none;
+            cursor: pointer; color: rgba(255, 255, 255, 0.8); 
+            font-weight: 500; padding: var(--spacing-xs) 0; 
+            position: relative; transition: all var(--duration-normal) var(--transition-spring);
+            user-select: none; will-change: transform, color;
         }
         
         .nav-menu li::after {
-            content: ''; 
-            position: absolute; 
-            bottom: 0; 
-            left: 0;
-            width: 0; 
-            height: 2px; 
+            content: ''; position: absolute; bottom: 0; left: 0;
+            width: 0; height: 2px; border-radius: 1px;
             background: linear-gradient(90deg, var(--primary), var(--accent));
-            transition: var(--transition-normal);
-            border-radius: 1px;
+            transition: all var(--duration-normal) var(--transition-bounce);
         }
         
         .nav-menu li:hover::after, 
@@ -290,28 +304,23 @@
         
         .nav-menu li:hover {
             color: var(--white);
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.02);
         }
 
         .nav-menu li.active {
             color: var(--primary);
+            transform: translateY(-1px);
         }
         
         .mobile-toggle {
             display: none; 
             background: rgba(255, 255, 255, 0.2); 
             border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white; 
-            font-size: 1.5rem; 
-            cursor: pointer;
-            padding: 0.5rem 1rem; 
-            min-width: 88px; 
-            min-height: 44px;
-            border-radius: var(--border-radius-lg); 
-            transition: var(--transition-normal);
-            align-items: center; 
-            gap: 0.5rem; 
-            justify-content: center;
+            color: white; font-size: 1.5rem; cursor: pointer;
+            padding: 0.5rem 1rem; min-width: 88px; min-height: 44px;
+            border-radius: var(--border-radius-lg); transition: all var(--duration-fast) var(--transition-bounce);
+            display: flex; align-items: center; gap: 0.5rem; justify-content: center;
+            will-change: transform, box-shadow;
         }
         
         .mobile-toggle:hover {
@@ -325,25 +334,23 @@
         }
 
         .mobile-toggle span {
-            font-size: 0.9rem;
-            font-weight: 500;
+            font-size: 0.9rem; font-weight: 500;
             white-space: nowrap;
         }
 
+        /* ===== 优化页面切换动画 ===== */
         .page {
-            display: none; 
-            flex: 1;
+            display: none; flex: 1;
             padding: var(--spacing-md);
-            opacity: 0;
-            transform: translateY(20px);
-            transition: var(--transition-slow);
-            height: auto;
-            min-height: calc(100vh - 70px);
+            opacity: 0; transform: translateY(20px);
+            transition: all var(--duration-mega-slow) var(--transition-smooth);
+            height: auto; min-height: calc(100vh - 70px);
+            will-change: opacity, transform;
         }
         
         .page.active { 
             display: block; 
-            opacity: 1;
+            opacity: 1; 
             transform: translateY(0);
         }
         
@@ -352,31 +359,29 @@
             transform: translateY(-20px);
         }
 
+        /* ===== 优化英雄区域动画 ===== */
         .hero {
             background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, var(--secondary) 100%);
-            color: white; 
-            text-align: center; 
+            color: white; text-align: center; 
             padding: clamp(2rem, 6vw, 4rem) clamp(1rem, 5vw, 2rem);
-            position: relative; 
-            overflow: hidden;
+            position: relative; overflow: hidden;
             border-radius: var(--border-radius-lg);
             margin: var(--spacing-sm) auto;
             box-shadow: var(--shadow-xl);
             max-width: 1200px;
+            will-change: transform; /* 硬件加速 */
         }
         
         .hero::before {
             content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
             background: 
                 radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
                 radial-gradient(circle at 80% 70%, rgba(240, 147, 251, 0.15) 0%, transparent 50%);
-            animation: heroPulse 8s ease-in-out infinite;
+            animation: heroPulse 8s var(--transition-smooth) infinite;
             z-index: 1;
+            will-change: transform, opacity; /* 硬件加速 */
         }
         
         @keyframes heroPulse {
@@ -391,23 +396,18 @@
         }
 
         .hero-content {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            position: relative; z-index: 1;
+            width: 100%; display: flex;
+            flex-direction: column; align-items: center;
         }
 
         .hero h1 {
-            font-size: clamp(1.8rem, 6vw, 2.8rem);
-            margin-bottom: 1rem; 
-            font-weight: 800; 
-            line-height: 1.2;
-            position: relative;
-            z-index: 1;
+            font-size: clamp(1.8rem, 6vw, 2.8rem); font-weight: 800; 
+            margin-bottom: 1rem; line-height: 1.2;
+            position: relative; z-index: 1;
             text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            animation: fadeInUp 1s ease-out;
+            animation: fadeInUp 1s var(--transition-ease-out) forwards;
+            will-change: transform, opacity;
         }
 
         @keyframes fadeInUp {
@@ -422,15 +422,13 @@
         }
 
         #beijingTime {
-            font-size: clamp(2rem, 8vw, 3.2rem);
-            font-weight: 800;
+            font-size: clamp(2rem, 8vw, 3.2rem); font-weight: 800;
             margin-bottom: 0.5rem;
             background: linear-gradient(135deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-align: center;
-            animation: timeGlow 2s ease-in-out infinite alternate;
-            letter-spacing: 0.05em;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-align: center; letter-spacing: 0.05em;
+            animation: timeGlow 2s var(--transition-smooth) infinite alternate;
+            will-change: filter;
         }
 
         @keyframes timeGlow {
@@ -443,44 +441,34 @@
         }
 
         .time-date {
-            font-size: clamp(1rem, 3vw, 1.4rem);
-            color: rgba(255, 255, 255, 0.85);
+            font-size: clamp(1rem, 3vw, 1.4rem); color: rgba(255, 255, 255, 0.85);
             margin-bottom: 1.5rem;
-            animation: fadeInUp 1s ease-out 0.3s both;
+            animation: fadeInUp 1s var(--transition-ease-out) forwards 0.3s;
         }
 
         .uptime-display {
-            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 1.5rem;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem); color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 1.5rem; background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: var(--border-radius);
-            padding: var(--spacing-sm) var(--spacing-md);
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            animation: fadeInUp 1s ease-out 0.6s both;
-            transition: var(--transition-normal);
-            justify-content: center;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-            text-align: center;
+            padding: var(--spacing-sm) var(--spacing-md); display: flex;
+            align-items: center; gap: var(--spacing-sm); justify-content: center;
+            width: fit-content; margin-left: auto; margin-right: auto; text-align: center;
+            transition: all var(--duration-normal) var(--transition-smooth);
+            animation: fadeInUp 1s var(--transition-ease-out) forwards 0.6s;
+            will-change: transform, box-shadow;
         }
 
         .uptime-display:hover {
             background: rgba(255, 255, 255, 0.12);
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.02);
             box-shadow: var(--shadow-glow);
         }
 
         .uptime-icon {
-            font-size: 1.2rem;
-            color: var(--success);
+            font-size: 1.2rem; color: var(--success);
             animation: pulse 2s ease-in-out infinite;
+            will-change: transform, opacity;
         }
 
         @keyframes pulse {
@@ -489,80 +477,51 @@
         }
 
         .ua-display {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: var(--border-radius);
-            padding: var(--spacing-sm) var(--spacing-md);
-            margin-top: 1rem;
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-            color: rgba(255, 255, 255, 0.9);
-            animation: fadeInUp 1s ease-out 1s both;
-            transition: var(--transition-normal);
-            justify-content: center;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-            text-align: center;
+            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: var(--border-radius);
+            padding: var(--spacing-sm) var(--spacing-md); margin-top: 1rem;
+            display: flex; align-items: center; gap: var(--spacing-sm);
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem); color: rgba(255, 255, 255, 0.9);
+            transition: all var(--duration-normal) var(--transition-smooth); justify-content: center;
+            width: fit-content; margin-left: auto; margin-right: auto; text-align: center;
+            animation: fadeInUp 1s var(--transition-ease-out) forwards 1s;
+            will-change: transform, box-shadow;
         }
 
         .ua-display:hover {
             background: rgba(255, 255, 255, 0.12);
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.02);
             box-shadow: var(--shadow-glow);
         }
 
         .ua-icon {
-            font-size: 1.2rem;
-            color: var(--accent);
+            font-size: 1.2rem; color: var(--accent);
         }
 
         .stn-studio-display {
-            position: relative;
-            margin-top: 1.5rem;
-            padding: 1rem 2rem;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 50px;
-            font-size: clamp(1.1rem, 3vw, 1.5rem);
-            font-weight: 700;
-            color: var(--white);
-            text-align: center;
-            animation: fadeInUp 1s ease-out 0.9s both, stnGlow 3s ease-in-out infinite;
-            transition: var(--transition-normal);
-            overflow: hidden;
+            position: relative; margin-top: 1.5rem; padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50px;
+            font-size: clamp(1.1rem, 3vw, 1.5rem); font-weight: 700; color: var(--white);
+            text-align: center; animation: fadeInUp 1s var(--transition-ease-out) forwards 0.9s, stnGlow 3s ease-in-out infinite;
+            transition: all var(--duration-normal) var(--transition-smooth); overflow: hidden;
+            will-change: transform, box-shadow;
         }
 
         .stn-studio-display::before {
             content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 120%;
-            height: 120%;
+            position: absolute; top: 50%; left: 50%;
+            width: 120%; height: 120%;
             transform: translate(-50%, -50%);
             background: conic-gradient(from 0deg, transparent, rgba(102, 126, 234, 0.3), rgba(240, 147, 251, 0.3), transparent);
-            animation: stnRotate 4s linear infinite;
-            z-index: -1;
-            border-radius: 50px;
+            animation: stnRotate 4s linear infinite; z-index: -1; border-radius: 50px;
+            will-change: transform;
         }
 
         .stn-studio-display::after {
             content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            right: 2px;
-            bottom: 2px;
-            background: var(--dark);
-            border-radius: 48px;
-            z-index: -1;
+            position: absolute; top: 2px; left: 2px; right: 2px; bottom: 2px;
+            background: var(--dark); border-radius: 48px; z-index: -1;
         }
 
         @keyframes stnRotate {
@@ -585,36 +544,28 @@
         }
 
         .content-section {
-            max-width: 1200px;
-            margin: 0 auto;
+            max-width: 1200px; margin: 0 auto;
             padding: var(--spacing-lg) 0;
             min-height: calc(100vh - 300px);
         }
 
+        /* ===== 优化卡片动画 ===== */
         .feature-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl);
-            text-align: center;
-            transition: var(--transition-bounce);
-            position: relative;
-            overflow: hidden;
-            margin: var(--spacing-md) auto;
-            max-width: 800px;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl); text-align: center;
+            transition: all var(--duration-normal) var(--transition-bounce);
+            position: relative; overflow: hidden;
+            margin: var(--spacing-md) auto; max-width: 800px;
+            will-change: transform, box-shadow;
         }
 
         .feature-card::before {
             content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
+            position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
-            transition: var(--transition-slow);
+            transition: left var(--duration-mega-slow) var(--transition-smooth);
         }
 
         .feature-card:hover::before {
@@ -628,32 +579,29 @@
         }
 
         .feature-icon {
-            font-size: 4rem;
-            color: var(--primary);
+            font-size: 4rem; color: var(--primary);
             margin-bottom: var(--spacing-md);
-            transition: var(--transition-bounce);
+            transition: all var(--duration-normal) var(--transition-bounce);
+            display: inline-block;
+            will-change: transform;
         }
 
         .feature-card:hover .feature-icon {
-            transform: scale(1.1);
+            transform: scale(1.1) rotate(5deg);
             color: var(--accent);
         }
 
         .feature-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: var(--spacing-sm);
-            color: var(--white);
+            font-size: 1.5rem; font-weight: 700;
+            margin-bottom: var(--spacing-sm); color: var(--white);
         }
 
         .feature-description {
-            color: var(--text-light);
-            line-height: 1.6;
+            color: var(--text-light); line-height: 1.6;
         }
 
         .homework-container {
-            max-width: 1200px;
-            margin: 0 auto;
+            max-width: 1200px; margin: 0 auto;
             padding: var(--spacing-lg) 0;
         }
 
@@ -664,34 +612,24 @@
             margin-top: var(--spacing-lg);
         }
 
+        /* ===== 优化作业卡片动画 ===== */
         .homework-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl);
-            text-align: center;
-            transition: var(--transition-bounce);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            min-height: 200px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl); text-align: center;
+            transition: all var(--duration-normal) var(--transition-bounce);
+            cursor: pointer; position: relative; overflow: hidden;
+            min-height: 200px; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            will-change: transform, box-shadow;
         }
 
         .homework-card::before {
             content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
+            position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
-            transition: var(--transition-slow);
+            transition: left var(--duration-mega-slow) var(--transition-smooth);
         }
 
         .homework-card:hover::before {
@@ -712,9 +650,9 @@
         .homework-card.other { border-left: 4px solid var(--subject-other); }
 
         .homework-icon {
-            font-size: 3rem;
-            margin-bottom: var(--spacing-md);
-            transition: var(--transition-bounce);
+            font-size: 3rem; margin-bottom: var(--spacing-md);
+            transition: all var(--duration-normal) var(--transition-bounce);
+            will-change: transform;
         }
 
         .homework-card:hover .homework-icon {
@@ -730,77 +668,54 @@
         .homework-card.other .homework-icon { color: var(--subject-other); }
 
         .homework-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: var(--spacing-sm);
-            color: var(--white);
+            font-size: 1.3rem; font-weight: 700;
+            margin-bottom: var(--spacing-sm); color: var(--white);
         }
 
         .homework-subtitle {
-            color: var(--text-light);
-            font-size: 0.9rem;
+            color: var(--text-light); font-size: 0.9rem;
             margin-bottom: var(--spacing-md);
         }
 
         .homework-status {
-            display: inline-block;
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border-radius: var(--border-radius-sm);
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            display: inline-block; padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--border-radius-sm); font-size: 0.8rem;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
         }
 
         .homework-status.pending {
-            background: rgba(237, 137, 54, 0.2);
-            color: var(--warning);
+            background: rgba(237, 137, 54, 0.2); color: var(--warning);
             border: 1px solid rgba(237, 137, 54, 0.3);
         }
 
         .homework-status.completed {
-            background: rgba(72, 187, 120, 0.2);
-            color: var(--success);
+            background: rgba(72, 187, 120, 0.2); color: var(--success);
             border: 1px solid rgba(72, 187, 120, 0.3);
         }
 
+        /* ===== 优化模态框动画 ===== */
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            opacity: 0;
-            visibility: hidden;
-            transition: var(--transition-normal);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2000; opacity: 0; visibility: hidden;
+            transition: all var(--duration-normal) var(--transition-smooth);
         }
 
         .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
+            opacity: 1; visibility: visible;
         }
 
         .modal-content {
-            background: rgba(26, 26, 46, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl);
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
+            background: rgba(26, 26, 46, 0.95); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl); max-width: 500px;
+            width: 90%; max-height: 80vh; overflow-y: auto;
             transform: scale(0.8) translateY(50px);
-            transition: var(--transition-bounce);
-            position: relative;
+            transition: all var(--duration-slow) var(--transition-bounce);
+            position: relative; will-change: transform;
         }
 
         .modal-overlay.active .modal-content {
@@ -808,47 +723,33 @@
         }
 
         .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: var(--spacing-lg);
-            padding-bottom: var(--spacing-md);
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: var(--spacing-lg); padding-bottom: var(--spacing-md);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--white);
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
+            font-size: 1.5rem; font-weight: 700;
+            color: var(--white); display: flex;
+            align-items: center; gap: var(--spacing-sm);
         }
 
         .modal-close {
-            background: none;
-            border: none;
-            color: var(--text-light);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: var(--spacing-xs);
-            border-radius: var(--border-radius-sm);
-            transition: var(--transition-normal);
+            background: none; border: none; color: var(--text-light);
+            font-size: 1.5rem; cursor: pointer; padding: var(--spacing-xs);
+            border-radius: var(--border-radius-sm); transition: all var(--duration-fast) var(--transition-smooth);
         }
 
         .modal-close:hover {
-            color: var(--white);
-            background: rgba(255, 255, 255, 0.1);
+            color: var(--white); background: rgba(255, 255, 255, 0.1);
         }
 
         .modal-body {
-            color: var(--text-light);
-            line-height: 1.6;
+            color: var(--text-light); line-height: 1.6;
         }
 
         .modal-body h4 {
-            color: var(--white);
-            margin-bottom: var(--spacing-sm);
+            color: var(--white); margin-bottom: var(--spacing-sm);
             font-size: 1.1rem;
         }
 
@@ -857,79 +758,58 @@
         }
 
         .modal-body .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: var(--spacing-md);
-            margin: var(--spacing-md) 0;
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md); margin: var(--spacing-md) 0;
         }
 
         .modal-body .info-item {
-            background: rgba(255, 255, 255, 0.05);
-            padding: var(--spacing-sm);
-            border-radius: var(--border-radius-sm);
-            border-left: 3px solid var(--primary);
+            background: rgba(255, 255, 255, 0.05); padding: var(--spacing-sm);
+            border-radius: var(--border-radius-sm); border-left: 3px solid var(--primary);
         }
 
         .modal-body .info-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
+            font-size: 0.8rem; color: var(--text-muted);
             margin-bottom: 0.25rem;
         }
 
         .modal-body .info-value {
-            color: var(--white);
-            font-weight: 600;
+            color: var(--white); font-weight: 600;
         }
 
         .modal-footer {
-            margin-top: var(--spacing-lg);
-            padding-top: var(--spacing-md);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
+            margin-top: var(--spacing-lg); padding-top: var(--spacing-md);
+            border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center;
         }
 
         .modal-button {
             background: linear-gradient(135deg, var(--primary), var(--accent));
-            border: none;
-            color: white;
-            padding: var(--spacing-sm) var(--spacing-lg);
-            border-radius: var(--border-radius);
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition-normal);
+            border: none; color: white; padding: var(--spacing-sm) var(--spacing-lg);
+            border-radius: var(--border-radius); font-weight: 600;
+            cursor: pointer; transition: all var(--duration-fast) var(--transition-bounce);
+            will-change: transform, box-shadow;
         }
 
         .modal-button:hover {
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.03);
             box-shadow: var(--shadow-glow);
         }
 
         footer {
-            background: var(--darkest); 
-            color: rgba(255, 255, 255, 0.8);
-            padding: var(--spacing-lg) clamp(1rem, 5vw, 2rem); 
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            margin-top: auto;
+            background: var(--darkest); color: rgba(255, 255, 255, 0.8);
+            padding: var(--spacing-lg) clamp(1rem, 5vw, 2rem); text-align: center;
+            position: relative; overflow: hidden; margin-top: auto;
         }
         
         footer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
             background: radial-gradient(circle at 50% 0%, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
         }
         
         .footer-content { 
-            max-width: 1200px; 
-            margin: 0 auto; 
-            position: relative;
-            z-index: 1;
-            transition: var(--transition-normal);
+            max-width: 1200px; margin: 0 auto; 
+            position: relative; z-index: 1;
+            transition: all var(--duration-normal) var(--transition-smooth);
         }
         
         .footer-content:hover {
@@ -939,38 +819,28 @@
 
         @media (max-width: 768px) {
             .nav-menu {
-                position: fixed; 
-                top: 70px; 
-                left: -100%;
-                width: 100%; 
-                height: calc(100vh - 70px); 
+                position: fixed; top: 70px; left: -100%;
+                width: 100%; height: calc(100vh - 70px); 
                 background: rgba(26, 26, 46, 0.95);
-                flex-direction: column; 
-                align-items: center; 
-                justify-content: flex-start;
-                padding-top: var(--spacing-xl); 
-                transition: left 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                flex-direction: column; align-items: center; justify-content: flex-start;
+                padding-top: var(--spacing-xl); transition: left 0.5s var(--transition-bounce);
+                backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.1);
             }
             
             .nav-menu li { 
-                width: 80%; 
-                text-align: center; 
-                padding: var(--spacing-md); 
-                margin: var(--spacing-xs) 0;
+                width: 80%; text-align: center; 
+                padding: var(--spacing-md); margin: var(--spacing-xs) 0;
                 border-radius: var(--border-radius);
-                transition: var(--transition-normal);
+                transition: all var(--duration-normal) var(--transition-smooth);
             }
 
             .nav-menu li:hover {
                 background: rgba(102, 126, 234, 0.1);
+                transform: translateX(5px);
             }
             
             .nav-menu li::after {
-                left: 50%;
-                transform: translateX(-50%);
+                left: 50%; transform: translateX(-50%);
             }
             
             .nav-menu.active { 
@@ -979,10 +849,9 @@
             
             .mobile-toggle { 
                 display: flex; 
-                align-items: center; 
-                justify-content: center; 
             }
 
+            /* 优化移动端动画 */
             .hero {
                 margin: var(--spacing-xs) auto;
                 padding: clamp(1.5rem, 5vw, 3rem) clamp(1rem, 4vw, 1.5rem);
@@ -1110,41 +979,27 @@
         .ua-wechat { color: #07C160; }
         .ua-qq { color: #12B7F5; }
 
+        /* ===== 优化音乐播放器动画 ===== */
         .music-player {
-            position: fixed;
-            bottom: var(--spacing-lg);
-            right: var(--spacing-lg);
-            z-index: 999;
-            opacity: 0;
-            transform: scale(0);
-            transition: var(--transition-bounce);
+            position: fixed; bottom: var(--spacing-lg); right: var(--spacing-lg);
+            z-index: 999; opacity: 0; transform: scale(0);
+            transition: all var(--duration-slow) var(--transition-bounce);
             will-change: transform, opacity;
         }
 
         .music-player.show {
-            opacity: 1;
-            transform: scale(1);
+            opacity: 1; transform: scale(1);
         }
 
         .music-button {
-            width: 60px;
-            height: 60px;
-            border: none;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 2552, 255, 0.2);
-            color: var(--white);
-            font-size: 1.5rem;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: var(--transition-bounce);
-            box-shadow: var(--shadow-lg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 60px; height: 60px; border: none; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2); color: var(--white);
+            font-size: 1.5rem; cursor: pointer; position: relative;
+            overflow: hidden; transition: all var(--duration-normal) var(--transition-bounce);
+            box-shadow: var(--shadow-lg); display: flex;
+            align-items: center; justify-content: center;
+            will-change: transform, box-shadow;
         }
 
         .music-button:hover {
@@ -1159,6 +1014,7 @@
 
         .music-button.playing {
             animation: musicPulse 2s ease-in-out infinite;
+            will-change: box-shadow;
         }
 
         @keyframes musicPulse {
@@ -1172,14 +1028,10 @@
 
         .music-button::before {
             content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
             background: linear-gradient(135deg, var(--primary), var(--accent));
-            opacity: 0;
-            transition: var(--transition-normal);
+            opacity: 0; transition: all var(--duration-normal) var(--transition-smooth);
             z-index: -1;
         }
 
@@ -1188,55 +1040,42 @@
         }
 
         .page-content {
-            padding-top: 70px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            padding-top: 70px; min-height: 100vh;
+            display: flex; flex-direction: column;
         }
 
         .announcement-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: calc(100vh - 300px);
-            padding: var(--spacing-lg) 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            min-height: calc(100vh - 300px); padding: var(--spacing-lg) 0;
         }
 
         .homework-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: var(--spacing-lg) 0;
+            display: flex; flex-direction: column;
+            align-items: center; padding: var(--spacing-lg) 0;
         }
 
         .stagger-fade-in {
-            opacity: 0;
-            transform: translateY(20px);
-            animation: staggerFadeIn 0.6s ease-out forwards;
+            opacity: 0; transform: translateY(20px);
+            animation: staggerFadeIn 0.6s var(--transition-bounce) forwards;
+            will-change: transform, opacity;
         }
 
         @keyframes staggerFadeIn {
             to {
-                opacity: 1;
-                transform: translateY(0);
+                opacity: 1; transform: translateY(0);
             }
         }
 
+        /* ===== 优化歌词容器动画 ===== */
         .lyrics-container {
-            position: relative;
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--border-radius-lg);
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
-            transition: var(--transition-normal);
-            transform: translateY(0);
+            position: relative; max-width: 800px;
+            margin: 2rem auto; padding: 1rem;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg); overflow: hidden;
+            transition: all var(--duration-normal) var(--transition-smooth);
+            transform: translateY(0); will-change: transform, box-shadow, opacity;
         }
 
         .lyrics-container:hover {
@@ -1245,150 +1084,110 @@
         }
 
         .lyrics-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 1rem 1rem;
+            display: flex; justify-content: space-between;
+            align-items: center; padding: 0 1rem 1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 1rem;
         }
 
         .lyrics-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--white);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            font-size: 1.3rem; font-weight: 700;
+            color: var(--white); display: flex;
+            align-items: center; gap: 0.5rem;
         }
 
         .lyrics-title i {
             color: var(--accent);
             animation: musicPulse 2s ease-in-out infinite;
+            will-change: transform;
         }
 
         .lyrics-toggle {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: var(--text-light);
-            padding: 0.5rem 1rem;
-            border-radius: var(--border-radius-sm);
-            cursor: pointer;
-            transition: var(--transition-normal);
-            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.1); border: none;
+            color: var(--text-light); padding: 0.5rem 1rem;
+            border-radius: var(--border-radius-sm); cursor: pointer;
+            transition: all var(--duration-fast) var(--transition-smooth);
+            font-size: 0.9rem; will-change: transform, background, color;
         }
 
         .lyrics-toggle:hover {
-            background: rgba(255, 255, 255, 0.2);
-            color: var(--white);
+            background: rgba(255, 255, 255, 0.2); color: var(--white);
             transform: translateY(-2px);
         }
 
         .lyrics-wrapper {
-            position: relative;
-            height: 300px;
-            overflow: hidden;
-            mask-image: linear-gradient(
-                to bottom,
-                transparent 0%,
-                black 20%,
-                black 80%,
-                transparent 100%
-            );
-            -webkit-mask-image: linear-gradient(
-                to bottom,
-                transparent 0%,
-                black 20%,
-                black 80%,
-                transparent 100%
-            );
+            position: relative; height: 300px; overflow: hidden;
+            mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+            transition: height var(--duration-normal) var(--transition-smooth);
         }
 
         .lyrics-lines {
-            position: absolute;
-            width: 100%;
-            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: absolute; width: 100%;
+            transition: transform 0.3s var(--transition-smooth);
+            will-change: transform;
         }
 
         .lyrics-line {
-            padding: 1rem 2rem;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            line-height: 1.6;
-            transition: all 0.4s var(--transition-bounce);
-            cursor: pointer;
-            opacity: 0.7;
-            transform: scale(0.95);
-            user-select: none;
+            padding: 1rem 2rem; text-align: center;
+            color: var(--text-muted); font-size: 1.1rem;
+            line-height: 1.6; transition: all 0.4s var(--transition-bounce);
+            cursor: pointer; opacity: 0.7; transform: scale(0.95);
+            user-select: none; will-change: transform, opacity, font-size;
+            position: relative;
         }
 
         .lyrics-line:hover {
-            color: var(--text-light);
-            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-light); background: rgba(255, 255, 255, 0.03);
             border-radius: var(--border-radius);
+            transform: scale(0.98);
         }
 
         .lyrics-line.active {
-            color: var(--white);
-            font-size: 1.3rem;
-            font-weight: 600;
-            opacity: 1;
-            transform: scale(1);
+            color: var(--white); font-size: 1.3rem; font-weight: 600;
+            opacity: 1; transform: scale(1);
             text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
         }
 
         .lyrics-line.active::before {
-            content: '♪';
-            position: absolute;
-            left: 1rem;
-            color: var(--accent);
-            animation: pulse 1s ease-in-out infinite;
+            content: '♪'; position: absolute; left: 1rem;
+            color: var(--accent); animation: pulse 1s ease-in-out infinite;
+            will-change: transform, opacity;
         }
 
         .lyrics-line.active::after {
-            content: '♪';
-            position: absolute;
-            right: 1rem;
-            color: var(--accent);
-            animation: pulse 1s ease-in-out infinite;
+            content: '♪'; position: absolute; right: 1rem;
+            color: var(--accent); animation: pulse 1s ease-in-out infinite;
+            will-change: transform, opacity;
         }
 
         .lyrics-progress {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: rgba(255, 255, 255, 0.1);
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 3px; background: rgba(255, 255, 255, 0.1);
             border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
             overflow: hidden;
         }
 
         .lyrics-progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            width: 0%;
-            transition: width 0.1s linear;
+            height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent));
+            width: 0%; transition: width 0.1s linear;
             box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+            will-change: width;
         }
 
         .lyrics-status {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 1rem;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            gap: 0.5rem;
+            display: flex; justify-content: center; align-items: center;
+            padding: 1rem; color: var(--text-muted); font-size: 0.9rem;
+            gap: 0.5rem; transition: all var(--duration-fast) var(--transition-smooth);
         }
 
         .lyrics-status i {
-            font-size: 1.1rem;
+            font-size: 1.1rem; transition: all var(--duration-fast) var(--transition-smooth);
         }
 
         .lyrics-status.loading i {
             animation: fa-spin 1s linear infinite;
+            will-change: transform;
         }
 
         .lyrics-status.error {
@@ -1400,7 +1199,7 @@
         }
 
         .lyrics-container.collapsed {
-            transform: translateY(calc(100% - 60px));
+            transform: translateY(calc(100% - 60px)) scale(0.98);
             box-shadow: var(--shadow-md);
             opacity: 0.9;
         }
@@ -1408,6 +1207,7 @@
         .lyrics-container.collapsed .lyrics-wrapper {
             height: 0;
             opacity: 0;
+            transition: height var(--duration-normal) var(--transition-smooth), opacity var(--duration-normal) var(--transition-smooth);
         }
 
         .lyrics-container.collapsed .lyrics-progress {
@@ -1476,43 +1276,29 @@
             box-shadow: var(--shadow-xl), 0 0 30px rgba(102, 126, 234, 0.6);
         }
 
-        /* ===== 密码验证弹窗 ===== */
+        /* ===== 优化密码模态框动画 ===== */
         .password-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 3000;
-            opacity: 0;
-            visibility: hidden;
-            transition: var(--transition-normal);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 3000; opacity: 0; visibility: hidden;
+            transition: all var(--duration-normal) var(--transition-smooth);
         }
 
         .password-modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
+            opacity: 1; visibility: visible;
         }
 
         .password-modal-content {
-            background: rgba(26, 26, 46, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl);
-            max-width: 450px;
-            width: 90%;
-            transform: scale(0.9) translateY(30px);
-            transition: var(--transition-bounce);
-            position: relative;
-            box-shadow: var(--shadow-xl);
+            background: rgba(26, 26, 46, 0.95); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl); max-width: 450px;
+            width: 90%; transform: scale(0.9) translateY(30px);
+            transition: all var(--duration-slow) var(--transition-bounce);
+            position: relative; box-shadow: var(--shadow-xl);
+            will-change: transform;
         }
 
         .password-modal-overlay.active .password-modal-content {
@@ -1520,114 +1306,90 @@
         }
 
         .password-modal-header {
-            text-align: center;
-            margin-bottom: var(--spacing-lg);
+            text-align: center; margin-bottom: var(--spacing-lg);
         }
 
         .password-modal-title {
-            font-size: 1.8rem;
-            font-weight: 800;
+            font-size: 1.8rem; font-weight: 800;
             background: linear-gradient(135deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: var(--spacing-sm);
-            position: relative;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: var(--spacing-sm); position: relative;
+            will-change: transform;
         }
 
         .password-modal-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 3px;
+            content: ''; position: absolute; bottom: -10px; left: 50%;
+            transform: translateX(-50%); width: 60px; height: 3px;
             background: linear-gradient(90deg, var(--primary), var(--accent));
-            border-radius: 2px;
+            border-radius: 2px; transition: width var(--duration-normal) var(--transition-smooth);
+        }
+
+        .password-modal-title:hover::after {
+            width: 80px;
         }
 
         .password-modal-subtitle {
-            color: var(--text-light);
-            font-size: 1rem;
+            color: var(--text-light); font-size: 1rem;
             margin-top: var(--spacing-md);
         }
 
         .password-input-group {
-            margin-bottom: var(--spacing-lg);
-            position: relative;
+            margin-bottom: var(--spacing-lg); position: relative;
         }
 
         .password-input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
+            position: relative; display: flex; align-items: center;
         }
 
         .password-input {
-            width: 100%;
-            padding: var(--spacing-md);
+            width: 100%; padding: var(--spacing-md);
             border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: var(--border-radius);
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--white);
-            font-size: 1.1rem;
-            font-weight: 500;
-            transition: var(--transition-normal);
-            letter-spacing: 0.1em;
+            background: rgba(255, 255, 255, 0.05); color: var(--white);
+            font-size: 1.1rem; font-weight: 500; letter-spacing: 0.1em;
+            transition: all var(--duration-fast) var(--transition-smooth);
+            will-change: border-color, background, box-shadow;
         }
 
         .password-input:focus {
-            outline: none;
-            border-color: var(--primary);
+            outline: none; border-color: var(--primary);
             background: rgba(255, 255, 255, 0.08);
             box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
         }
 
         .password-input::placeholder {
-            color: var(--text-muted);
-            letter-spacing: normal;
+            color: var(--text-muted); letter-spacing: normal;
         }
 
         .password-toggle {
-            position: absolute;
-            right: var(--spacing-sm);
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: var(--spacing-xs);
-            font-size: 1.1rem;
-            transition: var(--transition-normal);
-            z-index: 1;
+            position: absolute; right: var(--spacing-sm);
+            background: none; border: none; color: var(--text-muted);
+            cursor: pointer; padding: var(--spacing-xs);
+            font-size: 1.1rem; transition: all var(--duration-fast) var(--transition-smooth);
+            z-index: 1; will-change: color, transform;
         }
 
         .password-toggle:hover {
-            color: var(--accent);
-            transform: scale(1.1);
+            color: var(--accent); transform: scale(1.1);
         }
 
         .password-error {
-            color: var(--danger);
-            font-size: 0.9rem;
-            margin-top: var(--spacing-sm);
-            display: none;
-            font-weight: 500;
-            text-align: center;
-            padding: var(--spacing-xs);
-            background: rgba(248, 113, 113, 0.1);
+            color: var(--danger); font-size: 0.9rem; margin-top: var(--spacing-sm);
+            display: none; font-weight: 500; text-align: center;
+            padding: var(--spacing-xs); background: rgba(248, 113, 113, 0.1);
             border-radius: var(--border-radius-sm);
+            transition: all var(--duration-fast) var(--transition-smooth);
         }
 
         .password-error.show {
             display: block;
-            animation: shake 0.5s ease-in-out;
+            animation: shake 0.5s var(--transition-bounce);
         }
 
         .password-attempts {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            margin-top: var(--spacing-xs);
-            text-align: center;
+            color: var(--text-muted); font-size: 0.8rem;
+            margin-top: var(--spacing-xs); text-align: center;
+            transition: color var(--duration-fast) var(--transition-smooth);
         }
 
         @keyframes shake {
@@ -1637,33 +1399,23 @@
         }
 
         .password-modal-footer {
-            display: flex;
-            gap: var(--spacing-md);
-            justify-content: center;
+            display: flex; gap: var(--spacing-md); justify-content: center;
             flex-wrap: wrap;
         }
 
         .password-button {
-            padding: var(--spacing-sm) var(--spacing-lg);
-            border: none;
-            border-radius: var(--border-radius);
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition-bounce);
-            min-width: 120px;
-            position: relative;
-            overflow: hidden;
+            padding: var(--spacing-sm) var(--spacing-lg); border: none;
+            border-radius: var(--border-radius); font-weight: 600;
+            cursor: pointer; transition: all var(--duration-fast) var(--transition-bounce);
+            min-width: 120px; position: relative; overflow: hidden;
+            will-change: transform, box-shadow;
         }
 
         .password-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: var(--transition-slow);
+            transition: left var(--duration-normal) var(--transition-smooth);
         }
 
         .password-button:hover::before {
@@ -1671,8 +1423,7 @@
         }
 
         .password-button-primary {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: white;
+            background: linear-gradient(135deg, var(--primary), var(--accent)); color: white;
         }
 
         .password-button-primary:hover {
@@ -1681,40 +1432,29 @@
         }
 
         .password-button-secondary {
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--text-light);
+            background: rgba(255, 255, 255, 0.08); color: var(--text-light);
             border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
         .password-button-secondary:hover {
-            background: rgba(255, 255, 255, 0.12);
-            color: var(--white);
-            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.12); color: var(--white);
+            transform: translateY(-3px) scale(1.02);
             box-shadow: var(--shadow-md);
         }
 
         .password-hint {
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            margin-top: var(--spacing-md);
+            text-align: center; color: var(--text-muted);
+            font-size: 0.85rem; margin-top: var(--spacing-md);
             font-style: italic;
         }
 
         .password-success {
-            position: absolute;
-            top: 50%;
-            left: 50%;
+            position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%) scale(0);
-            background: var(--success);
-            color: white;
-            padding: var(--spacing-md) var(--spacing-lg);
-            border-radius: var(--border-radius);
-            font-weight: 600;
-            opacity: 0;
-            transition: var(--transition-bounce);
-            pointer-events: none;
-            z-index: 10;
+            background: var(--success); color: white;
+            padding: var(--spacing-md) var(--spacing-lg); border-radius: var(--border-radius);
+            font-weight: 600; opacity: 0; transition: all var(--duration-slow) var(--transition-bounce);
+            pointer-events: none; z-index: 10;
         }
 
         .password-success.show {
@@ -1723,9 +1463,7 @@
         }
 
         .password-success::before {
-            content: '✓';
-            margin-right: 0.5rem;
-            font-size: 1.2rem;
+            content: '✓'; margin-right: 0.5rem; font-size: 1.2rem;
         }
 
         @media (max-width: 768px) {
@@ -1739,13 +1477,11 @@
             }
 
             .password-modal-footer {
-                flex-direction: column;
-                width: 100%;
+                flex-direction: column; width: 100%;
             }
 
             .password-button {
-                width: 100%;
-                min-width: auto;
+                width: 100%; min-width: auto;
             }
         }
 
@@ -1759,8 +1495,7 @@
             }
 
             .password-input {
-                font-size: 1rem;
-                padding: var(--spacing-sm);
+                font-size: 1rem; padding: var(--spacing-sm);
             }
         }
 
@@ -1768,80 +1503,61 @@
             overflow: hidden;
         }
 
-        /* ===== 更新历史页面样式 ===== */
+        /* ===== 优化历史记录动画 ===== */
         .history-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: var(--spacing-lg) 0;
+            display: flex; flex-direction: column;
+            align-items: center; padding: var(--spacing-lg) 0;
             min-height: calc(100vh - 300px);
         }
 
         .history-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: var(--spacing-lg) 0;
-            width: 100%;
+            max-width: 1200px; margin: 0 auto;
+            padding: var(--spacing-lg) 0; width: 100%;
         }
 
         .history-timeline {
-            position: relative;
-            padding-left: var(--spacing-lg);
-            margin-left: auto;
-            margin-right: auto;
-            max-width: 800px;
+            position: relative; padding-left: var(--spacing-lg);
+            margin-left: auto; margin-right: auto; max-width: 800px;
         }
 
         .history-timeline::before {
             content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 3px;
+            position: absolute; left: 0; top: 0;
+            height: 100%; width: 3px;
             background: linear-gradient(to bottom, var(--primary), var(--accent));
             border-radius: 2px;
         }
 
         .history-item {
-            position: relative;
-            margin-bottom: var(--spacing-xl);
-            opacity: 0;
-            transform: translateX(-20px);
-            animation: slideInLeft 0.6s ease-out forwards;
+            position: relative; margin-bottom: var(--spacing-xl);
+            opacity: 0; transform: translateX(-20px);
+            animation: slideInLeft 0.6s var(--transition-smooth) forwards;
+            will-change: transform, opacity;
         }
 
         .history-item:nth-child(even) {
-            animation: slideInRight 0.6s ease-out forwards;
+            animation: slideInRight 0.6s var(--transition-smooth) forwards;
         }
 
         @keyframes slideInLeft {
             to {
-                opacity: 1;
-                transform: translateX(0);
+                opacity: 1; transform: translateX(0);
             }
         }
 
         @keyframes slideInRight {
             to {
-                opacity: 1;
-                transform: translateX(0);
+                opacity: 1; transform: translateX(0);
             }
         }
 
         .history-item::before {
             content: '';
-            position: absolute;
-            left: -2.5rem;
-            top: 1.5rem;
-            width: 16px;
-            height: 16px;
-            background: var(--primary);
-            border: 3px solid var(--dark);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--primary);
-            z-index: 1;
-            transition: var(--transition-normal);
+            position: absolute; left: -2.5rem; top: 1.5rem;
+            width: 16px; height: 16px; background: var(--primary);
+            border: 3px solid var(--dark); border-radius: 50%;
+            box-shadow: 0 0 10px var(--primary); z-index: 1;
+            transition: all var(--duration-normal) var(--transition-bounce);
         }
 
         .history-item:hover::before {
@@ -1851,33 +1567,25 @@
         }
 
         .history-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-lg);
-            transition: var(--transition-bounce);
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--shadow-md);
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg); transition: all var(--duration-normal) var(--transition-bounce);
+            position: relative; overflow: hidden; box-shadow: var(--shadow-md);
+            will-change: transform, box-shadow;
         }
 
         .history-card:hover {
-            transform: translateY(-8px);
+            transform: translateY(-8px) scale(1.02);
             box-shadow: var(--shadow-xl), var(--shadow-glow);
             border-color: rgba(102, 126, 234, 0.3);
         }
 
         .history-card::before {
             content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
+            position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
-            transition: var(--transition-slow);
+            transition: left var(--duration-mega-slow) var(--transition-smooth);
         }
 
         .history-card:hover::before {
@@ -1885,62 +1593,42 @@
         }
 
         .history-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-md);
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: var(--spacing-md);
             padding-bottom: var(--spacing-sm);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            flex-wrap: wrap;
-            gap: var(--spacing-sm);
+            flex-wrap: wrap; gap: var(--spacing-sm);
         }
 
         .history-date {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--accent);
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
+            font-size: 1.1rem; font-weight: 700; color: var(--accent);
+            display: flex; align-items: center; gap: var(--spacing-xs);
         }
 
         .history-date i {
-            font-size: 0.9rem;
-            color: var(--primary);
+            font-size: 0.9rem; color: var(--primary);
         }
 
         .history-version {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--white);
+            font-size: 0.9rem; font-weight: 600; color: var(--white);
             background: linear-gradient(135deg, var(--primary), var(--accent));
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border-radius: var(--border-radius-sm);
+            padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--border-radius-sm);
             box-shadow: var(--shadow-sm);
         }
 
         .history-changes {
-            list-style: none;
-            padding-left: 0;
-            margin: 0;
+            list-style: none; padding-left: 0; margin: 0;
         }
 
         .history-change {
-            padding: var(--spacing-xs) 0;
-            color: var(--text-light);
-            position: relative;
-            padding-left: var(--spacing-md);
-            font-size: 0.95rem;
-            line-height: 1.5;
+            padding: var(--spacing-xs) 0; color: var(--text-light);
+            position: relative; padding-left: var(--spacing-md);
+            font-size: 0.95rem; line-height: 1.5;
         }
 
         .history-change::before {
-            content: '•';
-            position: absolute;
-            left: 0;
-            color: var(--primary);
-            font-weight: bold;
-            font-size: 1.2rem;
+            content: '•'; position: absolute; left: 0;
+            color: var(--primary); font-weight: bold; font-size: 1.2rem;
         }
 
         .history-change:not(:last-child) {
@@ -1948,126 +1636,96 @@
         }
 
         .history-banner {
-            text-align: center;
-            margin-bottom: var(--spacing-xl);
+            text-align: center; margin-bottom: var(--spacing-xl);
             padding: var(--spacing-lg);
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--border-radius-lg);
-            box-shadow: var(--shadow-lg);
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg); max-width: 800px;
+            margin-left: auto; margin-right: auto;
+            will-change: transform, box-shadow;
         }
 
         .history-banner-icon {
-            font-size: 3rem;
-            color: var(--accent);
+            font-size: 3rem; color: var(--accent);
             margin-bottom: var(--spacing-md);
             animation: pulse 2s ease-in-out infinite;
+            will-change: transform, opacity;
         }
 
         .history-banner-title {
-            font-size: 1.8rem;
-            font-weight: 800;
+            font-size: 1.8rem; font-weight: 800;
             background: linear-gradient(135deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             margin-bottom: var(--spacing-sm);
         }
 
         .history-banner-subtitle {
-            color: var(--text-light);
-            font-size: 1rem;
+            color: var(--text-light); font-size: 1rem;
         }
 
-        /* 当前进行中版本样式 */
+        /* 优化当前进行中版本样式 */
         .current-version-item {
-            margin-bottom: var(--spacing-xl);
-            opacity: 0;
-            transform: translateX(-20px);
-            animation: slideInLeft 0.6s ease-out forwards;
-            animation-delay: 0.1s;
+            margin-bottom: var(--spacing-xl); opacity: 0;
+            transform: translateX(-20px); animation: slideInLeft 0.6s var(--transition-smooth) forwards;
+            animation-delay: 0.1s; will-change: transform, opacity;
         }
 
         .current-version-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-lg);
-            transition: var(--transition-bounce);
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--shadow-md);
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg); transition: all var(--duration-normal) var(--transition-bounce);
+            position: relative; overflow: hidden; box-shadow: var(--shadow-md);
+            max-width: 800px; margin-left: auto; margin-right: auto;
             padding-left: calc(var(--spacing-lg) + var(--spacing-md));
+            will-change: transform, box-shadow;
         }
 
         .current-version-card:hover {
-            transform: translateY(-8px);
+            transform: translateY(-8px) scale(1.02);
             box-shadow: var(--shadow-xl), var(--shadow-glow);
             border-color: rgba(102, 126, 234, 0.3);
         }
 
         .current-version-card::before {
             content: '';
-            position: absolute;
-            left: calc(-2.5rem - var(--spacing-md));
-            top: 1.5rem;
-            width: 16px;
-            height: 16px;
-            background: var(--warning);
-            border: 3px solid var(--dark);
-            border-radius: 50%;
+            position: absolute; left: calc(-2.5rem - var(--spacing-md)); top: 1.5rem;
+            width: 16px; height: 16px; background: var(--warning);
+            border: 3px solid var(--dark); border-radius: 50%;
             box-shadow: 0 0 10px var(--warning);
             animation: pulse 1.5s ease-in-out infinite;
-            z-index: 1;
+            z-index: 1; transition: all var(--duration-normal) var(--transition-smooth);
+        }
+
+        .current-version-card:hover::before {
+            transform: scale(1.2);
+            box-shadow: 0 0 15px var(--warning);
         }
 
         .current-version-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-md);
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: var(--spacing-md);
             padding-bottom: var(--spacing-sm);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            flex-wrap: wrap;
-            gap: var(--spacing-sm);
+            flex-wrap: wrap; gap: var(--spacing-sm);
         }
 
         .current-version-date {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--warning);
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
+            font-size: 1.1rem; font-weight: 700; color: var(--warning);
+            display: flex; align-items: center; gap: var(--spacing-xs);
         }
 
         .current-version-status {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--white);
+            font-size: 0.9rem; font-weight: 600; color: var(--white);
             background: linear-gradient(135deg, var(--warning), var(--accent));
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border-radius: var(--border-radius-sm);
+            padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--border-radius-sm);
             box-shadow: var(--shadow-sm);
             animation: pulse 2s ease-in-out infinite;
+            will-change: transform, opacity;
         }
 
         .current-version-text {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            color: var(--text-light);
-            font-size: 0.95rem;
-            line-height: 1.5;
+            display: flex; align-items: center; gap: var(--spacing-sm);
+            color: var(--text-light); font-size: 0.95rem; line-height: 1.5;
         }
 
         .current-version-text .fa-sync-alt {
@@ -2087,8 +1745,7 @@
             }
 
             .current-version-header {
-                flex-direction: column;
-                align-items: flex-start;
+                flex-direction: column; align-items: flex-start;
             }
 
             .current-version-status {
@@ -2124,6 +1781,39 @@
 
             .current-version-date {
                 font-size: 1rem;
+            }
+        }
+
+        /* ===== 优化自动刷新提示动画 ===== */
+        #refreshIndicator {
+            position: fixed; bottom: 80px; right: 20px;
+            z-index: 998; background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--border-radius);
+            padding: 8px 16px; color: var(--text-light);
+            font-size: 0.9rem; transition: all var(--duration-slow) var(--transition-bounce);
+            box-shadow: var(--shadow-md); opacity: 0; transform: scale(0);
+            will-change: transform, opacity;
+        }
+
+        #refreshIndicator.show {
+            opacity: 1; transform: scale(1);
+        }
+
+        #refreshCountdown {
+            color: var(--accent); font-weight: 600;
+            margin-left: 4px; transition: color var(--duration-fast) var(--transition-smooth);
+        }
+
+        /* 低功耗模式适配 */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            #refreshIndicator {
+                transition: opacity 0.3s ease;
             }
         }
     </style>
@@ -2244,12 +1934,12 @@
                                     进行中
                                 </div>
                                 <div class="current-version-status">
-                                    Version 1.4
+                                    Version1.6
                                 </div>
                             </div>
                             <div class="current-version-text">
                                 <i class="fas fa-cog fa-spin"></i>
-                                app优化及IPA苹果客户端尝试
+                                优化中
                             </div>
                         </div>
                     </div>
@@ -2387,7 +2077,7 @@
         </div>
     </div>
 
-    <!-- 密码验证弹窗 - 密码隐藏在JavaScript中 -->
+    <!-- 密码验证弹窗 -->
     <div class="password-modal-overlay" id="passwordModal">
         <div class="password-modal-content">
             <div class="password-success" id="passwordSuccess">
@@ -2436,6 +2126,7 @@
     </footer>
 
     <script>
+        // 优化粒子系统 - 使用requestAnimationFrame和时间平滑
         class ParticleNetwork {
             constructor() {
                 this.canvas = document.getElementById('particles-canvas');
@@ -2448,6 +2139,9 @@
                 this.lastFrameTime = 0;
                 this.clickEffects = [];
                 this.isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                this.timeSmoothing = 0.1; // 时间平滑系数
+                this.targetFPS = 60;
+                this.frameInterval = 1000 / this.targetFPS;
                 
                 this.init();
                 this.createParticles();
@@ -2484,7 +2178,11 @@
                         originalOpacity: Math.random() * 0.5 + 0.2,
                         isClickEffect: false,
                         isRipple: false,
-                        life: 0
+                        life: 0,
+                        targetX: 0,
+                        targetY: 0,
+                        smoothX: 0,
+                        smoothY: 0
                     });
                 }
             }
@@ -2580,7 +2278,7 @@
 
                 const now = Date.now();
                 const deltaTime = now - (this.lastFrameTime || 0);
-                if (deltaTime < 16 && !this.isReducedMotion) {
+                if (deltaTime < this.frameInterval && !this.isReducedMotion) {
                     return;
                 }
                 this.lastFrameTime = now;
@@ -2608,6 +2306,12 @@
                             return false;
                         }
                     }
+                    
+                    // 平滑运动
+                    const targetX = particle.x;
+                    const targetY = particle.y;
+                    particle.smoothX += (targetX - particle.smoothX) * this.timeSmoothing;
+                    particle.smoothY += (targetY - particle.smoothY) * this.timeSmoothing;
                     
                     particle.x += particle.vx;
                     particle.y += particle.vy;
@@ -2653,7 +2357,7 @@
                     }
                     
                     this.ctx.beginPath();
-                    this.ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                    this.ctx.arc(particle.smoothX, particle.smoothY, particle.radius, 0, Math.PI * 2);
                     
                     if (particle.isClickEffect) {
                         this.ctx.fillStyle = `rgba(236, 139, 247, ${particle.opacity})`;
@@ -2900,8 +2604,18 @@
             }
         };
 
-        // 关于我们数据 - 按时间倒序排列，最新的在前
+        // 更新历史数据 - 添加了2025-12-30和2025-12-31的更新记录
         const updateHistory = [
+            {
+                date: '2025-12-31',
+                version: 'Version1.5',
+                changes: ['动画粒子大优化，提高体验']
+            },
+            {
+                date: '2025-12-30',
+                version: 'Version1.4',
+                changes: ['音乐播放逻辑优化', '优化网页加载', '更新app版本（无黑边）']
+            },
             {
                 date: '2025-12-29',
                 version: 'Version1.3',
@@ -2969,13 +2683,13 @@
             }
         ];
 
-        // 密码验证系统 - 密码隐藏在代码内部，不区分大小写
+        // 密码验证系统 - 密码不区分大小写
         class PasswordVerificationSystem {
             constructor() {
                 // ===== 密码设置：2525CN（不区分大小写）=====
                 this.CORRECT_PASSWORD = '2525CN';
                 this.MAX_ATTEMPTS = 3;
-                this.LOCK_TIME = 5; // 分钟
+                this.LOCK_TIME = 5;
 
                 this.modal = document.getElementById('passwordModal');
                 this.input = document.getElementById('passwordInput');
@@ -3078,7 +2792,6 @@
                     return;
                 }
                 
-                // 不区分大小写比较
                 if (inputPassword.toLowerCase() === this.CORRECT_PASSWORD.toLowerCase()) {
                     this.onSuccess();
                 } else {
@@ -3259,12 +2972,10 @@
             }
         }
 
-        // 渲染关于我们
         function renderUpdateHistory() {
             const timeline = document.getElementById('historyTimeline');
             if (!timeline) return;
 
-            // 已按照时间倒序排列的数据，最新的在前
             timeline.innerHTML = updateHistory.map((item, index) => `
                 <div class="history-item stagger-fade-in" style="animation-delay: ${index * 0.1}s">
                     <div class="history-card">
@@ -3397,6 +3108,7 @@
             document.body.style.overflow = '';
         }
 
+        // 优化加载动画 - 将Version改为Version1.5
         function hideLoading() {
             const loading = document.getElementById('loading');
             const spinner = loading.querySelector('.loading-spinner');
@@ -3406,7 +3118,8 @@
             
             setTimeout(() => {
                 spinner.style.display = 'none';
-                loadingText.textContent = '已验证安全Version1.3';
+                // 修改这里：将"Version"改为"Version1.5"
+                loadingText.textContent = '已验证安全Version1.5';
                 loadingSubtext.textContent = '验证完成，正在加载界面...';
                 loadingCheck.style.display = 'block';
                 
@@ -3419,6 +3132,130 @@
                     }, 500);
                 }, 800);
             }, 2000);
+        }
+
+        // 多格式音乐文件加载器
+        class MusicLoader {
+            constructor() {
+                this.supportedFormats = [
+                    { ext: 'mp3', type: 'audio/mpeg' },
+                    { ext: 'aac', type: 'audio/aac' },
+                    { ext: 'm4a', type: 'audio/mp4' },
+                    { ext: 'm4b', type: 'audio/mp4' },
+                    { ext: 'ogg', type: 'audio/ogg' },
+                    { ext: 'oga', type: 'audio/ogg' },
+                    { ext: 'wav', type: 'audio/wav' },
+                    { ext: 'flac', type: 'audio/flac' },
+                    { ext: 'weba', type: 'audio/webm' },
+                    { ext: 'mp4', type: 'audio/mp4' }
+                ];
+                this.foundMusic = null;
+            }
+            
+            async detectMusic() {
+                const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+                
+                const namePatterns = ['music', 'bgm', 'background', 'audio'];
+                
+                for (const name of namePatterns) {
+                    for (const format of this.supportedFormats) {
+                        const url = `${basePath}${name}.${format.ext}`;
+                        try {
+                            const result = await this.checkFile(url, format);
+                            if (result) {
+                                this.foundMusic = result;
+                                return result;
+                            }
+                        } catch (e) {
+                            continue;
+                        }
+                    }
+                }
+                
+                return null;
+            }
+            
+            checkFile(url, format) {
+                return new Promise((resolve, reject) => {
+                    const audio = new Audio();
+                    let resolved = false;
+                    
+                    const onCanPlay = () => {
+                        if (!resolved) {
+                            resolved = true;
+                            resolve({ url, format });
+                        }
+                    };
+                    
+                    const onError = () => {
+                        if (!resolved) {
+                            resolved = true;
+                            reject(null);
+                        }
+                    };
+                    
+                    const timeout = setTimeout(() => {
+                        if (!resolved) {
+                            resolved = true;
+                            reject(null);
+                        }
+                    }, 5000);
+                    
+                    audio.addEventListener('canplaythrough', onCanPlay, { once: true });
+                    audio.addEventListener('error', onError, { once: true });
+                    audio.src = url;
+                    audio.load();
+                });
+            }
+            
+            updateAudioElement(audio) {
+                if (!this.foundMusic) return false;
+                
+                audio.innerHTML = '';
+                const source = document.createElement('source');
+                source.src = this.foundMusic.url;
+                source.type = this.foundMusic.format.type;
+                audio.appendChild(source);
+                return true;
+            }
+            
+            getMusicInfo() {
+                if (!this.foundMusic) return null;
+                return {
+                    url: this.foundMusic.url,
+                    format: this.foundMusic.format.ext.toUpperCase(),
+                    type: this.foundMusic.format.type
+                };
+            }
+        }
+
+        // 初始化音乐播放器
+        async function initializeMusicPlayer() {
+            const musicLoader = new MusicLoader();
+            await musicLoader.detectMusic();
+            
+            const audio = document.getElementById('bgMusic');
+            const statusElement = document.getElementById('lyricsStatus');
+            const updated = musicLoader.updateAudioElement(audio);
+            
+            if (statusElement) {
+                if (updated) {
+                    const info = musicLoader.getMusicInfo();
+                    statusElement.innerHTML = `<i class="fas fa-check-circle"></i> <span>音乐已加载 (${info.format}格式)</span>`;
+                    statusElement.className = 'lyrics-status success';
+                } else {
+                    statusElement.innerHTML = `<i class="fas fa-info-circle"></i> <span>使用默认音乐文件</span>`;
+                }
+            }
+            
+            if (updated) {
+                const info = musicLoader.getMusicInfo();
+                console.log(`✅ 音乐文件检测成功：${info.url} (${info.format}格式)`);
+            } else {
+                console.log('ℹ️ 未找到其他音乐文件，使用默认music.mp3');
+            }
+            
+            setupMusicPlayer();
         }
 
         function setupMusicPlayer() {
@@ -3467,8 +3304,6 @@
                 
                 updateButtonState('loading');
                 
-                // GitHub Pages建议使用英文文件名和相对路径
-                bgMusic.src = 'music.mp3';
                 bgMusic.load();
                 
                 const onCanPlay = () => {
@@ -3495,7 +3330,6 @@
                 bgMusic.addEventListener('error', onError, { once: true });
             };
             
-            // 首次用户交互时加载音频
             document.addEventListener('click', loadAudio, { once: true });
             
             musicButton.addEventListener('click', () => {
@@ -3538,6 +3372,10 @@
                 if(statusElement && isLoaded) {
                     statusElement.innerHTML = `<i class="fas fa-check-circle"></i> <span>音乐已加载：${bgMusic.duration.toFixed(1)}秒</span>`;
                 }
+            });
+            
+            bgMusic.addEventListener('error', (e) => {
+                statusElement?.classList.add('error');
             });
         }
 
@@ -3930,6 +3768,60 @@
             });
         }
 
+        // 优化自动刷新系统
+        function setupAutoRefresh() {
+            const REFRESH_INTERVAL = 8 * 60 * 1000;
+            let lastRefreshTime = Date.now();
+            
+            const indicator = document.createElement('div');
+            indicator.id = 'refreshIndicator';
+            indicator.innerHTML = '<span id="refreshCountdown">08:00</span>';
+            document.body.appendChild(indicator);
+            
+            setTimeout(() => {
+                indicator.classList.add('show');
+            }, 1000);
+            
+            function updateCountdown() {
+                const remaining = REFRESH_INTERVAL - (Date.now() - lastRefreshTime);
+                const minutes = Math.floor(remaining / 60000);
+                const seconds = Math.floor((remaining % 60000) / 1000);
+                const countdownEl = document.getElementById('refreshCountdown');
+                if (countdownEl) {
+                    countdownEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }
+            setInterval(updateCountdown, 1000);
+            updateCountdown();
+            
+            function shouldRefresh() {
+                const activeElement = document.activeElement;
+                const hasFocus = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'BUTTON');
+                const hasActiveModal = document.querySelector('.modal-overlay.active, .password-modal-overlay.active');
+                const audio = document.getElementById('bgMusic');
+                const isMusicPlaying = audio && !audio.paused;
+                
+                return !hasFocus && !hasActiveModal && !isMusicPlaying;
+            }
+            
+            function performRefresh() {
+                if (shouldRefresh()) {
+                    const currentPage = document.querySelector('.page.active');
+                    if (currentPage) localStorage.setItem('lastPage', currentPage.dataset.page);
+                    location.reload();
+                } else {
+                    setTimeout(() => {
+                        lastRefreshTime = Date.now() - (REFRESH_INTERVAL - 30000);
+                    }, 30000);
+                }
+            }
+            
+            setInterval(() => {
+                lastRefreshTime = Date.now();
+                performRefresh();
+            }, REFRESH_INTERVAL);
+        }
+
         let particleNetwork = null;
         let passwordSystem = null;
         
@@ -3942,21 +3834,41 @@
             setupMobileMenu();
             setupHomeworkCards();
             setupModal();
-            setupMusicPlayer();
+            await initializeMusicPlayer();
             updateBeijingTime();
             setupScrollEffects();
             applyStaggerAnimation();
             setupLyricsIntegration();
             detectUA();
             
-            setInterval(updateBeijingTime, 1000);
-            setInterval(updateUptime, 1000);
+            // 优化定时器 - 使用requestAnimationFrame对齐的时间更新
+            let lastTimeUpdate = Date.now();
+            let lastUptimeUpdate = Date.now();
+            
+            const optimizedUpdate = () => {
+                const now = Date.now();
+                
+                if (now - lastTimeUpdate >= 1000) {
+                    updateBeijingTime();
+                    lastTimeUpdate = now;
+                }
+                
+                if (now - lastUptimeUpdate >= 1000) {
+                    updateUptime();
+                    lastUptimeUpdate = now;
+                }
+                
+                requestAnimationFrame(optimizedUpdate);
+            };
+            requestAnimationFrame(optimizedUpdate);
             
             setInterval(async () => {
                 if (serverTimeManager.shouldResync()) {
                     await serverTimeManager.syncTime();
                 }
             }, 5 * 60 * 1000);
+            
+            setupAutoRefresh();
             
             if (passwordSystem.checkLockStatus()) {
                 const homeworkNavItem = document.querySelector('.nav-menu li[data-page="homework"]');
@@ -4007,23 +3919,6 @@
                 updateBeijingTime();
                 updateUptime();
             }
-        });
-
-        // 添加音乐文件存在性检查
-        document.addEventListener('DOMContentLoaded', () => {
-            // 在控制台提示音乐文件检查
-            console.log('正在检查音乐文件...');
-            fetch('music.mp3', { method: 'HEAD' })
-                .then(response => {
-                    if (response.ok) {
-                        console.log('✅ 音乐文件存在');
-                    } else {
-                        console.error('❌ 音乐文件不存在或无法访问');
-                    }
-                })
-                .catch(() => {
-                    console.error('❌ 音乐文件加载失败，请确保文件名为 music.mp3（小写）');
-                });
         });
     </script>
 </body>
