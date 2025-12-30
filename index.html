@@ -1816,10 +1816,169 @@
                 transition: opacity 0.3s ease;
             }
         }
+
+        /* ===== 新增：反馈按钮样式 ===== */
+        .feedback-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 999;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--transition-bounce);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            will-change: transform, box-shadow;
+        }
+
+        .feedback-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: var(--shadow-xl), var(--shadow-glow);
+        }
+
+        .feedback-button:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .feedback-button i {
+            font-size: 1.1rem;
+        }
+
+        /* 关于我们页面中的反馈入口 */
+        .history-feedback-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg);
+            text-align: center;
+            transition: all var(--duration-normal) var(--transition-bounce);
+            position: relative;
+            overflow: hidden;
+            margin: var(--spacing-xl) auto;
+            max-width: 800px;
+            will-change: transform, box-shadow;
+        }
+
+        .history-feedback-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+            transition: left var(--duration-mega-slow) var(--transition-smooth);
+        }
+
+        .history-feedback-card:hover::before {
+            left: 100%;
+        }
+
+        .history-feedback-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: var(--shadow-xl), var(--shadow-glow);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .feedback-card-icon {
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: var(--spacing-md);
+            animation: pulse 2s ease-in-out infinite;
+            will-change: transform, opacity;
+        }
+
+        .feedback-card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+            color: var(--white);
+        }
+
+        .feedback-card-description {
+            color: var(--text-light);
+            margin-bottom: var(--spacing-lg);
+            line-height: 1.6;
+        }
+
+        .feedback-card-button {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none;
+            color: white;
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--transition-bounce);
+            will-change: transform, box-shadow;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .feedback-card-button:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: var(--shadow-glow);
+        }
+
+        @media (max-width: 768px) {
+            .feedback-button {
+                bottom: 15px;
+                left: 15px;
+                padding: 10px 16px;
+                font-size: 0.85rem;
+            }
+
+            .feedback-button i {
+                font-size: 1rem;
+            }
+
+            .history-feedback-card {
+                margin: var(--spacing-lg) var(--spacing-sm);
+                padding: var(--spacing-md);
+            }
+
+            .feedback-card-icon {
+                font-size: 2.5rem;
+            }
+
+            .feedback-card-title {
+                font-size: 1.3rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .feedback-button {
+                bottom: 10px;
+                left: 10px;
+                padding: 8px 14px;
+                font-size: 0.8rem;
+            }
+
+            .feedback-card-button {
+                padding: var(--spacing-xs) var(--spacing-md);
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body>
     <canvas id="particles-canvas"></canvas>
+
+    <!-- 新增：浮动反馈按钮 -->
+    <button class="feedback-button" id="feedbackButton" aria-label="提交反馈">
+        <i class="fas fa-comment-dots"></i>
+        <span>反馈</span>
+    </button>
 
     <!-- 加载页面 -->
     <div class="loading" id="loading">
@@ -1923,6 +2082,21 @@
                         </div>
                         <h2 class="history-banner-title">关于我们</h2>
                         <p class="history-banner-subtitle">记录每一次进步的足迹</p>
+                    </div>
+                    
+                    <!-- 新增：反馈入口卡片 -->
+                    <div class="history-feedback-card stagger-fade-in">
+                        <div class="feedback-card-icon">
+                            <i class="fas fa-comment-dots"></i>
+                        </div>
+                        <h3 class="feedback-card-title">意见反馈</h3>
+                        <p class="feedback-card-description">
+                            您的宝贵意见是我们改进的动力！欢迎通过腾讯文档提交反馈，帮助我们做得更好。
+                        </p>
+                        <button class="feedback-card-button" onclick="openFeedback()">
+                            <i class="fas fa-external-link-alt"></i>
+                            提交反馈
+                        </button>
                     </div>
                     
                     <!-- 当前进行中版本 -->
@@ -3370,7 +3544,7 @@
             
             bgMusic.addEventListener('loadedmetadata', () => {
                 if(statusElement && isLoaded) {
-                    statusElement.innerHTML = `<i class="fas fa-check-circle"></i> <span>音乐已加载：${bgMusic.duration.toFixed(1)}秒</span>`;
+                    statusElement.innerHTML = `音乐已加载：${bgMusic.duration.toFixed(1)}秒`;
                 }
             });
             
@@ -3822,6 +3996,36 @@
             }, REFRESH_INTERVAL);
         }
 
+        // 新增：反馈功能
+        function setupFeedback() {
+            const feedbackButton = document.getElementById('feedbackButton');
+            const feedbackCardButton = document.querySelector('.feedback-card-button');
+            
+            const openFeedback = () => {
+                window.open('https://docs.qq.com/form/page/DT0hkWkRCYXNvcHFm', '_blank');
+            };
+            
+            if (feedbackButton) {
+                feedbackButton.addEventListener('click', openFeedback);
+            }
+            
+            if (feedbackCardButton) {
+                feedbackCardButton.addEventListener('click', openFeedback);
+            }
+            
+            // 添加反馈按钮动画
+            setTimeout(() => {
+                if (feedbackButton) {
+                    feedbackButton.style.animation = 'fadeInUp 0.6s ease-out forwards';
+                }
+            }, 2000);
+        }
+
+        // 将反馈函数暴露到全局作用域
+        window.openFeedback = function() {
+            window.open('https://docs.qq.com/form/page/DT0hkWkRCYXNvcHFm', '_blank');
+        };
+
         let particleNetwork = null;
         let passwordSystem = null;
         
@@ -3839,6 +4043,7 @@
             setupScrollEffects();
             applyStaggerAnimation();
             setupLyricsIntegration();
+            setupFeedback(); // 新增：设置反馈功能
             detectUA();
             
             // 优化定时器 - 使用requestAnimationFrame对齐的时间更新
