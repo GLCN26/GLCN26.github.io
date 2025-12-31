@@ -2193,7 +2193,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: var(--spacing-lg) 0;
         }
     </style>
 </head>
@@ -3507,15 +3506,44 @@
         let passwordSystem = null;
         let performanceModeManager = null;
 
+        // 修复: AbortSignal.timeout兼容性
+        function fetchWithTimeout(url, options = {}) {
+            const timeout = options.timeout || 5000;
+            
+            if (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) {
+                // 现代浏览器
+                return fetch(url, {
+                    ...options,
+                    signal: AbortSignal.timeout(timeout)
+                });
+            } else {
+                // 兼容性处理
+                return new Promise((resolve, reject) => {
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), timeout);
+                    
+                    fetch(url, {
+                        ...options,
+                        signal: controller.signal
+                    }).then(response => {
+                        clearTimeout(timer);
+                        resolve(response);
+                    }).catch(error => {
+                        clearTimeout(timer);
+                        reject(error);
+                    });
+                });
+            }
+        }
+
         async function verifyRepositoryFile() {
             const repoFile = 'st.txt';
             const requiredContent = '1';
             
             try {
-                const response = await fetch(repoFile, { 
+                const response = await fetchWithTimeout(repoFile, { 
                     method: 'GET',
-                    cache: 'no-cache',
-                    signal: AbortSignal.timeout(3000)
+                    cache: 'no-cache'
                 });
                 
                 if (!response.ok) {
@@ -3556,111 +3584,76 @@
             }
         }
 
-        async function initializeApp() {
-            passwordSystem = new PasswordVerificationSystem();
-            performanceModeManager = new PerformanceModeManager();
-            
-            // 验证仓库文件
-            const isVerified = await verifyRepositoryFile();
-            if (!isVerified) {
-                return;
+        // 修复: 将serverTimeManager定义提前，避免未定义错误
+        class ServerTimeManager {
+            constructor() {
+                this.serverTimeOffset = 0;
+                this.lastSyncTime = 0;
+                this.isInitialized = false;
             }
             
-            await serverTimeManager.syncTime();
-            
-            setupNavigation();
-            setupMobileMenu();
-            setupHomeworkCards();
-            setupModal();
-            detectUA();
-            updateBeijingTime();
-            setupScrollEffects();
-            applyStaggerAnimation();
-            
-            // 获取性能模式
-            let mode = performanceModeManager.getStoredMode();
-            
-            if (!mode) {
-                // 首次访问或模式过期
-                if (performanceModeManager.isPC()) {
-                    // PC端自动选择高性能模式
-                    mode = 'high';
-                    performanceModeManager.setMode(mode);
-                } else {
-                    // 移动端显示选择弹窗
-                    mode = await performanceModeManager.showModeSelection();
-                    performanceModeManager.setMode(mode);
-                }
-            }
-            
-            // 根据模式初始化
-            if (mode === 'high') {
-                await initializeHighPerformanceMode();
-            } else {
-                initializeCompatibleMode();
-            }
-            
-            // 继续其他初始化
-            setupFeedback();
-            setupAutoRefresh();
-            
-            if (passwordSystem.checkLockStatus()) {
-                const homeworkNavItem = document.querySelector('.nav-menu li[data-page="homework"]');
-                if (homeworkNavItem) {
-                    homeworkNavItem.style.opacity = '0.5';
-                    homeworkNavItem.style.pointerEvents = 'none';
-                    homeworkNavItem.title = '密码尝试次数过多，请稍后再试';
-                }
-            }
-        }
-
-        // 高性能模式初始化
-        async function initializeHighPerformanceMode() {
-            console.log('🚀 初始化高性能模式');
-            
-            // 显示音乐播放器（准备中状态）
-            const musicBtn = document.getElementById('musicPlayer');
-            musicBtn.classList.add('show');
-            
-            // 立即启动粒子系统
-            particleNetwork = new ParticleNetwork();
-            
-            // 延迟2秒加载音频相关资源
-            setTimeout(async () => {
+            async fetchBeijingTime() {
                 try {
-                    // 动态创建音频元素
-                    const audio = document.createElement('audio');
-                    audio.id = 'bgMusic';
-                    audio.loop = true;
-                    audio.preload = 'metadata';
-                    document.body.appendChild(audio);
+                    const apis = [
+                        'https://worldtimeapi.org/api/timezone/Asia/Shanghai',
+                        'https://api.github.com'
+                    ];
                     
-                    // 初始化歌词显示
-                    const lyricDisplay = new LyricDisplay();
-                    await lyricDisplay.loadLyrics('歌词.lrc');
+                    for (let api of apis) {
+                        try {
+                            const response = await fetchWithTimeout(api, { 
+                                cache: 'no-cache'
+                            });
+                            
+                            if (api.includes('worldtimeapi')) {
+                                const data = await response.json();
+                                const serverTime = new Date(data.datetime).getTime();
+                                return serverTime;
+                            } else {
+                                const dateString = response.headers.get('Date');
+                                const serverTime = new Date(dateString).getTime();
+                                return serverTime;
+                            }
+                        } catch (e) {
+                            continue;
+                        }
+                    }
                     
-                    // 初始化音乐播放器
-                    await initializeMusicPlayer();
-                    
-                    // 更新音乐按钮状态为就绪
-                    const musicButton = document.getElementById('musicButton');
-                    musicButton.classList.remove('preparing');
-                    musicButton.classList.add('ready');
-                    
-                    console.log('✅ 音频资源加载完成');
+                    throw new Error('所有时间API均不可用');
                 } catch (error) {
-                    console.error('❌ 音频资源加载失败:', error);
-                    // 保持"准备中"状态，用户点击时提示错误
-                    const musicButton = document.getElementById('musicButton');
-                    musicButton.classList.remove('preparing');
-                    musicButton.classList.add('ready');
-                    musicButton.style.background = 'rgba(248, 113, 113, 0.2)';
-                    musicButton.style.borderColor = 'rgba(248, 113, 113, 0.3)';
+                    console.warn('获取服务器时间失败:', error);
+                    return null;
                 }
-            }, 2000);
+            }
+            
+            async syncTime() {
+                const startTime = Date.now();
+                const serverTime = await this.fetchBeijingTime();
+                const endTime = Date.now();
+                
+                if (serverTime) {
+                    const networkDelay = (endTime - startTime) / 2;
+                    this.serverTimeOffset = (serverTime + networkDelay) - Date.now();
+                    this.lastSyncTime = Date.now();
+                    this.isInitialized = true;
+                    return true;
+                }
+                
+                return false;
+            }
+            
+            getBeijingTime() {
+                return this.isInitialized ? new Date(Date.now() + this.serverTimeOffset) : new Date();
+            }
+            
+            shouldResync() {
+                return Date.now() - this.lastSyncTime > 5 * 60 * 1000;
+            }
         }
+        
+        const serverTimeManager = new ServerTimeManager();
 
-        // 兼容模式初始化
+        // 修复: 将highPerformanceMode相关函数定义提前
         function initializeCompatibleMode() {
             console.log('🍃 初始化兼容模式');
             
@@ -3669,7 +3662,9 @@
             // 不加载歌词
             // 隐藏音乐播放器
             const musicBtn = document.getElementById('musicPlayer');
-            musicBtn.style.display = 'none';
+            if (musicBtn) {
+                musicBtn.style.display = 'none';
+            }
             
             // 显示提示
             const lyricsStatus = document.getElementById('lyricsStatus');
@@ -3678,228 +3673,7 @@
             }
         }
 
-        function setupNavigation() {
-            document.querySelectorAll('.nav-menu li[data-page]').forEach(item => {
-                item.addEventListener('click', () => {
-                    if (item.dataset.page === 'homework') {
-                        passwordSystem.show();
-                    } else {
-                        navigateTo(item.dataset.page);
-                    }
-                });
-            });
-        }
-
-        function navigateTo(pageName) {
-            const currentPage = document.querySelector('.page.active');
-            const targetPage = document.getElementById(`page-${pageName}`);
-            
-            if (currentPage === targetPage) return;
-            
-            document.body.style.overflow = 'hidden';
-            document.querySelectorAll('.page').forEach(page => {
-                page.style.pointerEvents = 'none';
-                page.style.display = 'none';
-            });
-            
-            currentPage.classList.add('fade-out');
-            
-            setTimeout(() => {
-                document.querySelectorAll('.page').forEach(page => {
-                    page.classList.remove('active');
-                    page.classList.remove('fade-out');
-                });
-                
-                if (targetPage) {
-                    targetPage.style.display = 'block';
-                    targetPage.style.pointerEvents = 'auto';
-                    setTimeout(() => {
-                        targetPage.classList.add('active');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        document.body.style.overflow = '';
-                        setTimeout(() => {
-                            applyStaggerAnimation();
-                        }, 100);
-                    }, 10);
-                }
-            }, 250);
-            
-            document.querySelectorAll('.nav-menu li').forEach(li => li.classList.remove('active'));
-            document.querySelector(`.nav-menu li[data-page="${pageName}"]`)?.classList.add('active');
-            
-            document.getElementById('navMenu').classList.remove('active');
-            const icon = document.querySelector('#mobileToggle i');
-            icon.classList.add('fa-bars');
-            icon.classList.remove('fa-times');
-
-            // 如果是关于我们页面，渲染历史记录
-            if (pageName === 'history') {
-                renderUpdateHistory();
-            }
-        }
-
-        function renderUpdateHistory() {
-            const timeline = document.getElementById('historyTimeline');
-            if (!timeline) return;
-
-            timeline.innerHTML = updateHistory.map((item, index) => `
-                <div class="history-item stagger-fade-in" style="animation-delay: ${index * 0.1}s">
-                    <div class="history-card">
-                        <div class="history-header">
-                            <div class="history-date">
-                                <i class="fas fa-calendar-alt"></i>
-                                ${item.date}
-                            </div>
-                            <div class="history-version">
-                                ${item.version}
-                            </div>
-                        </div>
-                        <ul class="history-changes">
-                            ${item.changes.map(change => `
-                                <li class="history-change">${change}</li>
-                            `).join('')}
-                        </ul>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function setupMobileMenu() {
-            const mobileToggle = document.getElementById('mobileToggle');
-            const navMenu = document.getElementById('navMenu');
-            
-            mobileToggle.addEventListener('click', () => {
-                navMenu.classList.toggle('active');
-                const icon = mobileToggle.querySelector('i');
-                icon.classList.toggle('fa-bars');
-                icon.classList.toggle('fa-times');
-            });
-            
-            navMenu.querySelectorAll('li').forEach(item => {
-                item.addEventListener('click', () => {
-                    navMenu.classList.remove('active');
-                    const icon = mobileToggle.querySelector('i');
-                    icon.classList.add('fa-bars');
-                    icon.classList.remove('fa-times');
-                });
-            });
-        }
-
-        function setupHomeworkCards() {
-            const homeworkCards = document.querySelectorAll('.homework-card');
-            homeworkCards.forEach(card => {
-                card.addEventListener('click', () => {
-                    const subject = card.dataset.subject;
-                    if (subject) {
-                        showHomeworkModal(subject);
-                    }
-                });
-            });
-        }
-
-        function setupModal() {
-            const modalOverlay = document.getElementById('homeworkModal');
-            const modalClose = document.getElementById('modalClose');
-            const modalButton = document.getElementById('modalButton');
-
-            modalClose.addEventListener('click', hideHomeworkModal);
-            modalButton.addEventListener('click', hideHomeworkModal);
-            
-            modalOverlay.addEventListener('click', (e) => {
-                if (e.target === modalOverlay) {
-                    hideHomeworkModal();
-                }
-            });
-
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
-                    hideHomeworkModal();
-                }
-            });
-        }
-
-        function showHomeworkModal(subject) {
-            const data = homeworkData[subject];
-            if (!data) return;
-
-            const modalOverlay = document.getElementById('homeworkModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalSubject = document.getElementById('modalSubject');
-            const modalBody = document.getElementById('modalBody');
-
-            modalTitle.querySelector('i').className = data.icon;
-            modalTitle.querySelector('i').style.color = data.color;
-            modalSubject.textContent = data.title;
-
-            const content = data.content;
-            modalBody.innerHTML = `
-                <h4>作业描述</h4>
-                <p>${content.description}</p>
-                
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">科目</div>
-                        <div class="info-value">${content.subject}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">老师</div>
-                        <div class="info-value">${content.teacher}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">发布时间</div>
-                        <div class="info-value">${content.deadline}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">状态</div>
-                        <div class="info-value">${content.status}</div>
-                    </div>
-                </div>
-
-                <h4>作业详情</h4>
-                <ul>
-                    ${content.requirements.map(req => `<li>${req}</li>`).join('')}
-                </ul>
-
-                <h4>温馨提示</h4>
-                <p>${content.tips}</p>
-            `;
-
-            modalOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function hideHomeworkModal() {
-            const modalOverlay = document.getElementById('homeworkModal');
-            modalOverlay.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        // 优化加载动画 - 将Version改为Version1.5
-        function hideLoading() {
-            const loading = document.getElementById('loading');
-            const spinner = loading.querySelector('.loading-spinner');
-            const loadingText = loading.querySelector('.loading-text');
-            const loadingCheck = loading.querySelector('.loading-check');
-            const loadingSubtext = loading.querySelector('.loading-subtext');
-            
-            setTimeout(() => {
-                spinner.style.display = 'none';
-                // 修改这里：将"Version"改为"Version1.5"
-                loadingText.textContent = '已验证安全Version1.5';
-                loadingSubtext.textContent = '验证完成，正在加载界面...';
-                loadingCheck.style.display = 'block';
-                
-                setTimeout(() => {
-                    loading.classList.add('hide');
-                    setTimeout(() => {
-                        loading.style.display = 'none';
-                        document.getElementById('musicPlayer').classList.add('show');
-                    }, 500);
-                }, 800);
-            }, 2000);
-        }
-
-        // 多格式音乐文件加载器
+        // 修复: 添加音乐加载器函数定义
         class MusicLoader {
             constructor() {
                 this.supportedFormats = [
@@ -3959,7 +3733,7 @@
                         }
                     };
                     
-                    const timeout = setTimeout(() => {
+                    const timer = setTimeout(() => {
                         if (!resolved) {
                             resolved = true;
                             reject(null);
@@ -3994,35 +3768,7 @@
             }
         }
 
-        // 初始化音乐播放器
-        async function initializeMusicPlayer() {
-            const musicLoader = new MusicLoader();
-            await musicLoader.detectMusic();
-            
-            const audio = document.getElementById('bgMusic');
-            const statusElement = document.getElementById('lyricsStatus');
-            const updated = musicLoader.updateAudioElement(audio);
-            
-            if (statusElement) {
-                if (updated) {
-                    const info = musicLoader.getMusicInfo();
-                    statusElement.innerHTML = `<i class="fas fa-check-circle"></i> <span>音乐已加载 (${info.format}格式)</span>`;
-                    statusElement.className = 'lyrics-status success';
-                } else {
-                    statusElement.innerHTML = `<i class="fas fa-info-circle"></i> <span>使用默认音乐文件</span>`;
-                }
-            }
-            
-            if (updated) {
-                const info = musicLoader.getMusicInfo();
-                console.log(`✅ 音乐文件检测成功：${info.url} (${info.format}格式)`);
-            } else {
-                console.log('ℹ️ 未找到其他音乐文件，使用默认music.mp3');
-            }
-            
-            setupMusicPlayer();
-        }
-
+        // 修复: 将setupMusicPlayer函数定义提前
         function setupMusicPlayer() {
             const musicButton = document.getElementById('musicButton');
             const musicIcon = document.getElementById('musicIcon');
@@ -4069,202 +3815,90 @@
                 
                 updateButtonState('loading');
                 
-                bgMusic.load();
-                
-                const onCanPlay = () => {
-                    updateButtonState('ready');
-                    if(statusElement) {
-                        statusElement.innerHTML = '<i class="fas fa-check-circle"></i> <span>音乐已加载，点击播放</span>';
-                        statusElement.className = 'lyrics-status success';
-                    }
-                };
-                
-                const onError = (e) => {
-                    console.error('音频加载错误:', e);
-                    retryCount++;
-                    if(retryCount < maxRetries) {
-                        setTimeout(() => {
-                            bgMusic.load();
-                        }, 1000 * retryCount);
-                    } else {
-                        updateButtonState('error');
-                    }
-                };
-                
-                bgMusic.addEventListener('canplaythrough', onCanPlay, { once: true });
-                bgMusic.addEventListener('error', onError, { once: true });
+                if (bgMusic) {
+                    bgMusic.load();
+                    
+                    const onCanPlay = () => {
+                        updateButtonState('ready');
+                        if(statusElement) {
+                            statusElement.innerHTML = '<i class="fas fa-check-circle"></i> <span>音乐已加载，点击播放</span>';
+                            statusElement.className = 'lyrics-status success';
+                        }
+                    };
+                    
+                    const onError = (e) => {
+                        console.error('音频加载错误:', e);
+                        retryCount++;
+                        if(retryCount < maxRetries) {
+                            setTimeout(() => {
+                                bgMusic.load();
+                            }, 1000 * retryCount);
+                        } else {
+                            updateButtonState('error');
+                        }
+                    };
+                    
+                    bgMusic.addEventListener('canplaythrough', onCanPlay, { once: true });
+                    bgMusic.addEventListener('error', onError, { once: true });
+                }
             };
             
             document.addEventListener('click', loadAudio, { once: true });
             
-            musicButton.addEventListener('click', () => {
-                if(!isLoaded) {
-                    loadAudio();
-                    return;
-                }
-                
-                if (isPlaying) {
-                    bgMusic.pause();
-                    updateButtonState('paused');
-                } else {
-                    bgMusic.play().catch(e => {
-                        console.error('播放失败:', e);
-                        let errorMessage = '播放失败：';
-                        switch(e.name) {
-                            case 'NotAllowedError':
-                                errorMessage += '需要用户交互才能播放';
-                                break;
-                            case 'NotSupportedError':
-                                errorMessage += '音频格式不支持';
-                                break;
-                            default:
-                                errorMessage += e.message;
-                        }
-                        alert(errorMessage);
-                        updateButtonState('error');
-                    });
-                    updateButtonState('playing');
-                }
-                isPlaying = !isPlaying;
-            });
-            
-            bgMusic.addEventListener('ended', () => {
-                isPlaying = false;
-                updateButtonState('paused');
-            });
-            
-            bgMusic.addEventListener('loadedmetadata', () => {
-                if(statusElement && isLoaded) {
-                    statusElement.innerHTML = `音乐已加载：${bgMusic.duration.toFixed(1)}秒`;
-                }
-            });
-            
-            bgMusic.addEventListener('error', (e) => {
-                statusElement?.classList.add('error');
-            });
-        }
-
-        class ServerTimeManager {
-            constructor() {
-                this.serverTimeOffset = 0;
-                this.lastSyncTime = 0;
-                this.isInitialized = false;
-            }
-            
-            async fetchBeijingTime() {
-                try {
-                    const apis = [
-                        'https://worldtimeapi.org/api/timezone/Asia/Shanghai',
-                        'https://api.github.com'
-                    ];
-                    
-                    for (let api of apis) {
-                        try {
-                            const response = await fetch(api, { 
-                                method: 'GET',
-                                cache: 'no-cache',
-                                signal: AbortSignal.timeout(5000)
-                            });
-                            
-                            if (api.includes('worldtimeapi')) {
-                                const data = await response.json();
-                                const serverTime = new Date(data.datetime).getTime();
-                                return serverTime;
-                            } else {
-                                const dateString = response.headers.get('Date');
-                                const serverTime = new Date(dateString).getTime();
-                                return serverTime;
-                            }
-                        } catch (e) {
-                            continue;
-                        }
+            if (musicButton) {
+                musicButton.addEventListener('click', () => {
+                    if(!isLoaded) {
+                        loadAudio();
+                        return;
                     }
                     
-                    throw new Error('所有时间API均不可用');
-                } catch (error) {
-                    console.warn('获取服务器时间失败:', error);
-                    return null;
-                }
+                    if (isPlaying) {
+                        if (bgMusic) bgMusic.pause();
+                        updateButtonState('paused');
+                    } else {
+                        if (bgMusic) {
+                            bgMusic.play().catch(e => {
+                                console.error('播放失败:', e);
+                                let errorMessage = '播放失败：';
+                                switch(e.name) {
+                                    case 'NotAllowedError':
+                                        errorMessage += '需要用户交互才能播放';
+                                        break;
+                                    case 'NotSupportedError':
+                                        errorMessage += '音频格式不支持';
+                                        break;
+                                    default:
+                                        errorMessage += e.message;
+                                }
+                                alert(errorMessage);
+                                updateButtonState('error');
+                            });
+                        }
+                        updateButtonState('playing');
+                    }
+                    isPlaying = !isPlaying;
+                });
             }
             
-            async syncTime() {
-                const startTime = Date.now();
-                const serverTime = await this.fetchBeijingTime();
-                const endTime = Date.now();
+            if (bgMusic) {
+                bgMusic.addEventListener('ended', () => {
+                    isPlaying = false;
+                    updateButtonState('paused');
+                });
                 
-                if (serverTime) {
-                    const networkDelay = (endTime - startTime) / 2;
-                    this.serverTimeOffset = (serverTime + networkDelay) - Date.now();
-                    this.lastSyncTime = Date.now();
-                    this.isInitialized = true;
-                    return true;
-                }
+                bgMusic.addEventListener('loadedmetadata', () => {
+                    if(statusElement && isLoaded) {
+                        statusElement.innerHTML = `音乐已加载：${bgMusic.duration.toFixed(1)}秒`;
+                    }
+                });
                 
-                return false;
-            }
-            
-            getBeijingTime() {
-                return this.isInitialized ? new Date(Date.now() + this.serverTimeOffset) : new Date();
-            }
-            
-            shouldResync() {
-                return Date.now() - this.lastSyncTime > 5 * 60 * 1000;
-            }
-        }
-        
-        const serverTimeManager = new ServerTimeManager();
-        
-        function updateBeijingTime() {
-            const beijingTime = serverTimeManager.getBeijingTime();
-            
-            const timeString = beijingTime.toLocaleTimeString('zh-CN', { 
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            const dateString = beijingTime.toLocaleDateString('zh-CN', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                weekday: 'long'
-            });
-            
-            const timeElement = document.getElementById('beijingTime');
-            const dateElement = document.getElementById('beijingDate');
-            
-            if (timeElement && dateElement) {
-                timeElement.textContent = timeString;
-                dateElement.textContent = dateString;
-                timeElement.style.opacity = serverTimeManager.isInitialized ? '1' : '0.6';
+                bgMusic.addEventListener('error', (e) => {
+                    if (statusElement) statusElement.className = 'lyrics-status error';
+                });
             }
         }
 
-        function setupScrollEffects() {
-            let lastScrollTop = 0;
-            const navbar = document.getElementById('navbar');
-            
-            window.addEventListener('scroll', () => {
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                
-                if (scrollTop > lastScrollTop && scrollTop > 100) {
-                    navbar.style.transform = 'translateY(-100%)';
-                } else {
-                    navbar.style.transform = 'translateY(0)';
-                }
-                
-                lastScrollTop = scrollTop;
-            }, { passive: true });
-        }
-
-        function applyStaggerAnimation() {
-            const cards = document.querySelectorAll('.stagger-fade-in');
-            cards.forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.1}s`;
-                card.classList.add('fadeInUp');
-            });
-        }
-
+        // 修复: 将歌词解析器类定义提前
         class LyricParser {
             constructor() {
                 this.lyrics = [];
@@ -4313,6 +3947,7 @@
             }
         }
 
+        // 修复: 将歌词显示类定义提前
         class LyricDisplay {
             constructor() {
                 this.lyrics = [];
@@ -4326,8 +3961,12 @@
                 this.isCollapsed = true;
                 this.isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                 
-                this.setupToggle();
-                this.bindEvents();
+                if (this.toggle) {
+                    this.setupToggle();
+                }
+                if (this.linesContainer) {
+                    this.bindEvents();
+                }
             }
             
             setupToggle() {
@@ -4363,15 +4002,9 @@
                 this.showStatus('loading', '正在加载歌词...');
                 
                 try {
-                    const controller = new AbortController();
-                    const timeout = setTimeout(() => controller.abort(), 5000);
-                    
-                    const response = await fetch(url, { 
-                        signal: controller.signal,
+                    const response = await fetchWithTimeout(url, { 
                         cache: 'no-cache'
                     });
-                    
-                    clearTimeout(timeout);
                     
                     if (!response.ok) throw new Error('歌词文件加载失败');
                     
@@ -4383,13 +4016,13 @@
                     this.renderLyrics();
                     this.showStatus('success', `歌词加载成功：${result.title || '音乐'}`);
                     
-                    if (result.title) {
+                    if (result.title && this.title) {
                         this.title.textContent = result.title;
                     }
                     
                     if (this.lyrics.length > 0) {
                         setTimeout(() => {
-                            if (this.isCollapsed) {
+                            if (this.isCollapsed && this.toggle) {
                                 this.toggle.click();
                             }
                         }, 500);
@@ -4402,12 +4035,14 @@
                         message += '：' + error.message;
                     }
                     this.showStatus('error', message);
-                    this.title.textContent = '暂无歌词';
+                    if (this.title) this.title.textContent = '暂无歌词';
                     console.error('歌词加载错误:', error);
                 }
             }
             
             renderLyrics() {
+                if (!this.linesContainer) return;
+                
                 this.linesContainer.innerHTML = '';
                 this.lyrics.forEach((lyric, index) => {
                     const line = document.createElement('div');
@@ -4436,11 +4071,14 @@
                 
                 const totalDuration = this.lyrics[this.lyrics.length - 1].time;
                 const progress = (currentTime / totalDuration) * 100;
-                this.progressBar.style.width = Math.min(progress, 100) + '%';
+                if (this.progressBar) {
+                    this.progressBar.style.width = Math.min(progress, 100) + '%';
+                }
             }
             
             highlightLine(index) {
-                document.querySelectorAll('.lyrics-line').forEach(line => {
+                const lines = document.querySelectorAll('.lyrics-line');
+                lines.forEach(line => {
                     line.classList.remove('active');
                 });
                 
@@ -4460,22 +4098,27 @@
             }
             
             showStatus(type, message) {
+                if (!this.status) return;
+                
                 this.status.className = 'lyrics-status ' + type;
-                this.status.querySelector('span').textContent = message;
+                const span = this.status.querySelector('span');
+                if (span) span.textContent = message;
                 
                 const icon = this.status.querySelector('i');
-                switch(type) {
-                    case 'loading':
-                        icon.className = 'fas fa-spinner';
-                        break;
-                    case 'error':
-                        icon.className = 'fas fa-exclamation-circle';
-                        break;
-                    case 'success':
-                        icon.className = 'fas fa-check-circle';
-                        break;
-                    default:
-                        icon.className = 'fas fa-info-circle';
+                if (icon) {
+                    switch(type) {
+                        case 'loading':
+                            icon.className = 'fas fa-spinner';
+                            break;
+                        case 'error':
+                            icon.className = 'fas fa-exclamation-circle';
+                            break;
+                        case 'success':
+                            icon.className = 'fas fa-check-circle';
+                            break;
+                        default:
+                            icon.className = 'fas fa-info-circle';
+                    }
                 }
             }
             
@@ -4485,7 +4128,8 @@
                     audio.currentTime = time;
                     
                     if (audio.paused) {
-                        document.getElementById('musicButton').click();
+                        const musicButton = document.getElementById('musicButton');
+                        if (musicButton) musicButton.click();
                     }
                 }
             }
@@ -4493,49 +4137,353 @@
             reset() {
                 this.currentIndex = -1;
                 this.highlightLine(-1);
-                this.progressBar.style.width = '0%';
-                this.linesContainer.style.transform = 'translateY(0)';
+                if (this.progressBar) {
+                    this.progressBar.style.width = '0%';
+                }
+                if (this.linesContainer) {
+                    this.linesContainer.style.transform = 'translateY(0)';
+                }
             }
         }
 
+        // 修复: 将setupLyricsIntegration函数定义提前
         function setupLyricsIntegration() {
             const audio = document.getElementById('bgMusic');
             const musicButton = document.getElementById('musicButton');
             const lyricDisplay = new LyricDisplay();
             
-            lyricDisplay.loadLyrics('歌词.lrc');
+            if (audio) {
+                lyricDisplay.loadLyrics('歌词.lrc');
+                
+                audio.addEventListener('timeupdate', () => {
+                    if (!audio.paused && audio.readyState >= 2) {
+                        lyricDisplay.update(audio.currentTime);
+                    }
+                });
+                
+                audio.addEventListener('play', () => {
+                    if (musicButton) musicButton.classList.add('lyrics-active');
+                });
+                
+                audio.addEventListener('pause', () => {
+                    if (musicButton) musicButton.classList.remove('lyrics-active');
+                });
+                
+                audio.addEventListener('ended', () => {
+                    lyricDisplay.reset();
+                    if (musicButton) musicButton.classList.remove('lyrics-active');
+                });
+            }
+        }
+
+        // 修复: 将navigateTo函数定义提前
+        function navigateTo(pageName) {
+            const currentPage = document.querySelector('.page.active');
+            const targetPage = document.getElementById(`page-${pageName}`);
             
-            audio.addEventListener('timeupdate', () => {
-                if (!audio.paused && audio.readyState >= 2) {
-                    lyricDisplay.update(audio.currentTime);
+            if (currentPage === targetPage) return;
+            
+            document.body.style.overflow = 'hidden';
+            document.querySelectorAll('.page').forEach(page => {
+                page.style.pointerEvents = 'none';
+                page.style.display = 'none';
+            });
+            
+            currentPage.classList.add('fade-out');
+            
+            setTimeout(() => {
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active');
+                    page.classList.remove('fade-out');
+                });
+                
+                if (targetPage) {
+                    targetPage.style.display = 'block';
+                    targetPage.style.pointerEvents = 'auto';
+                    setTimeout(() => {
+                        targetPage.classList.add('active');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        document.body.style.overflow = '';
+                        setTimeout(() => {
+                            applyStaggerAnimation();
+                        }, 100);
+                    }, 10);
                 }
-            });
+            }, 250);
             
-            audio.addEventListener('play', () => {
-                musicButton.classList.add('lyrics-active');
-            });
+            document.querySelectorAll('.nav-menu li').forEach(li => li.classList.remove('active'));
+            document.querySelector(`.nav-menu li[data-page="${pageName}"]`)?.classList.add('active');
             
-            audio.addEventListener('pause', () => {
-                musicButton.classList.remove('lyrics-active');
-            });
-            
-            audio.addEventListener('ended', () => {
-                lyricDisplay.reset();
-                musicButton.classList.remove('lyrics-active');
-            });
-            
-            audio.addEventListener('loadedmetadata', () => {
-                if(statusElement && isLoaded) {
-                    statusElement.innerHTML = `音乐已加载：${bgMusic.duration.toFixed(1)}秒`;
-                }
-            });
-            
-            audio.addEventListener('error', (e) => {
-                lyricDisplay.showStatus('error', '音乐加载失败');
+            document.getElementById('navMenu').classList.remove('active');
+            const icon = document.querySelector('#mobileToggle i');
+            icon.classList.add('fa-bars');
+            icon.classList.remove('fa-times');
+
+            // 如果是关于我们页面，渲染历史记录
+            if (pageName === 'history') {
+                renderUpdateHistory();
+            }
+        }
+
+        // 修复: 将renderUpdateHistory函数定义提前
+        function renderUpdateHistory() {
+            const timeline = document.getElementById('historyTimeline');
+            if (!timeline) return;
+
+            timeline.innerHTML = updateHistory.map((item, index) => `
+                <div class="history-item stagger-fade-in" style="animation-delay: ${index * 0.1}s">
+                    <div class="history-card">
+                        <div class="history-header">
+                            <div class="history-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                ${item.date}
+                            </div>
+                            <div class="history-version">
+                                ${item.version}
+                            </div>
+                        </div>
+                        <ul class="history-changes">
+                            ${item.changes.map(change => `
+                                <li class="history-change">${change}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 修复: 将setupNavigation函数定义提前
+        function setupNavigation() {
+            document.querySelectorAll('.nav-menu li[data-page]').forEach(item => {
+                item.addEventListener('click', () => {
+                    if (item.dataset.page === 'homework') {
+                        passwordSystem.show();
+                    } else {
+                        navigateTo(item.dataset.page);
+                    }
+                });
             });
         }
 
-        // 优化自动刷新系统
+        // 修复: 将setupMobileMenu函数定义提前
+        function setupMobileMenu() {
+            const mobileToggle = document.getElementById('mobileToggle');
+            const navMenu = document.getElementById('navMenu');
+            
+            if (mobileToggle && navMenu) {
+                mobileToggle.addEventListener('click', () => {
+                    navMenu.classList.toggle('active');
+                    const icon = mobileToggle.querySelector('i');
+                    icon.classList.toggle('fa-bars');
+                    icon.classList.toggle('fa-times');
+                });
+                
+                navMenu.querySelectorAll('li').forEach(item => {
+                    item.addEventListener('click', () => {
+                        navMenu.classList.remove('active');
+                        const icon = mobileToggle.querySelector('i');
+                        icon.classList.add('fa-bars');
+                        icon.classList.remove('fa-times');
+                    });
+                });
+            }
+        }
+
+        // 修复: 将setupHomeworkCards函数定义提前
+        function setupHomeworkCards() {
+            const homeworkCards = document.querySelectorAll('.homework-card');
+            homeworkCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const subject = card.dataset.subject;
+                    if (subject) {
+                        showHomeworkModal(subject);
+                    }
+                });
+            });
+        }
+
+        // 修复: 将setupModal函数定义提前
+        function setupModal() {
+            const modalOverlay = document.getElementById('homeworkModal');
+            const modalClose = document.getElementById('modalClose');
+            const modalButton = document.getElementById('modalButton');
+
+            if (modalClose) {
+                modalClose.addEventListener('click', hideHomeworkModal);
+            }
+            if (modalButton) {
+                modalButton.addEventListener('click', hideHomeworkModal);
+            }
+            
+            if (modalOverlay) {
+                modalOverlay.addEventListener('click', (e) => {
+                    if (e.target === modalOverlay) {
+                        hideHomeworkModal();
+                    }
+                });
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modalOverlay && modalOverlay.classList.contains('active')) {
+                    hideHomeworkModal();
+                }
+            });
+        }
+
+        // 修复: 将showHomeworkModal函数定义提前
+        function showHomeworkModal(subject) {
+            const data = homeworkData[subject];
+            if (!data) return;
+
+            const modalOverlay = document.getElementById('homeworkModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalSubject = document.getElementById('modalSubject');
+            const modalBody = document.getElementById('modalBody');
+
+            if (modalTitle) {
+                const icon = modalTitle.querySelector('i');
+                if (icon) {
+                    icon.className = data.icon;
+                    icon.style.color = data.color;
+                }
+            }
+            if (modalSubject) {
+                modalSubject.textContent = data.title;
+            }
+
+            const content = data.content;
+            if (modalBody) {
+                modalBody.innerHTML = `
+                    <h4>作业描述</h4>
+                    <p>${content.description}</p>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">科目</div>
+                            <div class="info-value">${content.subject}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">老师</div>
+                            <div class="info-value">${content.teacher}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">发布时间</div>
+                            <div class="info-value">${content.deadline}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">状态</div>
+                            <div class="info-value">${content.status}</div>
+                        </div>
+                    </div>
+
+                    <h4>作业详情</h4>
+                    <ul>
+                        ${content.requirements.map(req => `<li>${req}</li>`).join('')}
+                    </ul>
+
+                    <h4>温馨提示</h4>
+                    <p>${content.tips}</p>
+                `;
+            }
+
+            if (modalOverlay) {
+                modalOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        // 修复: 将hideHomeworkModal函数定义提前
+        function hideHomeworkModal() {
+            const modalOverlay = document.getElementById('homeworkModal');
+            if (modalOverlay) {
+                modalOverlay.classList.remove('active');
+            }
+            document.body.style.overflow = '';
+        }
+
+        // 优化加载动画 - 将Version改为Version1.5
+        function hideLoading() {
+            const loading = document.getElementById('loading');
+            const spinner = loading.querySelector('.loading-spinner');
+            const loadingText = loading.querySelector('.loading-text');
+            const loadingCheck = loading.querySelector('.loading-check');
+            const loadingSubtext = loading.querySelector('.loading-subtext');
+            
+            setTimeout(() => {
+                spinner.style.display = 'none';
+                // 修改这里：将"Version"改为"Version1.5"
+                loadingText.textContent = '已验证安全Version1.5';
+                loadingSubtext.textContent = '验证完成，正在加载界面...';
+                loadingCheck.style.display = 'block';
+                
+                setTimeout(() => {
+                    loading.classList.add('hide');
+                    setTimeout(() => {
+                        loading.style.display = 'none';
+                        const musicPlayer = document.getElementById('musicPlayer');
+                        if (musicPlayer) {
+                            musicPlayer.classList.add('show');
+                        }
+                    }, 500);
+                }, 800);
+            }, 2000);
+        }
+
+        // 修复: 将setupScrollEffects函数定义提前
+        function setupScrollEffects() {
+            let lastScrollTop = 0;
+            const navbar = document.getElementById('navbar');
+            
+            window.addEventListener('scroll', () => {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (scrollTop > lastScrollTop && scrollTop > 100) {
+                    navbar.style.transform = 'translateY(-100%)';
+                } else {
+                    navbar.style.transform = 'translateY(0)';
+                }
+                
+                lastScrollTop = scrollTop;
+            }, { passive: true });
+        }
+
+        // 修复: 将applyStaggerAnimation函数定义提前
+        function applyStaggerAnimation() {
+            const cards = document.querySelectorAll('.stagger-fade-in');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('fadeInUp');
+            });
+        }
+
+        // 修复: 将setupFeedback函数定义提前
+        function setupFeedback() {
+            const feedbackButton = document.getElementById('feedbackButton');
+            
+            if (feedbackButton) {
+                feedbackButton.addEventListener('click', openFeedback);
+                
+                // 添加反馈按钮动画
+                setTimeout(() => {
+                    feedbackButton.style.animation = 'fadeInUp 0.6s ease-out forwards';
+                }, 2000);
+            }
+        }
+
+        // 修复: 将openFeedback函数定义提前
+        function openFeedback() {
+            const isClient = /android|iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+            
+            if (isClient) {
+                if (confirm('客户端反馈请使用浏览器登录反馈或打开腾讯问卷app或微信小程序，因为客户端无法拉起微信与QQ\n\n点击"确定"继续访问反馈页面，或点击"取消"返回')) {
+                    window.open('https://docs.qq.com/form/page/DT0hkWkRCYXNvcHFm', '_blank');
+                }
+            } else {
+                window.open('https://docs.qq.com/form/page/DT0hkWkRCYXNvcHFm', '_blank');
+            }
+        }
+
+        // 修复: 将setupAutoRefresh函数定义提前
         function setupAutoRefresh() {
             const REFRESH_INTERVAL = 8 * 60 * 1000;
             let lastRefreshTime = Date.now();
@@ -4589,32 +4537,7 @@
             }, REFRESH_INTERVAL);
         }
 
-        // 新增：反馈功能
-        function setupFeedback() {
-            const feedbackButton = document.getElementById('feedbackButton');
-            
-            feedbackButton.addEventListener('click', openFeedback);
-            
-            // 添加反馈按钮动画
-            setTimeout(() => {
-                feedbackButton.style.animation = 'fadeInUp 0.6s ease-out forwards';
-            }, 2000);
-        }
-
-        // 反馈弹窗
-        window.openFeedback = function() {
-            const isClient = /android|iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
-            
-            if (isClient) {
-                if (confirm('客户端反馈请使用浏览器登录反馈或打开腾讯问卷app或微信小程序，因为客户端无法拉起微信与QQ\n\n点击"确定"继续访问反馈页面，或点击"取消"返回')) {
-                    window.open('https://docs.qq.com/form/page/DT0hkWkRCYXNvcHFm', '_blank');
-                }
-            } else {
-                window.open('https://docs.qq.com/form/page/DT0hkWkRCYXNvcHFm', '_blank');
-            }
-        };
-
-        // 通知栏播放控件
+        // 修复: 将setupMediaSession函数定义提前
         function setupMediaSession() {
             if ('mediaSession' in navigator && document.getElementById('bgMusic')) {
                 const audio = document.getElementById('bgMusic');
@@ -4638,7 +4561,86 @@
                 });
             }
         }
-        
+
+        // 修复: 将updateBeijingTime函数定义提前
+        function updateBeijingTime() {
+            const beijingTime = serverTimeManager.getBeijingTime();
+            
+            const timeString = beijingTime.toLocaleTimeString('zh-CN', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const dateString = beijingTime.toLocaleDateString('zh-CN', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                weekday: 'long'
+            });
+            
+            const timeElement = document.getElementById('beijingTime');
+            const dateElement = document.getElementById('beijingDate');
+            
+            if (timeElement && dateElement) {
+                timeElement.textContent = timeString;
+                dateElement.textContent = dateString;
+                timeElement.style.opacity = serverTimeManager.isInitialized ? '1' : '0.6';
+            }
+        }
+
+        // 修复: 将initializeHighPerformanceMode函数定义提前
+        async function initializeHighPerformanceMode() {
+            console.log('🚀 初始化高性能模式');
+            
+            // 显示音乐播放器（准备中状态）
+            const musicBtn = document.getElementById('musicPlayer');
+            if (musicBtn) {
+                musicBtn.classList.add('show');
+            }
+            
+            // 立即启动粒子系统
+            particleNetwork = new ParticleNetwork();
+            
+            // 延迟2秒加载音频相关资源
+            setTimeout(async () => {
+                try {
+                    // 动态创建音频元素
+                    const audio = document.createElement('audio');
+                    audio.id = 'bgMusic';
+                    audio.loop = true;
+                    audio.preload = 'metadata';
+                    document.body.appendChild(audio);
+                    
+                    // 初始化歌词显示
+                    setupLyricsIntegration();
+                    
+                    // 初始化音乐播放器
+                    setupMusicPlayer();
+                    
+                    // 更新音乐按钮状态为就绪
+                    const musicButton = document.getElementById('musicButton');
+                    if (musicButton) {
+                        musicButton.classList.remove('preparing');
+                        musicButton.classList.add('ready');
+                    }
+                    
+                    console.log('✅ 音频资源加载完成');
+                } catch (error) {
+                    console.error('❌ 音频资源加载失败:', error);
+                    // 保持"准备中"状态，用户点击时提示错误
+                    const musicButton = document.getElementById('musicButton');
+                    if (musicButton) {
+                        musicButton.classList.remove('preparing');
+                        musicButton.classList.add('ready');
+                        musicButton.style.background = 'rgba(248, 113, 113, 0.2)';
+                        musicButton.style.borderColor = 'rgba(248, 113, 113, 0.3)';
+                    }
+                }
+            }, 2000);
+        }
+
+        // 修复: 将updateUptime调用改为函数引用
         async function initializeApp() {
             passwordSystem = new PasswordVerificationSystem();
             performanceModeManager = new PerformanceModeManager();
@@ -4700,28 +4702,53 @@
             hideLoading();
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeApp().catch(console.error);
-        });
+        // 修复: 修正DOM加载事件处理，移除重复定义
+        function handleDOMContentLoaded() {
+            initializeApp().catch(error => {
+                console.error('应用初始化失败:', error);
+                // 显示错误页面
+                document.getElementById('loading').style.display = 'none';
+                document.body.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: var(--dark); color: var(--text);">
+                        <div style="text-align: center; padding: 2rem;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: var(--danger); margin-bottom: 1rem;"></i>
+                            <h1 style="font-size: 2rem; margin-bottom: 1rem;">初始化失败</h1>
+                            <p>应用加载过程中发生错误</p>
+                            <p style="color: var(--text-light); margin-top: 1rem;">请刷新页面重试</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // 修复: 只保留一个DOMContentLoaded事件监听
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', handleDOMContentLoaded);
+        } else {
+            handleDOMContentLoaded();
+        }
         
+        // 修复: 移除了重复的DOMContentLoaded事件处理
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 const navMenu = document.getElementById('navMenu');
                 const modalOverlay = document.getElementById('homeworkModal');
                 const modeOverlay = document.getElementById('modeSelectionOverlay');
                 
-                if (navMenu.classList.contains('active')) {
+                if (navMenu && navMenu.classList.contains('active')) {
                     navMenu.classList.remove('active');
                     const icon = document.querySelector('#mobileToggle i');
-                    icon.classList.add('fa-bars');
-                    icon.classList.remove('fa-times');
+                    if (icon) {
+                        icon.classList.add('fa-bars');
+                        icon.classList.remove('fa-times');
+                    }
                 }
                 
-                if (modalOverlay.classList.contains('active')) {
+                if (modalOverlay && modalOverlay.classList.contains('active')) {
                     hideHomeworkModal();
                 }
 
-                if (modeOverlay.classList.contains('active')) {
+                if (modeOverlay && modeOverlay.classList.contains('active')) {
                     modeOverlay.classList.remove('active');
                     document.body.classList.remove('mode-selection-open');
                 }
@@ -4730,10 +4757,15 @@
 
         window.addEventListener('resize', () => {
             if (window.innerWidth > 768) {
-                document.getElementById('navMenu').classList.remove('active');
-                const icon = document.querySelector('#mobileToggle i');
-                icon.classList.add('fa-bars');
-                icon.classList.remove('fa-times');
+                const navMenu = document.getElementById('navMenu');
+                if (navMenu) {
+                    navMenu.classList.remove('active');
+                    const icon = document.querySelector('#mobileToggle i');
+                    if (icon) {
+                        icon.classList.add('fa-bars');
+                        icon.classList.remove('fa-times');
+                    }
+                }
             }
         });
 
