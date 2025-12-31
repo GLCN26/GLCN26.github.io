@@ -1039,6 +1039,44 @@
             opacity: 0.3;
         }
 
+        /* 音乐按钮准备中状态 */
+        .music-button.preparing {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-light);
+            cursor: not-allowed;
+            animation: none;
+            position: relative;
+        }
+
+        .music-button.preparing::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: spin 1s linear infinite;
+        }
+
+        .music-button.preparing i {
+            opacity: 0.3;
+        }
+
+        /* 音乐按钮就绪状态 */
+        .music-button.ready {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            cursor: pointer;
+        }
+
+        .music-button.ready:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
         .page-content {
             padding-top: 70px; min-height: 100vh;
             display: flex; flex-direction: column;
@@ -1794,6 +1832,7 @@
             font-size: 0.9rem; transition: all var(--duration-slow) var(--transition-bounce);
             box-shadow: var(--shadow-md); opacity: 0; transform: scale(0);
             will-change: transform, opacity;
+            display: none; /* 隐藏倒计时 */
         }
 
         #refreshIndicator.show {
@@ -1969,9 +2008,205 @@
                 font-size: 0.9rem;
             }
         }
+
+        /* ===== 性能模式选择弹窗 ===== */
+        .mode-selection-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 3000; opacity: 0; visibility: hidden;
+            transition: all var(--duration-normal) var(--transition-smooth);
+        }
+
+        .mode-selection-overlay.active {
+            opacity: 1; visibility: visible;
+        }
+
+        .mode-selection-content {
+            background: rgba(26, 26, 46, 0.95); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl); max-width: 500px;
+            width: 90%; transform: scale(0.9) translateY(30px);
+            transition: all var(--duration-slow) var(--transition-bounce);
+            position: relative; box-shadow: var(--shadow-xl);
+            will-change: transform;
+        }
+
+        .mode-selection-overlay.active .mode-selection-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .mode-selection-header {
+            text-align: center; margin-bottom: var(--spacing-lg);
+        }
+
+        .mode-selection-title {
+            font-size: 1.8rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .mode-selection-subtitle {
+            color: var(--text-light); font-size: 1rem;
+            margin-top: var(--spacing-md);
+        }
+
+        .mode-selection-body {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .mode-option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--transition-smooth);
+            will-change: transform, border-color, box-shadow;
+        }
+
+        .mode-option:hover {
+            border-color: rgba(102, 126, 234, 0.5);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .mode-option.selected {
+            border-color: var(--primary);
+            background: rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .mode-option-title {
+            font-size: 1.2rem; font-weight: 700;
+            color: var(--white); margin-bottom: var(--spacing-xs);
+            display: flex; align-items: center; gap: var(--spacing-xs);
+        }
+
+        .mode-option-description {
+            color: var(--text-light); font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .mode-selection-footer {
+            display: flex; justify-content: center;
+            gap: var(--spacing-md);
+        }
+
+        .mode-selection-button {
+            padding: var(--spacing-sm) var(--spacing-lg); border: none;
+            border-radius: var(--border-radius); font-weight: 600;
+            cursor: pointer; transition: all var(--duration-fast) var(--transition-bounce);
+            will-change: transform, box-shadow;
+        }
+
+        .mode-selection-button.primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent)); color: white;
+        }
+
+        .mode-selection-button.primary:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .mode-selection-button.primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .mode-selection-button.secondary {
+            background: rgba(255, 255, 255, 0.08); color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .mode-selection-button.secondary:hover {
+            background: rgba(255, 255, 255, 0.12); color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .mode-selection-content {
+                padding: var(--spacing-lg);
+                max-width: 90%;
+            }
+
+            .mode-selection-title {
+                font-size: 1.5rem;
+            }
+
+            .mode-selection-footer {
+                flex-direction: column; width: 100%;
+            }
+
+            .mode-selection-button {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .mode-selection-content {
+                padding: var(--spacing-md);
+            }
+
+            .mode-selection-title {
+                font-size: 1.3rem;
+            }
+
+            .mode-option-title {
+                font-size: 1.1rem;
+            }
+        }
+
+        body.mode-selection-open {
+            overflow: hidden;
+        }
+
+        /* 防开发者工具样式 */
+        .dev-tools-detected {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark);
+            color: var(--white);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            font-size: 1.5rem;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .dev-tools-detected.show {
+            display: flex;
+        }
+
+        .download-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--spacing-lg) 0;
+        }
     </style>
 </head>
 <body>
+    <!-- 防开发者工具提示 -->
+    <div class="dev-tools-detected" id="devToolsDetected">
+        <div>
+            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
+            <p>检测到开发者工具已打开</p>
+            <p style="font-size: 1rem; margin-top: 1rem; color: var(--text-light);">请关闭后刷新页面</p>
+        </div>
+    </div>
+
     <canvas id="particles-canvas"></canvas>
 
     <!-- 新增：浮动反馈按钮 -->
@@ -1979,6 +2214,42 @@
         <i class="fas fa-comment-dots"></i>
         <span>反馈</span>
     </button>
+
+    <!-- 性能模式选择弹窗 -->
+    <div class="mode-selection-overlay" id="modeSelectionOverlay">
+        <div class="mode-selection-content">
+            <div class="mode-selection-header">
+                <h2 class="mode-selection-title">选择运行模式</h2>
+                <p class="mode-selection-subtitle">根据您的设备性能选择最佳体验</p>
+            </div>
+            <div class="mode-selection-body">
+                <div class="mode-option" data-mode="high" id="highPerfOption">
+                    <div class="mode-option-title">
+                        <i class="fas fa-rocket"></i>
+                        高性能模式
+                    </div>
+                    <div class="mode-option-description">
+                        启用粒子动画、背景音乐和歌词显示，提供最佳视觉体验。推荐WiFi环境使用。
+                    </div>
+                </div>
+                <div class="mode-option" data-mode="compatible" id="compatibleOption">
+                    <div class="mode-option-title">
+                        <i class="fas fa-leaf"></i>
+                        兼容模式
+                    </div>
+                    <div class="mode-option-description">
+                        仅保留基础动画和响应式设计，节省流量和电量。适合移动数据和低性能设备。
+                    </div>
+                </div>
+            </div>
+            <div class="mode-selection-footer">
+                <button class="mode-selection-button primary" id="confirmMode" disabled>
+                    <i class="fas fa-check"></i>
+                    确认选择
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- 加载页面 -->
     <div class="loading" id="loading">
@@ -2223,14 +2494,15 @@
     </div>
 
     <div class="music-player" id="musicPlayer">
-        <button class="music-button" id="musicButton" aria-label="播放/暂停音乐">
+        <button class="music-button preparing" id="musicButton" aria-label="播放/暂停音乐">
             <i class="fas fa-play" id="musicIcon"></i>
         </button>
     </div>
 
-    <audio id="bgMusic" loop preload="metadata">
+    <!-- 音频元素将动态创建 -->
+    <!-- <audio id="bgMusic" loop preload="metadata">
         <source src="music.mp3" type="audio/mpeg">
-    </audio>
+    </audio> -->
 
     <div class="modal-overlay" id="homeworkModal">
         <div class="modal-content">
@@ -2300,6 +2572,69 @@
     </footer>
 
     <script>
+        // 防开发者工具检测
+        (function() {
+            const devToolsDetected = document.getElementById('devToolsDetected');
+            let devtoolsOpen = false;
+            const threshold = 160;
+
+            // 检测控制台打开
+            function detectDevTools() {
+                const width = window.outerWidth - window.innerWidth > threshold;
+                const height = window.outerHeight - window.innerHeight > threshold;
+                return width || height;
+            }
+
+            // 周期性检测
+            setInterval(() => {
+                if (detectDevTools() || devtoolsOpen) {
+                    devToolsDetected.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                }
+            }, 1000);
+
+            // debugger陷阱
+            let checkStatus = 1;
+            setInterval(() => {
+                checkStatus++;
+                console.log(checkStatus);
+                debugger;
+            }, 5000);
+
+            // 禁用F12和快捷键
+            document.addEventListener('keydown', (e) => {
+                // F12
+                if (e.key === 'F12') {
+                    e.preventDefault();
+                    devtoolsOpen = true;
+                    devToolsDetected.classList.add('show');
+                }
+                // Ctrl+Shift+I
+                if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                    e.preventDefault();
+                    devtoolsOpen = true;
+                    devToolsDetected.classList.add('show');
+                }
+                // Ctrl+Shift+C
+                if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                    e.preventDefault();
+                    devtoolsOpen = true;
+                    devToolsDetected.classList.add('show');
+                }
+                // Ctrl+U (查看源码)
+                if (e.ctrlKey && e.key === 'U') {
+                    e.preventDefault();
+                    alert('查看源码功能已禁用');
+                }
+            });
+
+            // 右键菜单禁用
+            document.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                return false;
+            });
+        })();
+
         // 优化粒子系统 - 使用requestAnimationFrame和时间平滑
         class ParticleNetwork {
             constructor() {
@@ -2618,12 +2953,12 @@
             }
             else if (/iphone|ipad|ipod/.test(ua)) {
                 deviceType = 'IOS';
-                iconClass = 'fa-mobile-alt';
+                iconClass = 'fa-mobile-alt'; /* 修复移动端图标 */
                 deviceClass = 'ua-ios';
             }
             else if (/android/.test(ua)) {
                 deviceType = '安卓手机端';
-                iconClass = 'fa-android';
+                iconClass = 'fa-android'; /* 修复移动端图标 */
                 deviceClass = 'ua-android';
             }
             else if (/windows|macintosh|linux/.test(ua) && !/mobile/.test(ua)) {
@@ -2633,7 +2968,7 @@
             }
             else if (/mobile|tablet/.test(ua)) {
                 deviceType = '手机端';
-                iconClass = 'fa-mobile-alt';
+                iconClass = 'fa-mobile-alt'; /* 修复移动端图标 */
                 deviceClass = 'ua-mobile';
             }
             else {
@@ -3086,6 +3421,263 @@
             }
         }
 
+        // 性能模式管理器
+        class PerformanceModeManager {
+            constructor() {
+                this.MODE_STORAGE_KEY = 'glcn-performance-mode';
+                this.MODE_TIMESTAMP_KEY = 'glcn-mode-timestamp';
+                this.MODE_DURATION = 24 * 60 * 60 * 1000; // 24小时
+            }
+
+            getStoredMode() {
+                const mode = localStorage.getItem(this.MODE_STORAGE_KEY);
+                const timestamp = localStorage.getItem(this.MODE_TIMESTAMP_KEY);
+                
+                if (!mode || !timestamp) return null;
+                
+                const now = Date.now();
+                const storedTime = parseInt(timestamp);
+                
+                if (now - storedTime > this.MODE_DURATION) {
+                    // 已过期，清除存储
+                    this.clearMode();
+                    return null;
+                }
+                
+                return mode;
+            }
+
+            setMode(mode) {
+                localStorage.setItem(this.MODE_STORAGE_KEY, mode);
+                localStorage.setItem(this.MODE_TIMESTAMP_KEY, Date.now().toString());
+            }
+
+            clearMode() {
+                localStorage.removeItem(this.MODE_STORAGE_KEY);
+                localStorage.removeItem(this.MODE_TIMESTAMP_KEY);
+            }
+
+            isPC() {
+                const ua = navigator.userAgent.toLowerCase();
+                return /windows|macintosh|linux/.test(ua) && !/mobile/.test(ua);
+            }
+
+            showModeSelection() {
+                return new Promise((resolve) => {
+                    const overlay = document.getElementById('modeSelectionOverlay');
+                    const highPerfOption = document.getElementById('highPerfOption');
+                    const compatibleOption = document.getElementById('compatibleOption');
+                    const confirmBtn = document.getElementById('confirmMode');
+                    
+                    let selectedMode = null;
+                    
+                    document.body.classList.add('mode-selection-open');
+                    overlay.classList.add('active');
+                    
+                    const selectMode = (mode) => {
+                        selectedMode = mode;
+                        confirmBtn.disabled = false;
+                        
+                        // 更新选中状态
+                        highPerfOption.classList.remove('selected');
+                        compatibleOption.classList.remove('selected');
+                        
+                        if (mode === 'high') {
+                            highPerfOption.classList.add('selected');
+                        } else {
+                            compatibleOption.classList.add('selected');
+                        }
+                    };
+                    
+                    highPerfOption.onclick = () => selectMode('high');
+                    compatibleOption.onclick = () => selectMode('compatible');
+                    
+                    confirmBtn.onclick = () => {
+                        if (selectedMode) {
+                            overlay.classList.remove('active');
+                            document.body.classList.remove('mode-selection-open');
+                            resolve(selectedMode);
+                        }
+                    };
+                });
+            }
+        }
+
+        let particleNetwork = null;
+        let passwordSystem = null;
+        let performanceModeManager = null;
+
+        async function verifyRepositoryFile() {
+            const repoFile = 'st.txt';
+            const requiredContent = '1';
+            
+            try {
+                const response = await fetch(repoFile, { 
+                    method: 'GET',
+                    cache: 'no-cache',
+                    signal: AbortSignal.timeout(3000)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('验证文件不存在或无法访问');
+                }
+                
+                const content = await response.text();
+                
+                if (content.trim() !== requiredContent) {
+                    throw new Error('验证文件内容不匹配');
+                }
+                
+                console.log('✅ 仓库验证成功');
+                return true;
+            } catch (error) {
+                console.error('❌ 仓库验证失败:', error);
+                // 显示安全验证失败页面
+                document.getElementById('loadingText').textContent = '安全验证失败';
+                document.getElementById('loadingSubtext').textContent = '无法验证仓库来源';
+                document.getElementById('loadingSpinner').style.display = 'none';
+                document.getElementById('loadingCheck').style.display = 'none';
+                
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none';
+                    document.body.innerHTML = `
+                        <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: var(--dark); color: var(--text);">
+                            <div style="text-align: center; padding: 2rem;">
+                                <i class="fas fa-shield-alt" style="font-size: 4rem; color: var(--danger); margin-bottom: 1rem;"></i>
+                                <h1 style="font-size: 2rem; margin-bottom: 1rem;">安全验证失败</h1>
+                                <p>无法验证当前页面来源的合法性</p>
+                                <p style="color: var(--text-light); margin-top: 1rem;">请确保从官方GLcn26访问</p>
+                            </div>
+                        </div>
+                    `;
+                }, 2000);
+                
+                return false;
+            }
+        }
+
+        async function initializeApp() {
+            passwordSystem = new PasswordVerificationSystem();
+            performanceModeManager = new PerformanceModeManager();
+            
+            // 验证仓库文件
+            const isVerified = await verifyRepositoryFile();
+            if (!isVerified) {
+                return;
+            }
+            
+            await serverTimeManager.syncTime();
+            
+            setupNavigation();
+            setupMobileMenu();
+            setupHomeworkCards();
+            setupModal();
+            detectUA();
+            updateBeijingTime();
+            setupScrollEffects();
+            applyStaggerAnimation();
+            
+            // 获取性能模式
+            let mode = performanceModeManager.getStoredMode();
+            
+            if (!mode) {
+                // 首次访问或模式过期
+                if (performanceModeManager.isPC()) {
+                    // PC端自动选择高性能模式
+                    mode = 'high';
+                    performanceModeManager.setMode(mode);
+                } else {
+                    // 移动端显示选择弹窗
+                    mode = await performanceModeManager.showModeSelection();
+                    performanceModeManager.setMode(mode);
+                }
+            }
+            
+            // 根据模式初始化
+            if (mode === 'high') {
+                await initializeHighPerformanceMode();
+            } else {
+                initializeCompatibleMode();
+            }
+            
+            // 继续其他初始化
+            setupFeedback();
+            setupAutoRefresh();
+            
+            if (passwordSystem.checkLockStatus()) {
+                const homeworkNavItem = document.querySelector('.nav-menu li[data-page="homework"]');
+                if (homeworkNavItem) {
+                    homeworkNavItem.style.opacity = '0.5';
+                    homeworkNavItem.style.pointerEvents = 'none';
+                    homeworkNavItem.title = '密码尝试次数过多，请稍后再试';
+                }
+            }
+        }
+
+        // 高性能模式初始化
+        async function initializeHighPerformanceMode() {
+            console.log('🚀 初始化高性能模式');
+            
+            // 显示音乐播放器（准备中状态）
+            const musicBtn = document.getElementById('musicPlayer');
+            musicBtn.classList.add('show');
+            
+            // 立即启动粒子系统
+            particleNetwork = new ParticleNetwork();
+            
+            // 延迟2秒加载音频相关资源
+            setTimeout(async () => {
+                try {
+                    // 动态创建音频元素
+                    const audio = document.createElement('audio');
+                    audio.id = 'bgMusic';
+                    audio.loop = true;
+                    audio.preload = 'metadata';
+                    document.body.appendChild(audio);
+                    
+                    // 初始化歌词显示
+                    const lyricDisplay = new LyricDisplay();
+                    await lyricDisplay.loadLyrics('歌词.lrc');
+                    
+                    // 初始化音乐播放器
+                    await initializeMusicPlayer();
+                    
+                    // 更新音乐按钮状态为就绪
+                    const musicButton = document.getElementById('musicButton');
+                    musicButton.classList.remove('preparing');
+                    musicButton.classList.add('ready');
+                    
+                    console.log('✅ 音频资源加载完成');
+                } catch (error) {
+                    console.error('❌ 音频资源加载失败:', error);
+                    // 保持"准备中"状态，用户点击时提示错误
+                    const musicButton = document.getElementById('musicButton');
+                    musicButton.classList.remove('preparing');
+                    musicButton.classList.add('ready');
+                    musicButton.style.background = 'rgba(248, 113, 113, 0.2)';
+                    musicButton.style.borderColor = 'rgba(248, 113, 113, 0.3)';
+                }
+            }, 2000);
+        }
+
+        // 兼容模式初始化
+        function initializeCompatibleMode() {
+            console.log('🍃 初始化兼容模式');
+            
+            // 不初始化粒子系统
+            // 不创建音频元素
+            // 不加载歌词
+            // 隐藏音乐播放器
+            const musicBtn = document.getElementById('musicPlayer');
+            musicBtn.style.display = 'none';
+            
+            // 显示提示
+            const lyricsStatus = document.getElementById('lyricsStatus');
+            if (lyricsStatus) {
+                lyricsStatus.innerHTML = '<i class="fas fa-info-circle"></i> <span>兼容模式：音乐功能已禁用</span>';
+            }
+        }
+
         function setupNavigation() {
             document.querySelectorAll('.nav-menu li[data-page]').forEach(item => {
                 item.addEventListener('click', () => {
@@ -3301,7 +3893,6 @@
                     loading.classList.add('hide');
                     setTimeout(() => {
                         loading.style.display = 'none';
-                        particleNetwork = new ParticleNetwork();
                         document.getElementById('musicPlayer').classList.add('show');
                     }, 500);
                 }, 800);
@@ -3934,7 +4525,9 @@
             });
             
             audio.addEventListener('loadedmetadata', () => {
-                lyricDisplay.showStatus('success', `音乐已加载：${audio.duration.toFixed(1)}秒`);
+                if(statusElement && isLoaded) {
+                    statusElement.innerHTML = `音乐已加载：${bgMusic.duration.toFixed(1)}秒`;
+                }
             });
             
             audio.addEventListener('error', (e) => {
@@ -3999,38 +4592,62 @@
         // 新增：反馈功能
         function setupFeedback() {
             const feedbackButton = document.getElementById('feedbackButton');
-            const feedbackCardButton = document.querySelector('.feedback-card-button');
             
-            const openFeedback = () => {
-                window.open('https://docs.qq.com/form/page/DT0hkWkRCYXNvcHFm', '_blank');
-            };
-            
-            if (feedbackButton) {
-                feedbackButton.addEventListener('click', openFeedback);
-            }
-            
-            if (feedbackCardButton) {
-                feedbackCardButton.addEventListener('click', openFeedback);
-            }
+            feedbackButton.addEventListener('click', openFeedback);
             
             // 添加反馈按钮动画
             setTimeout(() => {
-                if (feedbackButton) {
-                    feedbackButton.style.animation = 'fadeInUp 0.6s ease-out forwards';
-                }
+                feedbackButton.style.animation = 'fadeInUp 0.6s ease-out forwards';
             }, 2000);
         }
 
-        // 将反馈函数暴露到全局作用域
+        // 反馈弹窗
         window.openFeedback = function() {
-            window.open('https://docs.qq.com/form/page/DT0hkWkRCYXNvcHFm', '_blank');
+            const isClient = /android|iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+            
+            if (isClient) {
+                if (confirm('客户端反馈请使用浏览器登录反馈或打开腾讯问卷app或微信小程序，因为客户端无法拉起微信与QQ\n\n点击"确定"继续访问反馈页面，或点击"取消"返回')) {
+                    window.open('https://docs.qq.com/form/page/DT0hkWkRCYXNvcHFm', '_blank');
+                }
+            } else {
+                window.open('https://docs.qq.com/form/page/DT0hkWkRCYXNvcHFm', '_blank');
+            }
         };
 
-        let particleNetwork = null;
-        let passwordSystem = null;
+        // 通知栏播放控件
+        function setupMediaSession() {
+            if ('mediaSession' in navigator && document.getElementById('bgMusic')) {
+                const audio = document.getElementById('bgMusic');
+                
+                navigator.mediaSession.setActionHandler('play', () => {
+                    audio.play();
+                });
+                
+                navigator.mediaSession.setActionHandler('pause', () => {
+                    audio.pause();
+                });
+                
+                navigator.mediaSession.setActionHandler('previoustrack', () => {
+                    audio.currentTime = 0;
+                });
+                
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: '背景音乐',
+                    artist: 'GLcn',
+                    album: 'STNStudio'
+                });
+            }
+        }
         
         async function initializeApp() {
             passwordSystem = new PasswordVerificationSystem();
+            performanceModeManager = new PerformanceModeManager();
+            
+            // 验证仓库文件
+            const isVerified = await verifyRepositoryFile();
+            if (!isVerified) {
+                return;
+            }
             
             await serverTimeManager.syncTime();
             
@@ -4038,42 +4655,38 @@
             setupMobileMenu();
             setupHomeworkCards();
             setupModal();
-            await initializeMusicPlayer();
+            detectUA();
             updateBeijingTime();
             setupScrollEffects();
             applyStaggerAnimation();
-            setupLyricsIntegration();
-            setupFeedback(); // 新增：设置反馈功能
-            detectUA();
             
-            // 优化定时器 - 使用requestAnimationFrame对齐的时间更新
-            let lastTimeUpdate = Date.now();
-            let lastUptimeUpdate = Date.now();
+            // 获取性能模式
+            let mode = performanceModeManager.getStoredMode();
             
-            const optimizedUpdate = () => {
-                const now = Date.now();
-                
-                if (now - lastTimeUpdate >= 1000) {
-                    updateBeijingTime();
-                    lastTimeUpdate = now;
+            if (!mode) {
+                // 首次访问或模式过期
+                if (performanceModeManager.isPC()) {
+                    // PC端自动选择高性能模式
+                    mode = 'high';
+                    performanceModeManager.setMode(mode);
+                } else {
+                    // 移动端显示选择弹窗
+                    mode = await performanceModeManager.showModeSelection();
+                    performanceModeManager.setMode(mode);
                 }
-                
-                if (now - lastUptimeUpdate >= 1000) {
-                    updateUptime();
-                    lastUptimeUpdate = now;
-                }
-                
-                requestAnimationFrame(optimizedUpdate);
-            };
-            requestAnimationFrame(optimizedUpdate);
+            }
             
-            setInterval(async () => {
-                if (serverTimeManager.shouldResync()) {
-                    await serverTimeManager.syncTime();
-                }
-            }, 5 * 60 * 1000);
+            // 根据模式初始化
+            if (mode === 'high') {
+                await initializeHighPerformanceMode();
+            } else {
+                initializeCompatibleMode();
+            }
             
+            // 继续其他初始化
+            setupFeedback();
             setupAutoRefresh();
+            setupMediaSession();
             
             if (passwordSystem.checkLockStatus()) {
                 const homeworkNavItem = document.querySelector('.nav-menu li[data-page="homework"]');
@@ -4083,19 +4696,19 @@
                     homeworkNavItem.title = '密码尝试次数过多，请稍后再试';
                 }
             }
+            
+            hideLoading();
         }
-        
+
         document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                initializeApp().catch(console.error);
-                hideLoading();
-            }, 500);
+            initializeApp().catch(console.error);
         });
         
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 const navMenu = document.getElementById('navMenu');
                 const modalOverlay = document.getElementById('homeworkModal');
+                const modeOverlay = document.getElementById('modeSelectionOverlay');
                 
                 if (navMenu.classList.contains('active')) {
                     navMenu.classList.remove('active');
@@ -4106,6 +4719,11 @@
                 
                 if (modalOverlay.classList.contains('active')) {
                     hideHomeworkModal();
+                }
+
+                if (modeOverlay.classList.contains('active')) {
+                    modeOverlay.classList.remove('active');
+                    document.body.classList.remove('mode-selection-open');
                 }
             }
         });
