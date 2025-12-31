@@ -1786,23 +1786,54 @@
 
         /* ===== 优化自动刷新提示动画 ===== */
         #refreshIndicator {
-            position: fixed; bottom: 80px; right: 20px;
-            z-index: 998; background: rgba(26, 26, 46, 0.95);
-            backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: var(--border-radius);
-            padding: 8px 16px; color: var(--text-light);
-            font-size: 0.9rem; transition: all var(--duration-slow) var(--transition-bounce);
-            box-shadow: var(--shadow-md); opacity: 0; transform: scale(0);
-            will-change: transform, opacity;
+            display: none; /* 完全隐藏倒计时UI */
         }
 
-        #refreshIndicator.show {
-            opacity: 1; transform: scale(1);
+        .ua-android { color: var(--warning); }
+        .ua-ios { color: var(--success); }
+
+        /* 模式选择弹窗样式 */
+        .mode-selector-modal {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(26, 26, 46, 0.95); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl); max-width: 400px;
+            width: 90%; z-index: 4000; box-shadow: var(--shadow-xl);
         }
 
-        #refreshCountdown {
-            color: var(--accent); font-weight: 600;
-            margin-left: 4px; transition: color var(--duration-fast) var(--transition-smooth);
+        .mode-selector-modal h3 {
+            color: var(--white); text-align: center; margin-bottom: var(--spacing-lg);
+        }
+
+        .mode-btn {
+            width: 100%; padding: var(--spacing-md); margin-bottom: var(--spacing-sm);
+            border: none; border-radius: var(--border-radius); font-weight: 600;
+            cursor: pointer; transition: all var(--duration-fast) var(--transition-bounce);
+        }
+
+        .mode-btn.performance {
+            background: linear-gradient(135deg, var(--primary), var(--accent)); color: white;
+        }
+
+        .mode-btn.compatibility {
+            background: rgba(255, 255, 255, 0.08); color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+        }
+
+        .mode-btn.performance:hover {
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* 兼容模式样式 */
+        body.compatibility-mode #particles-canvas,
+        body.compatibility-mode .music-player,
+        body.compatibility-mode .lyrics-container {
+            display: none !important;
         }
 
         /* 低功耗模式适配 */
@@ -1934,18 +1965,32 @@
                                     进行中
                                 </div>
                                 <div class="current-version-status">
-                                    Version1.6
+                                    Version1.7
                                 </div>
                             </div>
                             <div class="current-version-text">
                                 <i class="fas fa-cog fa-spin"></i>
-                                优化中
+                                安全模块
                             </div>
                         </div>
                     </div>
 
                     <div class="history-timeline" id="historyTimeline">
                         <!-- 关于我们内容将通过JavaScript动态渲染 -->
+                    </div>
+                    
+                    <!-- 用户反馈区域 -->
+                    <div class="feedback-section" style="max-width: 800px; margin: var(--spacing-xl) auto 0; padding: 0 var(--spacing-md);">
+                        <div class="feature-card stagger-fade-in">
+                            <div class="feature-icon">
+                                <i class="fas fa-comment-dots"></i>
+                            </div>
+                            <h3 class="feature-title">用户反馈</h3>
+                            <p class="feature-description">您的意见对我们很重要，欢迎通过腾讯问卷提交反馈</p>
+                            <button class="modal-button" onclick="window.open('https://docs.qq.com/form/page/DT0hkWkRCYXNvcHFm', '_blank')">
+                                <i class="fas fa-external-link-alt"></i> 提交反馈
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2432,17 +2477,8 @@
             let iconClass = '';
             let deviceClass = '';
             
-            if (/micromessenger/.test(ua)) {
-                deviceType = '微信端';
-                iconClass = 'fa-comment-dots';
-                deviceClass = 'ua-wechat';
-            }
-            else if (/qq\//.test(ua) || /qqbrowser/.test(ua) || /qqapp/.test(ua)) {
-                deviceType = 'QQ端';
-                iconClass = 'fa-comment';
-                deviceClass = 'ua-qq';
-            }
-            else if (/iphone|ipad|ipod/.test(ua)) {
+            // 优先检测iOS，再检测安卓
+            if (/iphone|ipad|ipod/.test(ua)) {
                 deviceType = 'IOS';
                 iconClass = 'fa-mobile-alt';
                 deviceClass = 'ua-ios';
@@ -2451,6 +2487,24 @@
                 deviceType = '安卓手机端';
                 iconClass = 'fa-android';
                 deviceClass = 'ua-android';
+                
+                // 确保Font Awesome已加载，避免正方形图标
+                if (!document.querySelector('link[href*="font-awesome"]')) {
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+                    document.head.appendChild(link);
+                }
+            }
+            else if (/micromessenger/.test(ua)) {
+                deviceType = '微信端';
+                iconClass = 'fa-comment-dots';
+                deviceClass = 'ua-wechat';
+            }
+            else if (/qq\//.test(ua) || /qqbrowser/.test(ua) || /qqapp/.test(ua)) {
+                deviceType = 'QQ端';
+                iconClass = 'fa-comment';
+                deviceClass = 'ua-qq';
             }
             else if (/windows|macintosh|linux/.test(ua) && !/mobile/.test(ua)) {
                 deviceType = 'PC';
@@ -2604,15 +2658,20 @@
             }
         };
 
-        // 更新历史数据 - 添加了2025-12-30和2025-12-31的更新记录
+        // 更新历史数据 - 已更新为Version1.6和Version1.7
         const updateHistory = [
             {
                 date: '2025-12-31',
+                version: 'Version1.6',
+                changes: ['UI优化，播放器优化，Mode可选']
+            },
+            {
+                date: '2025-12-30',
                 version: 'Version1.5',
                 changes: ['动画粒子大优化，提高体验']
             },
             {
-                date: '2025-12-30',
+                date: '2025-12-29',
                 version: 'Version1.4',
                 changes: ['音乐播放逻辑优化', '优化网页加载', '更新app版本（无黑边）']
             },
@@ -2912,6 +2971,81 @@
             }
         }
 
+        // 性能模式管理器
+        class PerformanceModeManager {
+            constructor() {
+                this.mode = this.getStoredMode() || 'auto';
+                this.isPC = this.detectPC();
+            }
+            
+            detectPC() {
+                return !/android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
+            }
+            
+            async showModeSelector() {
+                if (this.isPC) {
+                    this.setMode('performance');
+                    return;
+                }
+                
+                // 手机端显示选择弹窗
+                return new Promise(resolve => {
+                    const modal = document.createElement('div');
+                    modal.className = 'mode-selector-modal';
+                    modal.innerHTML = `
+                        <h3>选择运行模式</h3>
+                        <button class="mode-btn performance">高性能Mode</button>
+                        <button class="mode-btn compatibility">兼容Mode</button>
+                    `;
+                    document.body.appendChild(modal);
+                    
+                    modal.querySelector('.performance').onclick = () => {
+                        this.setMode('performance');
+                        modal.remove();
+                        resolve('performance');
+                    };
+                    modal.querySelector('.compatibility').onclick = () => {
+                        this.setMode('compatibility');
+                        modal.remove();
+                        resolve('compatibility');
+                    };
+                });
+            }
+            
+            setMode(mode) {
+                this.mode = mode;
+                localStorage.setItem('performanceMode', mode);
+                this.applyMode(mode);
+            }
+            
+            applyMode(mode) {
+                const body = document.body;
+                if (mode === 'compatibility') {
+                    // 禁用粒子
+                    if (window.particleNetwork) window.particleNetwork.stop();
+                    document.getElementById('particles-canvas').style.display = 'none';
+                    
+                    // 不加载音频
+                    const audio = document.getElementById('bgMusic');
+                    audio.pause();
+                    audio.src = '';
+                    
+                    // 隐藏歌词
+                    document.getElementById('lyricsContainer').style.display = 'none';
+                    
+                    body.classList.add('compatibility-mode');
+                } else {
+                    body.classList.remove('compatibility-mode');
+                    document.getElementById('particles-canvas').style.display = 'block';
+                    document.getElementById('lyricsContainer').style.display = 'block';
+                }
+            }
+            
+            getStoredMode() {
+                return localStorage.getItem('performanceMode');
+            }
+        }
+
         function setupNavigation() {
             document.querySelectorAll('.nav-menu li[data-page]').forEach(item => {
                 item.addEventListener('click', () => {
@@ -2965,11 +3099,6 @@
             const icon = document.querySelector('#mobileToggle i');
             icon.classList.add('fa-bars');
             icon.classList.remove('fa-times');
-
-            // 如果是关于我们页面，渲染历史记录
-            if (pageName === 'history') {
-                renderUpdateHistory();
-            }
         }
 
         function renderUpdateHistory() {
@@ -3108,7 +3237,7 @@
             document.body.style.overflow = '';
         }
 
-        // 优化加载动画 - 将Version改为Version1.5
+        // 优化加载动画 - 已将Version1.5改为Version1.6
         function hideLoading() {
             const loading = document.getElementById('loading');
             const spinner = loading.querySelector('.loading-spinner');
@@ -3118,8 +3247,8 @@
             
             setTimeout(() => {
                 spinner.style.display = 'none';
-                // 修改这里：将"Version"改为"Version1.5"
-                loadingText.textContent = '已验证安全Version1.5';
+                // 修改：Version1.6
+                loadingText.textContent = '已验证安全Version1.6';
                 loadingSubtext.textContent = '验证完成，正在加载界面...';
                 loadingCheck.style.display = 'block';
                 
@@ -3127,7 +3256,7 @@
                     loading.classList.add('hide');
                     setTimeout(() => {
                         loading.style.display = 'none';
-                        particleNetwork = new ParticleNetwork();
+                        window.particleNetwork = new ParticleNetwork();
                         document.getElementById('musicPlayer').classList.add('show');
                     }, 500);
                 }, 800);
@@ -3377,6 +3506,44 @@
             bgMusic.addEventListener('error', (e) => {
                 statusElement?.classList.add('error');
             });
+
+            // 添加Media Session API支持（通知栏播放控件）
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: 'STNStudio背景音乐',
+                    artist: 'GLcn',
+                    album: '网页播放器',
+                    artwork: [
+                        { src: '', sizes: '96x96', type: 'image/png' },
+                        { src: '', sizes: '128x128', type: 'image/png' },
+                        { src: '', sizes: '192x192', type: 'image/png' },
+                        { src: '', sizes: '256x256', type: 'image/png' },
+                        { src: '', sizes: '384x384', type: 'image/png' },
+                        { src: '', sizes: '512x512', type: 'image/png' }
+                    ]
+                });
+
+                navigator.mediaSession.setActionHandler('play', () => {
+                    if (!isPlaying) {
+                        musicButton.click();
+                    }
+                });
+                
+                navigator.mediaSession.setActionHandler('pause', () => {
+                    if (isPlaying) {
+                        musicButton.click();
+                    }
+                });
+
+                // 支持上一曲下一曲（可选）
+                navigator.mediaSession.setActionHandler('previoustrack', () => {
+                    // 可以添加切换上一首逻辑
+                });
+                
+                navigator.mediaSession.setActionHandler('nexttrack', () => {
+                    // 可以添加切换下一首逻辑
+                });
+            }
         }
 
         class ServerTimeManager {
@@ -3768,31 +3935,15 @@
             });
         }
 
-        // 优化自动刷新系统
+        // 优化自动刷新系统 - 仅隐藏UI，功能保留
         function setupAutoRefresh() {
             const REFRESH_INTERVAL = 8 * 60 * 1000;
             let lastRefreshTime = Date.now();
             
-            const indicator = document.createElement('div');
-            indicator.id = 'refreshIndicator';
-            indicator.innerHTML = '<span id="refreshCountdown">08:00</span>';
-            document.body.appendChild(indicator);
-            
-            setTimeout(() => {
-                indicator.classList.add('show');
-            }, 1000);
-            
+            // 完全隐藏倒计时UI（不创建DOM元素）
             function updateCountdown() {
-                const remaining = REFRESH_INTERVAL - (Date.now() - lastRefreshTime);
-                const minutes = Math.floor(remaining / 60000);
-                const seconds = Math.floor((remaining % 60000) / 1000);
-                const countdownEl = document.getElementById('refreshCountdown');
-                if (countdownEl) {
-                    countdownEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                }
+                // 移除所有UI更新逻辑
             }
-            setInterval(updateCountdown, 1000);
-            updateCountdown();
             
             function shouldRefresh() {
                 const activeElement = document.activeElement;
@@ -3824,9 +3975,14 @@
 
         let particleNetwork = null;
         let passwordSystem = null;
+        let modeManager = null;
         
         async function initializeApp() {
             passwordSystem = new PasswordVerificationSystem();
+            modeManager = new PerformanceModeManager();
+            
+            // 显示模式选择
+            await modeManager.showModeSelector();
             
             await serverTimeManager.syncTime();
             
@@ -3878,6 +4034,13 @@
                     homeworkNavItem.title = '密码尝试次数过多，请稍后再试';
                 }
             }
+
+            // 每次进入页面时刷新
+            window.addEventListener('pageshow', (event) => {
+                if (event.persisted || performance.getEntriesByType("navigation")[0]?.type === 'back_forward') {
+                    location.reload();
+                }
+            });
         }
         
         document.addEventListener('DOMContentLoaded', () => {
