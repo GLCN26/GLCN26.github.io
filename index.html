@@ -991,6 +991,11 @@
             opacity: 1; transform: scale(1);
         }
 
+        /* 兼容模式下隐藏音乐播放器 */
+        body.compatibility-mode .music-player {
+            display: none !important;
+        }
+
         .music-button {
             width: 60px; height: 60px; border: none; border-radius: 50%;
             background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);
@@ -1076,6 +1081,11 @@
             box-shadow: var(--shadow-lg); overflow: hidden;
             transition: all var(--duration-normal) var(--transition-smooth);
             transform: translateY(0); will-change: transform, box-shadow, opacity;
+        }
+
+        /* 兼容模式下隐藏歌词容器 */
+        body.compatibility-mode .lyrics-container {
+            display: none !important;
         }
 
         .lyrics-container:hover {
@@ -3032,12 +3042,15 @@
                     
                     // 隐藏歌词
                     document.getElementById('lyricsContainer').style.display = 'none';
+                    // 隐藏音乐播放器
+                    document.getElementById('musicPlayer').style.display = 'none';
                     
                     body.classList.add('compatibility-mode');
                 } else {
                     body.classList.remove('compatibility-mode');
                     document.getElementById('particles-canvas').style.display = 'block';
                     document.getElementById('lyricsContainer').style.display = 'block';
+                    document.getElementById('musicPlayer').style.display = 'block';
                 }
             }
             
@@ -3358,7 +3371,7 @@
             }
         }
 
-        // 初始化音乐播放器
+        // 初始化音乐播放器 - 增强Media Session API
         async function initializeMusicPlayer() {
             const musicLoader = new MusicLoader();
             await musicLoader.detectMusic();
@@ -3392,6 +3405,7 @@
             const musicIcon = document.getElementById('musicIcon');
             const bgMusic = document.getElementById('bgMusic');
             const statusElement = document.getElementById('lyricsStatus');
+            const lyricsContainer = document.getElementById('lyricsContainer');
             
             let isPlaying = false;
             let isLoaded = false;
@@ -3420,10 +3434,12 @@
                     case 'playing':
                         musicIcon.className = 'fas fa-pause';
                         musicButton.classList.add('playing');
+                        musicButton.classList.add('lyrics-active');
                         break;
                     case 'paused':
                         musicIcon.className = 'fas fa-play';
                         musicButton.classList.remove('playing');
+                        musicButton.classList.remove('lyrics-active');
                         break;
                 }
             };
@@ -3461,6 +3477,7 @@
             
             document.addEventListener('click', loadAudio, { once: true });
             
+            // 播放/暂停切换
             musicButton.addEventListener('click', () => {
                 if(!isLoaded) {
                     loadAudio();
@@ -3490,59 +3507,86 @@
                     updateButtonState('playing');
                 }
                 isPlaying = !isPlaying;
+                
+                // 同步通知栏状态
+                updateMediaSessionState();
             });
             
             bgMusic.addEventListener('ended', () => {
                 isPlaying = false;
                 updateButtonState('paused');
+                updateMediaSessionState();
             });
             
             bgMusic.addEventListener('loadedmetadata', () => {
                 if(statusElement && isLoaded) {
                     statusElement.innerHTML = `<i class="fas fa-check-circle"></i> <span>音乐已加载：${bgMusic.duration.toFixed(1)}秒</span>`;
                 }
+                // 设置通知栏信息
+                setupMediaSession();
             });
             
             bgMusic.addEventListener('error', (e) => {
                 statusElement?.classList.add('error');
             });
-
-            // 添加Media Session API支持（通知栏播放控件）
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: 'STNStudio背景音乐',
-                    artist: 'GLcn',
-                    album: '网页播放器',
-                    artwork: [
-                        { src: '', sizes: '96x96', type: 'image/png' },
-                        { src: '', sizes: '128x128', type: 'image/png' },
-                        { src: '', sizes: '192x192', type: 'image/png' },
-                        { src: '', sizes: '256x256', type: 'image/png' },
-                        { src: '', sizes: '384x384', type: 'image/png' },
-                        { src: '', sizes: '512x512', type: 'image/png' }
-                    ]
-                });
-
-                navigator.mediaSession.setActionHandler('play', () => {
-                    if (!isPlaying) {
-                        musicButton.click();
-                    }
-                });
+            
+            // 循环播放
+            bgMusic.loop = true;
+            
+            // Media Session API 实现
+            let mediaSessionSupported = false;
+            
+            function setupMediaSession() {
+                if ('mediaSession' in navigator) {
+                    mediaSessionSupported = true;
+                    
+                    // 设置元数据
+                    navigator.mediaSession.metadata = new MediaMetadata({
+                        title: 'STNStudio背景音乐',
+                        artist: 'GLcn',
+                        album: '网页播放器',
+                        artwork: [
+                            { 
+                                src: 'https://raw.githubusercontent.com/glcn26/glcn26.github.io/main/musiclogo.jpg', 
+                                sizes: '512x512', 
+                                type: 'image/jpeg' 
+                            }
+                        ]
+                    });
+                    
+                    // 设置播放控制
+                    navigator.mediaSession.setActionHandler('play', () => {
+                        if (!isPlaying) {
+                            musicButton.click();
+                        }
+                    });
+                    
+                    navigator.mediaSession.setActionHandler('pause', () => {
+                        if (isPlaying) {
+                            musicButton.click();
+                        }
+                    });
+                    
+                    // 清空不需要的控制按钮
+                    navigator.mediaSession.setActionHandler('previoustrack', null);
+                    navigator.mediaSession.setActionHandler('nexttrack', null);
+                    navigator.mediaSession.setActionHandler('seekbackward', null);
+                    navigator.mediaSession.setActionHandler('seekforward', null);
+                    
+                    // 监听通知栏操作
+                    bgMusic.addEventListener('play', updateMediaSessionState);
+                    bgMusic.addEventListener('pause', updateMediaSessionState);
+                    
+                    console.log('✅ Media Session API 已启用');
+                } else {
+                    console.log('ℹ️ Media Session API 不支持');
+                }
+            }
+            
+            function updateMediaSessionState() {
+                if (!mediaSessionSupported || !navigator.mediaSession) return;
                 
-                navigator.mediaSession.setActionHandler('pause', () => {
-                    if (isPlaying) {
-                        musicButton.click();
-                    }
-                });
-
-                // 支持上一曲下一曲（可选）
-                navigator.mediaSession.setActionHandler('previoustrack', () => {
-                    // 可以添加切换上一首逻辑
-                });
-                
-                navigator.mediaSession.setActionHandler('nexttrack', () => {
-                    // 可以添加切换下一首逻辑
-                });
+                navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
             }
         }
 
@@ -3861,6 +3905,17 @@
                 }
             }
             
+            seekToTime(time) {
+                const audio = document.getElementById('bgMusic');
+                if (audio && !isNaN(time)) {
+                    audio.currentTime = time;
+                    
+                    if (audio.paused) {
+                        document.getElementById('musicButton').click();
+                    }
+                }
+            }
+            
             showStatus(type, message) {
                 this.status.className = 'lyrics-status ' + type;
                 this.status.querySelector('span').textContent = message;
@@ -3878,17 +3933,6 @@
                         break;
                     default:
                         icon.className = 'fas fa-info-circle';
-                }
-            }
-            
-            seekToTime(time) {
-                const audio = document.getElementById('bgMusic');
-                if (audio && !isNaN(time)) {
-                    audio.currentTime = time;
-                    
-                    if (audio.paused) {
-                        document.getElementById('musicButton').click();
-                    }
                 }
             }
             
