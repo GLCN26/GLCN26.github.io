@@ -1,0 +1,114 @@
+{
+  "chinese": {
+    "title": "语文作业",
+    "icon": "fas fa-book",
+    "color": "#e53e3e",
+    "content": {
+      "subject": "语文",
+      "teacher": "庄老师",
+      "deadline": "2025-1-5",
+      "status": "已更新",
+      "description": "每课一练",
+      "requirements": [
+        "每课一练p54～p61，第五单元一二两课"
+      ],
+      "tips": "暂无。"
+    }
+  },
+  "math": {
+    "title": "数学作业",
+    "icon": "fas fa-calculator",
+    "color": "#3182ce",
+    "content": {
+      "subject": "数学",
+      "teacher": "殷老师",
+      "deadline": "2025-1-4",
+      "status": "已更新",
+      "description": "卷子",
+      "requirements": [
+        "暂无。"
+      ],
+      "tips": "暂无。"
+    }
+  },
+  "english": {
+    "title": "英语作业",
+    "icon": "fas fa-language",
+    "color": "#38a169",
+    "content": {
+      "subject": "英语",
+      "teacher": "黄老师",
+      "deadline": "2025-12-26",
+      "status": "已更新",
+      "description": "抄写作业",
+      "requirements": [
+        "抄写单词"
+      ],
+      "tips": "单词每个十遍。"
+    }
+  },
+  "physics": {
+    "title": "物理作业",
+    "icon": "fas fa-atom",
+    "color": "#d69e2e",
+    "content": {
+      "subject": "物理",
+      "teacher": "孔老师",
+      "deadline": "2025-1-5",
+      "status": "已更新",
+      "description": "两道题目",
+      "requirements": [
+        "1举例说明光的全反射现象的应用"
+      ],
+      "tips": "2我国核电能发展情况和准备辩论"
+    }
+  },
+  "chemistry": {
+    "title": "化学作业",
+    "icon": "fas fa-flask",
+    "color": "#805ad5",
+    "content": {
+      "subject": "化学",
+      "teacher": "林老师",
+      "deadline": "2025-12-26",
+      "status": "已更新",
+      "description": "无",
+      "requirements": [
+        "无"
+      ],
+      "tips": "暂无。"
+    }
+  },
+  "politics": {
+    "title": "政治作业",
+    "icon": "fas fa-landmark",
+    "color": "#dd6b20",
+    "content": {
+      "subject": "政治",
+      "teacher": "叶老师",
+      "deadline": "2025-1-5",
+      "status": "已更新",
+      "description": "每课一练15课。",
+      "requirements": [
+        "每课一练15课p65-p68。"
+      ],
+      "tips": "暂无。"
+    }
+  },
+  "other": {
+    "title": "其他作业",
+    "icon": "fas fa-ellipsis-h",
+    "color": "#718096",
+    "content": {
+      "subject": "暂无",
+      "teacher": "暂无",
+      "deadline": "2025-12-19",
+      "status": "已更新",
+      "description": "暂无。",
+      "requirements": [
+        "暂无"
+      ],
+      "tips": "巴巴博一"
+    }
+  }
+}
