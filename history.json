@@ -1,0 +1,82 @@
+[
+  {
+    "date": "2025-12-31",
+    "version": "Version1.6",
+    "changes": ["UI优化，播放器优化，Mode可选"]
+  },
+  {
+    "date": "2025-12-30",
+    "version": "Version1.5",
+    "changes": ["动画粒子大优化，提高体验"]
+  },
+  {
+    "date": "2025-12-29",
+    "version": "Version1.4",
+    "changes": ["音乐播放逻辑优化", "优化网页加载", "更新app版本（无黑边）"]
+  },
+  {
+    "date": "2025-12-29",
+    "version": "Version1.3",
+    "changes": ["新增安卓客户端", "更新下载链接", "优化播放逻辑"]
+  },
+  {
+    "date": "2025-12-25",
+    "version": "Version1.26",
+    "changes": ["哈希算法修改", "新增端侧省流（Lazy Loading策略）省流量"]
+  },
+  {
+    "date": "2025-12-25",
+    "version": "Version1.24",
+    "changes": ["导航栏优化"]
+  },
+  {
+    "date": "2025-12-24",
+    "version": "Version1.19",
+    "changes": ["API北京时间修复"]
+  },
+  {
+    "date": "2025-12-24",
+    "version": "Version1.17",
+    "changes": ["修复安全访问问题"]
+  },
+  {
+    "date": "2025-12-23",
+    "version": "Version1.15",
+    "changes": ["新增安全时间"]
+  },
+  {
+    "date": "2025-12-23",
+    "version": "Version1.14",
+    "changes": ["修改优化过渡动画"]
+  },
+  {
+    "date": "2025-12-22",
+    "version": "Version1.12",
+    "changes": ["新增测试码功能"]
+  },
+  {
+    "date": "2025-12-21",
+    "version": "Version1.1",
+    "changes": ["新增歌词Lrc显示"]
+  },
+  {
+    "date": "2025-12-21",
+    "version": "Version1.09",
+    "changes": ["新增音乐播放器"]
+  },
+  {
+    "date": "2025-12-21",
+    "version": "Version1.07",
+    "changes": ["粒子版本上线"]
+  },
+  {
+    "date": "2025-12-20",
+    "version": "Version1.05",
+    "changes": ["UI优化大版本"]
+  },
+  {
+    "date": "2025-12-18",
+    "version": "Version1.0",
+    "changes": ["18:00正式测试"]
+  }
+]
