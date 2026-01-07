@@ -135,7 +135,7 @@
             filter: blur(0.5px) drop-shadow(0 0 8px currentColor);
         }
 
-        /* ===== 优化加载页面样式 ===== */
+        /* 优化加载页面样式 */
         .loading {
             position: fixed;
             top: 0; left: 0;
@@ -241,7 +241,7 @@
             100% { opacity: 0.8; transform: translateY(0); }
         }
 
-        /* ===== 优化导航栏动画 ===== */
+        /* 优化导航栏动画 */
         .navbar {
             position: fixed; top: 0; width: 100%;
             background: rgba(26, 26, 46, 0.8);
@@ -333,7 +333,7 @@
             white-space: nowrap;
         }
 
-        /* ===== 优化页面切换动画 ===== */
+        /* 优化页面切换动画 */
         .page {
             display: none; flex: 1;
             padding: var(--spacing-md);
@@ -353,7 +353,7 @@
             transform: translateY(-20px);
         }
 
-        /* ===== 优化英雄区域动画 ===== */
+        /* 优化英雄区域动画 */
         .hero {
             background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, var(--secondary) 100%);
             color: white; text-align: center; 
@@ -533,7 +533,7 @@
             display: flex; flex-direction: column;
         }
 
-        /* ===== 优化卡片动画 ===== */
+        /* 优化卡片动画 */
         .feature-card {
             background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
@@ -588,7 +588,7 @@
             min-height: calc(100vh - 300px); padding: var(--spacing-lg) 0;
         }
 
-        /* ===== 优化作业卡片动画 ===== */
+        /* 优化作业卡片动画 */
         .homework-container {
             max-width: 1200px; margin: 0 auto;
             padding: var(--spacing-lg) 0;
@@ -679,7 +679,7 @@
             border: 1px solid rgba(72, 187, 120, 0.3);
         }
 
-        /* ===== 优化模态框动画 ===== */
+        /* 优化模态框动画 */
         .modal-overlay {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -964,7 +964,7 @@
         .ua-wechat { color: #07C160; }
         .ua-qq { color: #12B7F5; }
 
-        /* ===== 优化音乐播放器动画 ===== */
+        /* 优化音乐播放器动画 */
         .music-player {
             position: fixed; bottom: var(--spacing-lg); right: var(--spacing-lg);
             z-index: 999; opacity: 0; transform: scale(0);
@@ -1053,7 +1053,7 @@
             }
         }
 
-        /* ===== 优化歌词容器动画 ===== */
+        /* 优化歌词容器动画 */
         .lyrics-container {
             position: relative; max-width: 800px;
             margin: 2rem auto; padding: 1rem;
@@ -1067,11 +1067,6 @@
         /* 兼容模式下隐藏歌词容器 */
         body.compatibility-mode .lyrics-container {
             display: none !important;
-        }
-
-        .lyrics-container:hover {
-            box-shadow: var(--shadow-xl), var(--shadow-glow);
-            border-color: rgba(102, 126, 234, 0.3);
         }
 
         .lyrics-header {
@@ -1260,7 +1255,7 @@
             box-shadow: var(--shadow-xl), 0 0 30px rgba(102, 126, 234, 0.6);
         }
 
-        /* ===== 优化密码模态框动画 ===== */
+        /* 优化密码模态框动画 */
         .password-modal-overlay {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -1483,7 +1478,7 @@
             overflow: hidden;
         }
 
-        /* ===== 优化历史记录显示（长条版本）===== */
+        /* 优化历史记录显示（长条版本） */
         .history-content {
             display: flex; flex-direction: column;
             align-items: center; padding: var(--spacing-lg) 0;
@@ -1741,13 +1736,300 @@
             }
         }
 
-        /* ===== 优化自动刷新提示动画 ===== */
+        /* 优化自动刷新提示动画 */
         #refreshIndicator {
             display: none;
         }
 
         .ua-android { color: var(--warning); }
         .ua-ios { color: var(--success); }
+
+        /* 模式选择弹窗样式 */
+        .mode-selector-modal {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(26, 26, 46, 0.95); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl); max-width: 400px;
+            width: 90%; z-index: 4000; box-shadow: var(--shadow-xl);
+        }
+
+        .mode-selector-modal h3 {
+            color: var(--white); text-align: center; margin-bottom: var(--spacing-lg);
+        }
+
+        .mode-btn {
+            width: 100%; padding: var(--spacing-md); margin-bottom: var(--spacing-sm);
+            border: none; border-radius: var(--border-radius); font-weight: 600;
+            cursor: pointer; transition: all var(--duration-fast) var(--transition-bounce);
+        }
+
+        .mode-btn.performance {
+            background: linear-gradient(135deg, var(--primary), var(--accent)); color: white;
+        }
+
+        .mode-btn.compatibility {
+            background: rgba(255, 255, 255, 0.08); color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+        }
+
+        .mode-btn.performance:hover {
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* 兼容模式样式 */
+        body.compatibility-mode #particles-canvas,
+        body.compatibility-mode .music-player,
+        body.compatibility-mode .lyrics-container {
+            display: none !important;
+        }
+
+        /* 低功耗模式适配 */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            .loading-spinner {
+                animation: spin 4s cubic-bezier(0.68, -0.55, 0.265, 1.55) 2;
+            }
+        }
+
+        .download-content {
+            display: flex; flex-direction: column;
+            align-items: center; padding: var(--spacing-lg) 0;
+        }
+
+        /* ===== 设置模态框样式 ===== */
+        .settings-modal {
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .settings-body {
+            padding: 1.5rem 0;
+        }
+
+        /* 设置项容器 */
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius-lg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all var(--duration-normal) var(--transition-bounce);
+        }
+
+        .setting-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* 设置信息区域 */
+        .setting-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .setting-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--duration-fast) var(--transition-bounce);
+        }
+
+        .setting-item:hover .setting-icon {
+            transform: scale(1.1) rotate(10deg);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .setting-text {
+            flex: 1;
+        }
+
+        .setting-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 0.25rem;
+        }
+
+        .setting-description {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* 高级开关样式 - 玻璃拟态效果 */
+        .toggle-switch {
+            position: relative;
+            width: 140px;
+            height: 45px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 45px;
+            transition: all var(--duration-normal) var(--transition-bounce);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 41px;
+            height: 41px;
+            background: linear-gradient(135deg, var(--white), var(--lighter));
+            border-radius: 50%;
+            transition: all var(--duration-normal) var(--transition-bounce);
+            box-shadow: var(--shadow-md);
+            z-index: 2;
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(95px);
+            background: linear-gradient(135deg, var(--accent), var(--primary));
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .toggle-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+            transition: all var(--duration-fast) var(--transition-smooth);
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--border-radius-sm);
+        }
+
+        .toggle-label.performance {
+            color: var(--success);
+        }
+
+        .toggle-label.compatibility {
+            color: var(--warning);
+        }
+
+        .toggle-switch input:not(:checked) + .toggle-slider .performance,
+        .toggle-switch input:checked + .toggle-slider .compatibility {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--white);
+            transform: scale(1.05);
+        }
+
+        /* 过渡动画覆盖层 */
+        .transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--darker), var(--dark));
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--duration-normal) var(--transition-smooth);
+            backdrop-filter: blur(20px);
+        }
+
+        .transition-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .transition-content {
+            text-align: center;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: var(--border-radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .transition-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            margin: 0 auto 1rem;
+        }
+
+        .transition-text {
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        /* 设置图标动画 */
+        #settingsMenuItem i {
+            transition: all var(--duration-fast) var(--transition-bounce);
+        }
+
+        #settingsMenuItem:hover i {
+            transform: rotate(30deg) scale(1.2);
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .settings-modal {
+                width: 95%;
+                margin: 1rem;
+            }
+            
+            .setting-item {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+            
+            .toggle-switch {
+                align-self: flex-end;
+            }
+        }
 
         /* 模式选择弹窗样式 */
         .mode-selector-modal {
@@ -1836,6 +2118,7 @@
                 <li data-page="history">关于我们</li>
                 <li data-page="homework">作业</li>
                 <li data-page="download">下载客户端</li>
+                <li data-page="settings" id="settingsMenuItem"><i class="fas fa-cog"></i> 设置</li>
             </ul>
             <button class="mobile-toggle" id="mobileToggle" aria-label="打开菜单">
                 <i class="fas fa-bars"></i>
@@ -2053,6 +2336,10 @@
                 </div>
             </div>
         </div>
+
+        <div class="page" data-page="settings" id="page-settings" style="display: none;">
+            <!-- 设置页面内容由模态框处理 -->
+        </div>
     </div>
 
     <div class="music-player" id="musicPlayer">
@@ -2065,6 +2352,7 @@
         <source src="music.mp3" type="audio/mpeg">
     </audio>
 
+    <!-- 作业详情模态框 -->
     <div class="modal-overlay" id="homeworkModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -2123,6 +2411,50 @@
                 </button>
             </div>
             <p class="password-hint">提示：正在测试</p>
+        </div>
+    </div>
+
+    <!-- 设置模态框 -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-content settings-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-cog"></i>
+                    <span>设置</span>
+                </h3>
+                <button class="modal-close" id="settingsClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body settings-body">
+                <!-- 性能模式切换 -->
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <div class="setting-text">
+                            <div class="setting-title">性能模式</div>
+                            <div class="setting-description">切换高性能或兼容模式</div>
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="performanceToggle" />
+                        <span class="toggle-slider">
+                            <span class="toggle-label performance">高性能</span>
+                            <span class="toggle-label compatibility">兼容</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置过渡动画覆盖层 -->
+    <div class="transition-overlay" id="transitionOverlay">
+        <div class="transition-content">
+            <div class="transition-spinner"></div>
+            <div class="transition-text">正在应用设置...</div>
         </div>
     </div>
 
@@ -2679,6 +3011,11 @@
         // 更新历史数据 - 以长条形式显示
         const updateHistory = [
            {
+                date: '2026-1-7',
+                version: 'Version1.8',
+                changes: ['设置更新']
+            },
+           {
                 date: '2026-1-5',
                 version: 'Version1.7',
                 changes: ['粒子模型优化']
@@ -3063,11 +3400,80 @@
             }
         }
 
+        // 设置系统
+        class SettingsSystem {
+            constructor() {
+                this.settingsModal = document.getElementById('settingsModal');
+                this.settingsClose = document.getElementById('settingsClose');
+                this.performanceToggle = document.getElementById('performanceToggle');
+                this.transitionOverlay = document.getElementById('transitionOverlay');
+                
+                this.init();
+            }
+            
+            init() {
+                // 绑定事件
+                this.settingsClose.addEventListener('click', () => this.hide());
+                this.settingsModal.addEventListener('click', (e) => {
+                    if (e.target === this.settingsModal) this.hide();
+                });
+                
+                // 性能模式切换
+                this.performanceToggle.addEventListener('change', (e) => {
+                    this.showTransition(() => {
+                        const mode = e.target.checked ? 'performance' : 'compatibility';
+                        modeManager.setMode(mode);
+                        this.performanceToggle.checked = mode === 'performance';
+                    });
+                });
+                
+                // 键盘快捷键
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.settingsModal.classList.contains('active')) {
+                        this.hide();
+                    }
+                });
+            }
+            
+            show() {
+                // 初始化当前状态
+                this.performanceToggle.checked = document.body.classList.contains('performance-mode');
+                
+                this.settingsModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                
+                // 添加显示动画
+                setTimeout(() => {
+                    this.settingsModal.querySelector('.modal-content').style.transform = 'scale(1) translateY(0)';
+                }, 10);
+            }
+            
+            hide() {
+                this.settingsModal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            
+            showTransition(callback) {
+                this.transitionOverlay.classList.add('active');
+                
+                setTimeout(() => {
+                    callback();
+                    
+                    // 等待DOM更新
+                    setTimeout(() => {
+                        this.transitionOverlay.classList.remove('active');
+                    }, 600);
+                }, 400);
+            }
+        }
+
         function setupNavigation() {
             document.querySelectorAll('.nav-menu li[data-page]').forEach(item => {
                 item.addEventListener('click', () => {
                     if (item.dataset.page === 'homework') {
                         passwordSystem.show();
+                    } else if (item.dataset.page === 'settings') {
+                        settingsSystem.show();
                     } else {
                         navigateTo(item.dataset.page);
                     }
@@ -3265,7 +3671,7 @@
             
             setTimeout(() => {
                 spinner.style.display = 'none';
-                loadingText.textContent = '已验证安全Version1.7';
+                loadingText.textContent = '已验证安全Version1.81';
                 loadingSubtext.textContent = '验证完成，正在加载界面...';
                 loadingCheck.style.display = 'block';
                 
@@ -3936,10 +4342,12 @@
         let particleNetwork = null;
         let passwordSystem = null;
         let modeManager = null;
+        let settingsSystem = null;
         
         async function initializeApp() {
             passwordSystem = new PasswordVerificationSystem();
             modeManager = new PerformanceModeManager();
+            settingsSystem = new SettingsSystem();
             
             // 显示模式选择
             await modeManager.showModeSelector();
@@ -4033,6 +4441,10 @@
                 
                 if (modalOverlay.classList.contains('active')) {
                     hideHomeworkModal();
+                }
+                
+                if (settingsSystem && settingsSystem.settingsModal.classList.contains('active')) {
+                    settingsSystem.hide();
                 }
             }
         });
