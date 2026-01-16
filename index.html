@@ -1037,6 +1037,22 @@
             min-height: calc(100vh - 300px); padding: var(--spacing-lg) 0;
         }
 
+        .homework-content {
+            display: flex; flex-direction: column;
+            align-items: center; padding: var(--spacing-lg) 0;
+        }
+
+        .stagger-fade-in {
+            opacity: 0; transform: translateY(20px);
+            animation: staggerFadeIn 0.6s var(--transition-bounce) forwards;
+        }
+
+        @keyframes staggerFadeIn {
+            to {
+                opacity: 1; transform: translateY(0);
+            }
+        }
+
         /* 优化歌词容器动画 */
         .lyrics-container {
             position: relative; max-width: 800px;
@@ -1237,278 +1253,6 @@
 
         .music-button.lyrics-active:hover {
             box-shadow: var(--shadow-xl), 0 0 30px rgba(102, 126, 234, 0.6);
-        }
-
-        /* 音质选择器样式 */
-        .quality-selector-wrapper {
-            position: absolute;
-            bottom: 80px;
-            right: 0;
-            z-index: 1000;
-            opacity: 0;
-            transform: translateY(20px) scale(0.95);
-            transition: all var(--duration-normal) var(--transition-bounce);
-            pointer-events: none;
-        }
-
-        .quality-selector-wrapper.show {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            pointer-events: all;
-        }
-
-        .quality-selector {
-            background: rgba(26, 26, 46, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-lg);
-            min-width: 280px;
-            box-shadow: var(--shadow-xl);
-            position: relative;
-        }
-
-        .quality-selector::before {
-            content: '';
-            position: absolute;
-            top: 100%;
-            right: 20px;
-            border: 10px solid transparent;
-            border-top-color: rgba(26, 26, 46, 0.95);
-            filter: drop-shadow(0 2px 0 rgba(255, 255, 255, 0.1));
-        }
-
-        .quality-header {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-md);
-            padding-bottom: var(--spacing-sm);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .quality-header i {
-            color: var(--accent);
-            font-size: 1.2rem;
-        }
-
-        .quality-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--white);
-        }
-
-        .quality-option {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: var(--spacing-sm) var(--spacing-md);
-            margin-bottom: var(--spacing-xs);
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--border-radius-sm);
-            cursor: pointer;
-            transition: all var(--duration-fast) var(--transition-smooth);
-        }
-
-        .quality-option:hover {
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateX(-5px);
-            border-color: rgba(102, 126, 234, 0.3);
-        }
-
-        .quality-option.active {
-            background: rgba(102, 126, 234, 0.15);
-            border-color: var(--primary);
-            box-shadow: var(--shadow-glow);
-        }
-
-        .quality-option.flac-option {
-            border-color: rgba(240, 147, 251, 0.3);
-            background: rgba(240, 147, 251, 0.05);
-        }
-
-        .quality-option.flac-option.active {
-            background: rgba(240, 147, 251, 0.15);
-            border-color: var(--accent);
-            box-shadow: 0 0 15px rgba(240, 147, 251, 0.3);
-        }
-
-        .quality-label {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            font-weight: 600;
-            color: var(--text);
-        }
-
-        .quality-badge {
-            font-size: 0.7rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: var(--border-radius-sm);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .quality-badge.flac {
-            background: linear-gradient(135deg, var(--accent), var(--primary));
-            color: white;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        .quality-badge.high {
-            background: linear-gradient(135deg, var(--success), var(--primary));
-            color: white;
-        }
-
-        .quality-badge.standard {
-            background: linear-gradient(135deg, var(--text-muted), var(--text-light));
-            color: white;
-        }
-
-        .quality-size {
-            font-size: 0.85rem;
-            color: var(--text-light);
-            font-weight: 500;
-        }
-
-        .quality-warning {
-            margin-top: var(--spacing-sm);
-            padding: var(--spacing-xs);
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: var(--border-radius-sm);
-            font-size: 0.8rem;
-            color: var(--warning);
-            text-align: center;
-            display: none;
-        }
-
-        .quality-warning.show {
-            display: block;
-            animation: fadeInUp 0.4s var(--transition-bounce);
-        }
-
-        .quality-selector-close {
-            position: absolute;
-            top: var(--spacing-sm);
-            right: var(--spacing-sm);
-            background: none;
-            border: none;
-            color: var(--text-light);
-            font-size: 1rem;
-            cursor: pointer;
-            padding: var(--spacing-xs);
-            border-radius: var(--border-radius-sm);
-            transition: all var(--duration-fast) var(--transition-smooth);
-        }
-
-        .quality-selector-close:hover {
-            color: var(--white);
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* 音质指示器 */
-        .current-quality-indicator {
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
-            background: var(--dark);
-            color: var(--accent);
-            padding: 0.2rem 0.5rem;
-            border-radius: var(--border-radius-sm);
-            font-size: 0.7rem;
-            font-weight: 700;
-            border: 1px solid rgba(240, 147, 251, 0.3);
-            box-shadow: var(--shadow-sm);
-            transition: all var(--duration-fast) var(--transition-smooth);
-            pointer-events: none;
-        }
-
-        .current-quality-indicator.flac {
-            background: linear-gradient(135deg, var(--accent), var(--primary));
-            color: white;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        /* 流量消耗提示 */
-        .data-usage-toast {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            background: var(--dark);
-            border: 1px solid var(--primary);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-lg);
-            box-shadow: var(--shadow-xl), var(--shadow-glow);
-            z-index: 5000;
-            opacity: 0;
-            transition: all var(--duration-slow) var(--transition-bounce);
-            text-align: center;
-            min-width: 300px;
-        }
-
-        .data-usage-toast.show {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-        }
-
-        .data-usage-icon {
-            font-size: 3rem;
-            color: var(--warning);
-            margin-bottom: var(--spacing-sm);
-            animation: pulse 1s ease-in-out infinite;
-        }
-
-        .data-usage-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--white);
-            margin-bottom: var(--spacing-xs);
-        }
-
-        .data-usage-text {
-            color: var(--text-light);
-            font-size: 0.95rem;
-            margin-bottom: var(--spacing-md);
-        }
-
-        .data-usage-size {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--warning), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: var(--spacing-md);
-        }
-
-        @media (max-width: 768px) {
-            .quality-selector {
-                min-width: 250px;
-                padding: var(--spacing-md);
-            }
-
-            .quality-label {
-                font-size: 0.9rem;
-            }
-
-            .quality-size {
-                font-size: 0.8rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .quality-selector {
-                min-width: 220px;
-                padding: var(--spacing-sm);
-            }
-
-            .quality-selector-wrapper {
-                bottom: 70px;
-                right: -10px;
-            }
         }
 
         /* 优化密码模态框动画 */
@@ -2358,7 +2102,7 @@
             <div class="loading-spinner" id="loadingSpinner"></div>
             <div class="loading-text" id="loadingText">正在验证访问安全性</div>
             <div class="loading-check" id="loadingCheck" style="display: none;"></div>
-            <div class="loading-subtext" id="loadingSubtext">请稍等...</div>
+            <div class="loading-subtext" id="loadingSubtext">正在为您加载内容...</div>
         </div>
     </div>
 
@@ -2602,39 +2346,11 @@
         <button class="music-button" id="musicButton" aria-label="播放/暂停音乐">
             <i class="fas fa-play" id="musicIcon"></i>
         </button>
-        <div class="current-quality-indicator" id="qualityIndicator" style="display: none;">
-            <span id="currentQualityText">标准</span>
-        </div>
-        <div class="quality-selector-wrapper" id="qualitySelectorWrapper">
-            <div class="quality-selector">
-                <button class="quality-selector-close" id="qualityClose">
-                    <i class="fas fa-times"></i>
-                </button>
-                <div class="quality-header">
-                    <i class="fas fa-sliders-h"></i>
-                    <div class="quality-title">音质选择</div>
-                </div>
-                <div class="quality-options" id="qualityOptions">
-                    <!-- 动态生成 -->
-                </div>
-                <div class="quality-warning" id="qualityWarning">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    切换音质将消耗相应流量
-                </div>
-            </div>
-        </div>
     </div>
 
-    <!-- 流量消耗提示 -->
-    <div class="data-usage-toast" id="dataUsageToast">
-        <div class="data-usage-icon">
-            <i class="fas fa-wifi"></i>
-        </div>
-        <div class="data-usage-title">音质切换确认</div>
-        <div class="data-usage-text">即将消耗流量下载新音质</div>
-        <div class="data-usage-size" id="dataUsageSize">0 MB</div>
-        <button class="modal-button" id="confirmQualitySwitch">确认切换</button>
-    </div>
+    <audio id="bgMusic" loop preload="metadata">
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
 
     <!-- 作业详情模态框 -->
     <div class="modal-overlay" id="homeworkModal">
@@ -2749,368 +2465,6 @@
     </footer>
 
     <script>
-        // ===== 音质选择系统 =====
-        class QualitySelector {
-            constructor() {
-                this.qualities = [
-                    { id: 'music1', name: '无损音质', level: 'flac', badge: 'FLAC', color: 'var(--accent)' },
-                    { id: 'music2', name: '高品质', level: 'high', badge: '高品', color: 'var(--success)' },
-                    { id: 'music3', name: '标准音质', level: 'standard', badge: '标准', color: 'var(--text-muted)' }
-                ];
-                this.currentQuality = 'music3'; // 默认标准音质
-                this.musicButton = document.getElementById('musicButton');
-                this.qualityWrapper = document.getElementById('qualitySelectorWrapper');
-                this.qualityOptions = document.getElementById('qualityOptions');
-                this.qualityIndicator = document.getElementById('qualityIndicator');
-                this.currentQualityText = document.getElementById('currentQualityText');
-                this.qualityWarning = document.getElementById('qualityWarning');
-                this.dataUsageToast = document.getElementById('dataUsageToast');
-                this.pendingQuality = null;
-                
-                this.init();
-            }
-
-            init() {
-                this.renderQualityOptions();
-                this.bindEvents();
-                this.loadSavedQuality();
-                this.updateCurrentQualityDisplay();
-            }
-
-            renderQualityOptions() {
-                this.qualityOptions.innerHTML = this.qualities.map(q => `
-                    <div class="quality-option ${q.level === 'flac' ? 'flac-option' : ''} ${q.id === this.currentQuality ? 'active' : ''}" 
-                         data-quality="${q.id}" 
-                         data-level="${q.level}">
-                        <div class="quality-label">
-                            <i class="fas fa-music"></i>
-                            <span>${q.name}</span>
-                            <div class="quality-badge ${q.level}">${q.badge}</div>
-                        </div>
-                        <div class="quality-size" id="size-${q.id}">检测中...</div>
-                    </div>
-                `).join('');
-            }
-
-            bindEvents() {
-                // 音乐按钮点击显示/隐藏音质选择器
-                this.musicButton.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    this.toggleQualitySelector();
-                });
-
-                // 长按显示音质选择器（移动端）
-                let pressTimer;
-                this.musicButton.addEventListener('touchstart', (e) => {
-                    pressTimer = setTimeout(() => {
-                        e.preventDefault();
-                        this.toggleQualitySelector();
-                    }, 500);
-                });
-
-                this.musicButton.addEventListener('touchend', () => {
-                    clearTimeout(pressTimer);
-                });
-
-                this.musicButton.addEventListener('touchmove', () => {
-                    clearTimeout(pressTimer);
-                });
-
-                // 音质选项点击
-                this.qualityOptions.addEventListener('click', async (e) => {
-                    const option = e.target.closest('.quality-option');
-                    if (!option) return;
-                    
-                    const quality = option.dataset.quality;
-                    if (quality === this.currentQuality) {
-                        this.hideQualitySelector();
-                        return;
-                    }
-
-                    const fileInfo = await this.getFileInfo(quality);
-                    if (fileInfo) {
-                        this.showDataUsageWarning(fileInfo, quality);
-                    }
-                });
-
-                // 关闭按钮
-                document.getElementById('qualityClose').addEventListener('click', () => {
-                    this.hideQualitySelector();
-                });
-
-                // 确认切换
-                document.getElementById('confirmQualitySwitch').addEventListener('click', () => {
-                    this.confirmQualitySwitch();
-                });
-
-                // 点击外部关闭
-                document.addEventListener('click', (e) => {
-                    if (!this.musicButton.contains(e.target) && 
-                        !this.qualityWrapper.contains(e.target) &&
-                        !this.dataUsageToast.contains(e.target)) {
-                        this.hideQualitySelector();
-                    }
-                });
-
-                // ESC键关闭
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape') {
-                        this.hideQualitySelector();
-                        this.hideDataUsageToast();
-                    }
-                });
-            }
-
-            toggleQualitySelector() {
-                const isVisible = this.qualityWrapper.classList.contains('show');
-                if (isVisible) {
-                    this.hideQualitySelector();
-                } else {
-                    this.showQualitySelector();
-                }
-            }
-
-            showQualitySelector() {
-                this.qualityWrapper.classList.add('show');
-                this.detectFileSizes();
-            }
-
-            hideQualitySelector() {
-                this.qualityWrapper.classList.remove('show');
-            }
-
-            async detectFileSizes() {
-                for (const quality of this.qualities) {
-                    const sizeElement = document.getElementById(`size-${quality.id}`);
-                    try {
-                        const url = `music/${quality.id}.flac`;
-                        const response = await fetch(url, { method: 'HEAD' });
-                        if (response.ok) {
-                            const size = response.headers.get('content-length');
-                            if (size) {
-                                const mb = (parseInt(size) / 1024 / 1024).toFixed(1);
-                                sizeElement.textContent = `${mb} MB`;
-                            } else {
-                                sizeElement.textContent = '未知大小';
-                            }
-                        } else {
-                            // 尝试其他格式
-                            const altUrl = `music/${quality.id}.mp3`;
-                            const altResponse = await fetch(altUrl, { method: 'HEAD' });
-                            if (altResponse.ok) {
-                                const size = altResponse.headers.get('content-length');
-                                if (size) {
-                                    const mb = (parseInt(size) / 1024 / 1024).toFixed(1);
-                                    sizeElement.textContent = `${mb} MB`;
-                                } else {
-                                    sizeElement.textContent = '未知大小';
-                                }
-                            } else {
-                                sizeElement.textContent = '文件不存在';
-                            }
-                        }
-                    } catch (error) {
-                        sizeElement.textContent = '检测失败';
-                    }
-                }
-            }
-
-            async getFileInfo(quality) {
-                try {
-                    // 优先检测flac
-                    const flacUrl = `music/${quality}.flac`;
-                    const flacResponse = await fetch(flacUrl, { method: 'HEAD' });
-                    if (flacResponse.ok) {
-                        const size = flacResponse.headers.get('content-length');
-                        return {
-                            url: flacUrl,
-                            format: 'FLAC',
-                            size: size ? (parseInt(size) / 1024 / 1024).toFixed(1) : '未知'
-                        };
-                    }
-
-                    // 尝试其他格式
-                    for (const format of ['mp3', 'ogg', 'm4a', 'aac']) {
-                        const url = `music/${quality}.${format}`;
-                        const response = await fetch(url, { method: 'HEAD' });
-                        if (response.ok) {
-                            const size = response.headers.get('content-length');
-                            return {
-                                url: url,
-                                format: format.toUpperCase(),
-                                size: size ? (parseInt(size) / 1024 / 1024).toFixed(1) : '未知'
-                            };
-                        }
-                    }
-                    return null;
-                } catch (error) {
-                    console.error('获取文件信息失败:', error);
-                    return null;
-                }
-            }
-
-            showDataUsageWarning(fileInfo, quality) {
-                const qualityData = this.qualities.find(q => q.id === quality);
-                const oldQuality = this.qualities.find(q => q.id === this.currentQuality);
-                
-                document.getElementById('dataUsageSize').textContent = `${fileInfo.size} MB`;
-                
-                this.dataUsageToast.classList.add('show');
-                this.pendingQuality = { id: quality, fileInfo, qualityData };
-            }
-
-            hideDataUsageToast() {
-                this.dataUsageToast.classList.remove('show');
-                this.pendingQuality = null;
-            }
-
-            async confirmQualitySwitch() {
-                if (!this.pendingQuality) return;
-
-                const { id, fileInfo, qualityData } = this.pendingQuality;
-                
-                // 显示加载状态
-                const confirmBtn = document.getElementById('confirmQualitySwitch');
-                const originalText = confirmBtn.textContent;
-                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 切换中...';
-                confirmBtn.disabled = true;
-
-                try {
-                    // 实际切换音质
-                    await this.switchQuality(id, fileInfo);
-                    
-                    // 更新UI
-                    this.currentQuality = id;
-                    this.saveQualityPreference();
-                    this.updateCurrentQualityDisplay();
-                    this.renderQualityOptions();
-                    
-                    // 显示成功提示
-                    this.showSuccessNotification(qualityData);
-                    
-                } catch (error) {
-                    console.error('切换音质失败:', error);
-                    this.showErrorNotification();
-                } finally {
-                    confirmBtn.textContent = originalText;
-                    confirmBtn.disabled = false;
-                    this.hideDataUsageToast();
-                }
-            }
-
-            async switchQuality(qualityId, fileInfo) {
-                const audio = document.getElementById('bgMusic');
-                const wasPlaying = !audio.paused;
-                const currentTime = audio.currentTime;
-
-                // 暂停播放
-                if (wasPlaying) {
-                    audio.pause();
-                }
-
-                // 更换音源
-                audio.src = fileInfo.url;
-                audio.load();
-
-                // 等待加载完成
-                await new Promise((resolve, reject) => {
-                    const timeout = setTimeout(() => reject(new Error('加载超时')), 10000);
-                    
-                    audio.addEventListener('canplaythrough', () => {
-                        clearTimeout(timeout);
-                        resolve();
-                    }, { once: true });
-
-                    audio.addEventListener('error', (e) => {
-                        clearTimeout(timeout);
-                        reject(new Error('音频加载失败'));
-                    }, { once: true });
-                });
-
-                // 恢复播放位置
-                audio.currentTime = Math.min(currentTime, audio.duration || 0);
-                
-                // 如果之前正在播放，继续播放
-                if (wasPlaying) {
-                    await audio.play();
-                }
-            }
-
-            updateCurrentQualityDisplay() {
-                const quality = this.qualities.find(q => q.id === this.currentQuality);
-                if (quality) {
-                    this.currentQualityText.textContent = quality.badge;
-                    this.qualityIndicator.className = `current-quality-indicator ${quality.level === 'flac' ? 'flac' : ''}`;
-                    this.qualityIndicator.style.display = 'block';
-                }
-            }
-
-            saveQualityPreference() {
-                localStorage.setItem('musicQuality', this.currentQuality);
-            }
-
-            loadSavedQuality() {
-                const saved = localStorage.getItem('musicQuality');
-                if (saved && this.qualities.some(q => q.id === saved)) {
-                    this.currentQuality = saved;
-                }
-            }
-
-            showSuccessNotification(quality) {
-                const toast = document.createElement('div');
-                toast.className = 'data-usage-toast show';
-                toast.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: var(--success);
-                    color: white;
-                    padding: 1rem;
-                    border-radius: var(--border-radius);
-                    box-shadow: var(--shadow-lg);
-                    z-index: 5000;
-                    animation: slideInRight 0.4s var(--transition-bounce);
-                `;
-                toast.innerHTML = `
-                    <i class="fas fa-check-circle"></i> 已切换到${quality.name}
-                `;
-                document.body.appendChild(toast);
-
-                setTimeout(() => {
-                    toast.remove();
-                }, 3000);
-            }
-
-            showErrorNotification() {
-                const toast = document.createElement('div');
-                toast.className = 'data-usage-toast show';
-                toast.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: var(--danger);
-                    color: white;
-                    padding: 1rem;
-                    border-radius: var(--border-radius);
-                    box-shadow: var(--shadow-lg);
-                    z-index: 5000;
-                    animation: slideInRight 0.4s var(--transition-bounce);
-                `;
-                toast.innerHTML = `
-                    <i class="fas fa-exclamation-circle"></i> 音质切换失败
-                `;
-                document.body.appendChild(toast);
-
-                setTimeout(() => {
-                    toast.remove();
-                }, 3000);
-            }
-
-            getCurrentQuality() {
-                return this.currentQuality;
-            }
-        }
-
         // 增强版粒子系统 - 高性能模式专属
         class EnhancedParticleNetwork {
             constructor() {
@@ -3679,11 +3033,7 @@
            {
                 date: '2026-1-4',
                 version: 'Version1.65',
-                changes: [
-                    '显示优化',
-                    '新增音质选择功能（支持FLAC/MP3/M4A等格式）',
-                    '智能流量消耗提示'
-                ]
+                changes: ['显示优化']
             },
             {
                 date: '2025-12-31',
@@ -4331,7 +3681,7 @@
             
             setTimeout(() => {
                 spinner.style.display = 'none';
-                loadingText.textContent = '验证通过';
+                loadingText.textContent = '已验证安全Version1.9';
                 loadingSubtext.textContent = '验证完成，正在加载界面...';
                 loadingCheck.style.display = 'block';
                 
@@ -4350,87 +3700,117 @@
         class MusicLoader {
             constructor() {
                 this.supportedFormats = [
-                    { ext: 'flac', type: 'audio/flac', quality: 'flac' },
-                    { ext: 'mp3', type: 'audio/mpeg', quality: 'standard' },
-                    { ext: 'ogg', type: 'audio/ogg', quality: 'high' },
-                    { ext: 'm4a', type: 'audio/mp4', quality: 'high' },
-                    { ext: 'aac', type: 'audio/aac', quality: 'high' }
+                    { ext: 'mp3', type: 'audio/mpeg' },
+                    { ext: 'aac', type: 'audio/aac' },
+                    { ext: 'm4a', type: 'audio/mp4' },
+                    { ext: 'm4b', type: 'audio/mp4' },
+                    { ext: 'ogg', type: 'audio/ogg' },
+                    { ext: 'oga', type: 'audio/ogg' },
+                    { ext: 'wav', type: 'audio/wav' },
+                    { ext: 'flac', type: 'audio/flac' },
+                    { ext: 'weba', type: 'audio/webm' },
+                    { ext: 'mp4', type: 'audio/mp4' }
                 ];
+                this.foundMusic = null;
             }
             
-            async detectMusic(quality) {
-                const basePath = `music/${quality}`;
+            async detectMusic() {
+                const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
                 
-                for (const format of this.supportedFormats) {
-                    try {
-                        const url = `${basePath}.${format.ext}`;
-                        const response = await fetch(url, { method: 'HEAD' });
-                        if (response.ok) {
-                            return {
-                                url: url,
-                                format: format.ext.toUpperCase(),
-                                type: format.type,
-                                quality: format.quality
-                            };
+                const namePatterns = ['music', 'bgm', 'background', 'audio'];
+                
+                for (const name of namePatterns) {
+                    for (const format of this.supportedFormats) {
+                        const url = `${basePath}${name}.${format.ext}`;
+                        try {
+                            const result = await this.checkFile(url, format);
+                            if (result) {
+                                this.foundMusic = result;
+                                return result;
+                            }
+                        } catch (e) {
+                            continue;
                         }
-                    } catch (e) {
-                        continue;
                     }
                 }
                 
                 return null;
             }
             
-            updateAudioElement(audio, quality) {
-                return new Promise(async (resolve, reject) => {
-                    const fileInfo = await this.detectMusic(quality);
-                    if (!fileInfo) {
-                        reject(new Error('未找到音乐文件'));
-                        return;
-                    }
-
-                    audio.innerHTML = '';
-                    const source = document.createElement('source');
-                    source.src = fileInfo.url;
-                    source.type = fileInfo.type;
-                    audio.appendChild(source);
+            checkFile(url, format) {
+                return new Promise((resolve, reject) => {
+                    const audio = new Audio();
+                    let resolved = false;
                     
-                    // 预加载
+                    const onCanPlay = () => {
+                        if (!resolved) {
+                            resolved = true;
+                            resolve({ url, format });
+                        }
+                    };
+                    
+                    const onError = () => {
+                        if (!resolved) {
+                            resolved = true;
+                            reject(null);
+                        }
+                    };
+                    
+                    const timeout = setTimeout(() => {
+                        if (!resolved) {
+                            resolved = true;
+                            reject(null);
+                        }
+                    }, 5000);
+                    
+                    audio.addEventListener('canplaythrough', onCanPlay, { once: true });
+                    audio.addEventListener('error', onError, { once: true });
+                    audio.src = url;
                     audio.load();
-                    
-                    audio.addEventListener('canplaythrough', () => resolve(fileInfo), { once: true });
-                    audio.addEventListener('error', () => reject(new Error('音频加载失败')), { once: true });
                 });
+            }
+            
+            updateAudioElement(audio) {
+                if (!this.foundMusic) return false;
+                
+                audio.innerHTML = '';
+                const source = document.createElement('source');
+                source.src = this.foundMusic.url;
+                source.type = this.foundMusic.format.type;
+                audio.appendChild(source);
+                return true;
+            }
+            
+            getMusicInfo() {
+                if (!this.foundMusic) return null;
+                return {
+                    url: this.foundMusic.url,
+                    format: this.foundMusic.format.ext.toUpperCase(),
+                    type: this.foundMusic.format.type
+                };
             }
         }
 
         // 初始化音乐播放器 - 增强Media Session API
         async function initializeMusicPlayer() {
             const musicLoader = new MusicLoader();
-            const qualitySelector = window.qualitySelector;
+            await musicLoader.detectMusic();
             
-            try {
-                const audio = document.getElementById('bgMusic');
-                const statusElement = document.getElementById('lyricsStatus');
-                
-                // 加载当前选择的音质
-                const currentQuality = qualitySelector ? qualitySelector.getCurrentQuality() : 'music3';
-                const fileInfo = await musicLoader.updateAudioElement(audio, currentQuality);
-                
-                if (statusElement && fileInfo) {
-                    statusElement.innerHTML = `<i class="fas fa-check-circle"></i> <span>音乐已加载 (${fileInfo.format}格式)</span>`;
+            const audio = document.getElementById('bgMusic');
+            const statusElement = document.getElementById('lyricsStatus');
+            const updated = musicLoader.updateAudioElement(audio);
+            
+            if (statusElement) {
+                if (updated) {
+                    const info = musicLoader.getMusicInfo();
+                    statusElement.innerHTML = `<i class="fas fa-check-circle"></i> <span>音乐已加载 (${info.format}格式)</span>`;
                     statusElement.className = 'lyrics-status success';
-                }
-                
-                setupMusicPlayer();
-            } catch (error) {
-                console.error('音乐加载失败:', error);
-                const statusElement = document.getElementById('lyricsStatus');
-                if (statusElement) {
-                    statusElement.innerHTML = `<i class="fas fa-exclamation-circle"></i> <span>音乐加载失败</span>`;
-                    statusElement.className = 'lyrics-status error';
+                } else {
+                    statusElement.innerHTML = `<i class="fas fa-info-circle"></i> <span>使用默认音乐文件</span>`;
                 }
             }
+            
+            setupMusicPlayer();
         }
 
         function setupMusicPlayer() {
@@ -4762,14 +4142,14 @@
                 });
             }
             
-            async loadLyrics() {
+            async loadLyrics(url) {
                 this.showStatus('loading', '正在加载歌词...');
                 
                 try {
                     const controller = new AbortController();
                     const timeout = setTimeout(() => controller.abort(), 5000);
                     
-                    const response = await fetch('歌词/歌词.lrc', { 
+                    const response = await fetch(url, { 
                         signal: controller.signal,
                         cache: 'no-cache'
                     });
@@ -4906,7 +4286,7 @@
             const musicButton = document.getElementById('musicButton');
             const lyricDisplay = new LyricDisplay();
             
-            lyricDisplay.loadLyrics();
+            lyricDisplay.loadLyrics('歌词.lrc');
             
             audio.addEventListener('timeupdate', () => {
                 if (!audio.paused && audio.readyState >= 2) {
@@ -4973,13 +4353,11 @@
         let passwordSystem = null;
         let modeManager = null;
         let settingsSystem = null;
-        let qualitySelector = null;
         
         async function initializeApp() {
             passwordSystem = new PasswordVerificationSystem();
             modeManager = new PerformanceModeManager();
             settingsSystem = new SettingsSystem();
-            qualitySelector = new QualitySelector();
             
             // 显示模式选择
             await modeManager.showModeSelector();
@@ -5077,11 +4455,6 @@
                 
                 if (settingsSystem && settingsSystem.settingsModal.classList.contains('active')) {
                     settingsSystem.hide();
-                }
-
-                if (qualitySelector) {
-                    qualitySelector.hideQualitySelector();
-                    qualitySelector.hideDataUsageToast();
                 }
             }
         });
