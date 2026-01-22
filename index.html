@@ -3,44 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>GLcn - Hello</title>
+    <title>GLcn - 新年特辑</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ===== 颜色主题和变量定义 ===== */
+        /* ===== 新年主题变量 - 保留原有变量名，仅修改值 ===== */
         :root {
-            --primary: #6d7aea;
-            --primary-dark: #5a67d8;
-            --secondary: #7c5aa0;
-            --accent: #ec8bf7;
+            --primary: #ff6b6b; /* 新年红 */
+            --primary-dark: #ff5252;
+            --secondary: #ffd93d; /* 金色 */
+            --accent: #ff9ff3; /* 保留粉系 */
             --accent-secondary: #f5576c;
             --dark: #1a1a2e;
             --darker: #16213e;
             --darkest: #0f172a;
-            --light: #f8fafc;
-            --lighter: #e2e8f0;
-            --text: #e2e8f0;
-            --text-light: #a0aec0;
-            --text-muted: #718096;
+            --light: #fff8f0; /* 暖白 */
+            --lighter: #ffe0b3;
+            --text: #fff8f0;
+            --text-light: #ffd93d;
+            --text-muted: #ffb74d;
             --white: #ffffff;
             --success: #4ade80;
-            --warning: #f59e0b;
+            --warning: #ffd93d;
             --danger: #f87171;
             --info: #60a5fa;
-            --subject-chinese: #e53e3e;
-            --subject-math: #3182ce;
-            --subject-english: #38a169;
-            --subject-physics: #d69e2e;
-            --subject-chemistry: #805ad5;
-            --subject-politics: #dd6b20;
-            --subject-other: #718096;
             
-            /* 优化缓动曲线 - 更自然的物理效果 */
+            /* 新年主题色彩 */
+            --spring-red: #ff6b6b;
+            --spring-gold: #ffd93d;
+            --spring-pink: #ff9ff3;
+            
+            --subject-chinese: #ff6b6b;
+            --subject-math: #4dabf7;
+            --subject-english: #51cf66;
+            --subject-physics: #ffd93d;
+            --subject-chemistry: #cc5de8;
+            --subject-politics: #ff922b;
+            --subject-other: #adb5bd;
+            
             --transition-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
             --transition-spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
             --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
             --transition-ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
             
-            /* 优化动画时长 */
             --duration-fast: 0.25s;
             --duration-normal: 0.4s;
             --duration-slow: 0.6s;
@@ -51,11 +55,11 @@
             --border-radius-lg: 24px;
             --border-radius-xl: 32px;
             
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
-            --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.15);
-            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.2);
-            --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.3);
-            --shadow-glow: 0 0 30px rgba(102, 126, 234, 0.4);
+            --shadow-sm: 0 2px 12px rgba(255, 107, 107, 0.15);
+            --shadow-md: 0 6px 20px rgba(255, 217, 61, 0.2);
+            --shadow-lg: 0 12px 36px rgba(255, 107, 107, 0.25);
+            --shadow-xl: 0 24px 48px rgba(255, 217, 61, 0.3);
+            --shadow-glow: 0 0 30px rgba(255, 107, 107, 0.4);
             
             --spacing-xs: 0.5rem;
             --spacing-sm: 1rem;
@@ -92,6 +96,7 @@
             transition: all var(--duration-normal) var(--transition-smooth);
         }
 
+        /* 新年背景渐变动画 */
         body::before {
             content: '';
             position: fixed;
@@ -100,22 +105,22 @@
             width: 100%;
             height: 100%;
             background: 
-                radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 40% 80%, rgba(240, 147, 251, 0.04) 0%, transparent 50%);
-            animation: backgroundShift 25s ease-in-out infinite;
+                radial-gradient(circle at 20% 30%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 217, 61, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(255, 159, 243, 0.06) 0%, transparent 50%);
+            animation: springBackgroundShift 20s ease-in-out infinite;
             z-index: -1;
             will-change: transform;
         }
 
-        @keyframes backgroundShift {
+        @keyframes springBackgroundShift {
             0%, 100% { 
-                opacity: 0.3; 
+                opacity: 0.4; 
                 transform: rotate(0deg) scale(1);
             }
             50% { 
-                opacity: 0.6; 
-                transform: rotate(3deg) scale(1.05);
+                opacity: 0.7; 
+                transform: rotate(5deg) scale(1.08);
             }
         }
 
@@ -132,15 +137,15 @@
 
         /* 高性能模式下的粒子样式 */
         body.performance-mode .particle-glow {
-            filter: blur(0.5px) drop-shadow(0 0 8px currentColor);
+            filter: blur(0.5px) drop-shadow(0 0 12px currentColor);
         }
 
-        /* 优化加载页面样式 */
+        /* 新年加载页面样式 */
         .loading {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffd93d 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -159,26 +164,34 @@
             display: none;
         }
 
-        /* 优化加载动画 */
+        /* 新年加载动画 */
         .loading-spinner {
-            width: 70px; height: 70px;
-            border: 4px solid rgba(26, 26, 46, 0.08);
-            border-top: 4px solid #6d7aea;
+            width: 80px; height: 80px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid var(--spring-gold);
             border-radius: 50%;
-            animation: spin 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) 2;
+            animation: springSpin 2.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) 2;
             margin: 0 auto var(--spacing-lg);
             position: relative;
-            box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
+            box-shadow: 0 0 20px rgba(255, 217, 61, 0.4);
         }
 
-        @keyframes spin {
+        @keyframes springSpin {
             0% { 
                 transform: rotate(0deg) scale(1); 
                 opacity: 1; 
             }
+            25% {
+                transform: rotate(180deg) scale(1.15);
+                opacity: 0.9;
+            }
             50% { 
-                transform: rotate(360deg) scale(1.1); 
+                transform: rotate(360deg) scale(1.2); 
                 opacity: 0.8; 
+            }
+            75% {
+                transform: rotate(540deg) scale(1.15);
+                opacity: 0.9;
             }
             100% { 
                 transform: rotate(720deg) scale(1); 
@@ -188,18 +201,18 @@
 
         .loading-check {
             display: none;
-            width: 70px; height: 70px;
+            width: 80px; height: 80px;
             border: 4px solid var(--success);
             border-radius: 50%;
             position: relative;
             margin: var(--spacing-lg) auto;
             animation: checkCircle 0.6s var(--transition-spring) forwards;
-            box-shadow: 0 0 15px rgba(72, 187, 120, 0.3);
+            box-shadow: 0 0 20px rgba(72, 187, 120, 0.4);
         }
 
         @keyframes checkCircle {
             0% { transform: scale(0) rotate(-180deg); opacity: 0; }
-            50% { transform: scale(1.1) rotate(-90deg); opacity: 1; }
+            50% { transform: scale(1.15) rotate(-90deg); opacity: 1; }
             100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
 
@@ -207,9 +220,9 @@
             content: '✓';
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 2.2rem; color: var(--success);
+            font-size: 2.5rem; color: var(--success);
             font-weight: bold; opacity: 0;
-            animation: checkMark 0.4s var(--transition-spring) forwards 0.3s;
+            animation: checkMark 0.4s var(--transition-spring) forwards 0.4s;
         }
 
         @keyframes checkMark {
@@ -218,10 +231,11 @@
         }
 
         .loading-text {
-            color: #1a1a2e; font-size: 1.8rem;
+            color: white; font-size: 2rem;
             font-weight: 800; margin-bottom: 1rem; 
             transition: all var(--duration-normal) var(--transition-smooth);
             animation: textFadeIn 0.6s var(--transition-ease-out) forwards;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
 
         @keyframes textFadeIn {
@@ -230,7 +244,7 @@
         }
 
         .loading-subtext {
-            color: #718096; font-size: 1rem;
+            color: rgba(255,255,255,0.9); font-size: 1.1rem;
             margin-top: var(--spacing-sm);
             opacity: 0;
             animation: subtextFadeIn 0.6s var(--transition-ease-out) forwards 0.3s;
@@ -238,15 +252,15 @@
 
         @keyframes subtextFadeIn {
             0% { opacity: 0; transform: translateY(5px); }
-            100% { opacity: 0.8; transform: translateY(0); }
+            100% { opacity: 0.9; transform: translateY(0); }
         }
 
-        /* 优化导航栏动画 */
+        /* 新年导航栏动画 - 隐藏设置菜单 */
         .navbar {
             position: fixed; top: 0; width: 100%;
-            background: rgba(26, 26, 46, 0.8);
+            background: rgba(26, 26, 46, 0.85);
             backdrop-filter: blur(20px) saturate(180%);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid rgba(255, 107, 107, 0.15);
             z-index: 1000; 
             transition: all var(--duration-normal) var(--transition-smooth);
             transform: translateY(0);
@@ -262,16 +276,30 @@
         
         .logo {
             font-size: clamp(1.6rem, 5vw, 1.8rem); font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, var(--spring-red), var(--spring-gold));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             display: flex; align-items: center; gap: 0.5rem;
             transition: all var(--duration-slow) var(--transition-spring);
             cursor: pointer;
+            position: relative;
+        }
+        
+        /* 新年Logo特效 */
+        .logo::after {
+            content: '✨';
+            position: absolute; right: -1.5rem; top: -0.5rem;
+            font-size: 1.2rem;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
         }
         
         .logo:hover {
             transform: scale(1.05) translateY(-2px);
-            filter: drop-shadow(0 0 15px rgba(102, 126, 234, 0.4));
+            filter: drop-shadow(0 0 20px rgba(255, 107, 107, 0.5));
         }
         
         .nav-menu {
@@ -284,12 +312,17 @@
             font-weight: 500; padding: var(--spacing-xs) 0; 
             position: relative; transition: all var(--duration-normal) var(--transition-spring);
             user-select: none;
+            /* 隐藏设置菜单 */
+        }
+        
+        .nav-menu li[data-page="settings"] {
+            display: none !important;
         }
         
         .nav-menu li::after {
             content: ''; position: absolute; bottom: 0; left: 0;
             width: 0; height: 2px; border-radius: 1px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
+            background: linear-gradient(90deg, var(--spring-red), var(--spring-gold));
             transition: all var(--duration-normal) var(--transition-bounce);
         }
         
@@ -304,14 +337,14 @@
         }
 
         .nav-menu li.active {
-            color: var(--primary);
+            color: var(--spring-red);
             transform: translateY(-1px);
         }
         
         .mobile-toggle {
             display: none; 
-            background: rgba(255, 255, 255, 0.2); 
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 107, 107, 0.2); 
+            border: 1px solid rgba(255, 217, 61, 0.3);
             color: white; font-size: 1.5rem; cursor: pointer;
             padding: 0.5rem 1rem; min-width: 88px; min-height: 44px;
             border-radius: var(--border-radius-lg); transition: all var(--duration-fast) var(--transition-bounce);
@@ -319,9 +352,9 @@
         }
         
         .mobile-toggle:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 217, 61, 0.3);
             transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
         }
 
         .mobile-toggle:active {
@@ -333,7 +366,7 @@
             white-space: nowrap;
         }
 
-        /* 优化页面切换动画 */
+        /* 新年页面切换动画 */
         .page {
             display: none; flex: 1;
             padding: var(--spacing-md);
@@ -353,9 +386,9 @@
             transform: translateY(-20px);
         }
 
-        /* 优化英雄区域动画 */
+        /* 新年英雄区域动画 */
         .hero {
-            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, var(--secondary) 100%);
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 40%, var(--spring-red) 100%);
             color: white; text-align: center; 
             padding: clamp(2rem, 6vw, 4rem) clamp(1rem, 5vw, 2rem);
             position: relative; overflow: hidden;
@@ -370,20 +403,20 @@
             position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
             background: 
-                radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(240, 147, 251, 0.15) 0%, transparent 50%);
-            animation: heroPulse 8s var(--transition-smooth) infinite;
+                radial-gradient(circle at 20% 30%, rgba(255, 107, 107, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 217, 61, 0.2) 0%, transparent 50%);
+            animation: heroSpringPulse 6s var(--transition-smooth) infinite;
             z-index: 1;
         }
         
-        @keyframes heroPulse {
+        @keyframes heroSpringPulse {
             0%, 100% { 
-                opacity: 0.3; 
+                opacity: 0.4; 
                 transform: scale(1);
             }
             50% { 
-                opacity: 0.6; 
-                transform: scale(1.02);
+                opacity: 0.8; 
+                transform: scale(1.05);
             }
         }
 
@@ -399,6 +432,9 @@
             position: relative; z-index: 1;
             text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             animation: fadeInUp 1s var(--transition-ease-out) forwards;
+            background: linear-gradient(135deg, var(--spring-gold), var(--spring-red));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         @keyframes fadeInUp {
@@ -415,31 +451,43 @@
         #beijingTime {
             font-size: clamp(2rem, 8vw, 3.2rem); font-weight: 800;
             margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, var(--spring-red), var(--spring-gold));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-align: center; letter-spacing: 0.05em;
-            animation: timeGlow 2s var(--transition-smooth) infinite alternate;
+            animation: timeSpringGlow 2s var(--transition-smooth) infinite alternate;
+            position: relative;
         }
 
-        @keyframes timeGlow {
+        /* 隐藏彩蛋：特定时间显示名字 */
+        #beijingTime::after {
+            content: '';
+            position: absolute; top: -2rem; left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.5em;
+            opacity: 0;
+            transition: all 0.6s var(--transition-bounce);
+            pointer-events: none;
+        }
+
+        @keyframes timeSpringGlow {
             from { 
-                filter: drop-shadow(0 0 5px rgba(102, 126, 234, 0.3));
+                filter: drop-shadow(0 0 8px rgba(255, 107, 107, 0.4));
             }
             to { 
-                filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.6));
+                filter: drop-shadow(0 0 25px rgba(255, 217, 61, 0.7));
             }
         }
 
         .time-date {
-            font-size: clamp(1rem, 3vw, 1.4rem); color: rgba(255, 255, 255, 0.85);
+            font-size: clamp(1rem, 3vw, 1.4rem); color: rgba(255, 255, 255, 0.9);
             margin-bottom: 1.5rem;
             animation: fadeInUp 1s var(--transition-ease-out) forwards 0.3s;
         }
 
         .uptime-display {
-            font-size: clamp(0.9rem, 2.5vw, 1.1rem); color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 1.5rem; background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem); color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 1.5rem; background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px); border: 1px solid rgba(255, 217, 61, 0.2);
             border-radius: var(--border-radius);
             padding: var(--spacing-sm) var(--spacing-md); display: flex;
             align-items: center; gap: var(--spacing-sm); justify-content: center;
@@ -449,9 +497,9 @@
         }
 
         .uptime-display:hover {
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.18);
             transform: translateY(-2px) scale(1.02);
-            box-shadow: var(--shadow-glow);
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
         }
 
         .uptime-icon {
@@ -465,33 +513,34 @@
         }
 
         .ua-display {
-            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: var(--border-radius);
+            background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 217, 61, 0.2); border-radius: var(--border-radius);
             padding: var(--spacing-sm) var(--spacing-md); margin-top: 1rem;
             display: flex; align-items: center; gap: var(--spacing-sm);
             font-size: clamp(0.9rem, 2.5vw, 1.1rem); color: rgba(255, 255, 255, 0.9);
             transition: all var(--duration-normal) var(--transition-smooth); justify-content: center;
             width: fit-content; margin-left: auto; margin-right: auto; text-align: center;
-            animation: fadeInUp 1s var(--transition-ease-out) forwards 1s;
         }
 
         .ua-display:hover {
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.18);
             transform: translateY(-2px) scale(1.02);
-            box-shadow: var(--shadow-glow);
+            box-shadow: 0 0 20px rgba(255, 217, 61, 0.3);
         }
 
         .ua-icon {
             font-size: 1.2rem; color: var(--accent);
         }
 
+        /* STNStudio新年版 */
         .stn-studio-display {
             position: relative; margin-top: 1.5rem; padding: 1rem 2rem;
-            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50px;
+            background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 217, 61, 0.2); border-radius: 50px;
             font-size: clamp(1.1rem, 3vw, 1.5rem); font-weight: 700; color: var(--white);
-            text-align: center; animation: fadeInUp 1s var(--transition-ease-out) forwards 0.9s, stnGlow 3s ease-in-out infinite;
+            text-align: center; 
             transition: all var(--duration-normal) var(--transition-smooth); overflow: hidden;
+            animation: fadeInUp 1s var(--transition-ease-out) forwards 0.9s, stnSpringGlow 3s ease-in-out infinite;
         }
 
         .stn-studio-display::before {
@@ -499,7 +548,7 @@
             position: absolute; top: 50%; left: 50%;
             width: 120%; height: 120%;
             transform: translate(-50%, -50%);
-            background: conic-gradient(from 0deg, transparent, rgba(102, 126, 234, 0.3), rgba(240, 147, 251, 0.3), transparent);
+            background: conic-gradient(from 0deg, transparent, rgba(255, 107, 107, 0.3), rgba(255, 217, 61, 0.3), transparent);
             animation: stnRotate 4s linear infinite; z-index: -1; border-radius: 50px;
         }
 
@@ -514,18 +563,18 @@
             100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
 
-        @keyframes stnGlow {
+        @keyframes stnSpringGlow {
             0%, 100% { 
-                box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+                box-shadow: 0 0 25px rgba(255, 107, 107, 0.4);
             }
             50% { 
-                box-shadow: 0 0 30px rgba(72, 187, 120, 0.6), 0 0 40px rgba(240, 147, 251, 0.3);
+                box-shadow: 0 0 35px rgba(255, 217, 61, 0.6), 0 0 45px rgba(255, 159, 243, 0.3);
             }
         }
 
         .stn-studio-display:hover {
             transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.5);
         }
 
         .content-section {
@@ -533,10 +582,10 @@
             display: flex; flex-direction: column;
         }
 
-        /* 优化卡片动画 */
+        /* 新年卡片动画 */
         .feature-card {
-            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
+            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 217, 61, 0.15); border-radius: var(--border-radius-lg);
             padding: var(--spacing-xl); text-align: center;
             transition: all var(--duration-normal) var(--transition-bounce);
             position: relative; overflow: hidden;
@@ -547,7 +596,7 @@
             content: '';
             position: absolute; top: 0; left: -100%;
             width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
             transition: left var(--duration-mega-slow) var(--transition-smooth);
         }
 
@@ -556,21 +605,21 @@
         }
 
         .feature-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: var(--shadow-xl), var(--shadow-glow);
-            border-color: rgba(102, 126, 234, 0.3);
+            transform: translateY(-12px) scale(1.03);
+            box-shadow: var(--shadow-xl), 0 0 30px rgba(255, 107, 107, 0.4);
+            border-color: rgba(255, 217, 61, 0.3);
         }
 
         .feature-icon {
-            font-size: 4rem; color: var(--primary);
+            font-size: 4rem; color: var(--spring-gold);
             margin-bottom: var(--spacing-md);
             transition: all var(--duration-normal) var(--transition-bounce);
             display: inline-block;
         }
 
         .feature-card:hover .feature-icon {
-            transform: scale(1.1) rotate(5deg);
-            color: var(--accent);
+            transform: scale(1.15) rotate(8deg);
+            color: var(--spring-pink);
         }
 
         .feature-title {
@@ -588,7 +637,7 @@
             min-height: calc(100vh - 300px); padding: var(--spacing-lg) 0;
         }
 
-        /* 优化作业卡片动画 */
+        /* 新年作业卡片动画 */
         .homework-container {
             max-width: 1200px; margin: 0 auto;
             padding: var(--spacing-lg) 0;
@@ -602,8 +651,8 @@
         }
 
         .homework-card {
-            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
+            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 217, 61, 0.15); border-radius: var(--border-radius-lg);
             padding: var(--spacing-xl); text-align: center;
             transition: all var(--duration-normal) var(--transition-bounce);
             cursor: pointer; position: relative; overflow: hidden;
@@ -615,7 +664,7 @@
             content: '';
             position: absolute; top: 0; left: -100%;
             width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
             transition: left var(--duration-mega-slow) var(--transition-smooth);
         }
 
@@ -624,8 +673,8 @@
         }
 
         .homework-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: var(--shadow-xl), var(--shadow-glow);
+            transform: translateY(-12px) scale(1.03);
+            box-shadow: var(--shadow-xl), 0 0 30px rgba(255, 107, 107, 0.4);
         }
 
         .homework-card.chinese { border-left: 4px solid var(--subject-chinese); }
@@ -642,7 +691,7 @@
         }
 
         .homework-card:hover .homework-icon {
-            transform: scale(1.1) rotate(5deg);
+            transform: scale(1.15) rotate(8deg);
         }
 
         .homework-card.chinese .homework-icon { color: var(--subject-chinese); }
@@ -670,8 +719,8 @@
         }
 
         .homework-status.pending {
-            background: rgba(237, 137, 54, 0.2); color: var(--warning);
-            border: 1px solid rgba(237, 137, 54, 0.3);
+            background: rgba(255, 217, 61, 0.2); color: var(--warning);
+            border: 1px solid rgba(255, 217, 61, 0.3);
         }
 
         .homework-status.completed {
@@ -679,11 +728,11 @@
             border: 1px solid rgba(72, 187, 120, 0.3);
         }
 
-        /* 优化模态框动画 */
+        /* 新年模态框动画 */
         .modal-overlay {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(10px);
             display: flex; align-items: center; justify-content: center;
             z-index: 2000; opacity: 0; visibility: hidden;
@@ -696,7 +745,7 @@
 
         .modal-content {
             background: rgba(26, 26, 46, 0.95); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
+            border: 1px solid rgba(255, 217, 61, 0.15); border-radius: var(--border-radius-lg);
             padding: var(--spacing-xl); max-width: 500px;
             width: 90%; max-height: 80vh; overflow-y: auto;
             transform: scale(0.8) translateY(50px);
@@ -749,8 +798,8 @@
         }
 
         .modal-body .info-item {
-            background: rgba(255, 255, 255, 0.05); padding: var(--spacing-sm);
-            border-radius: var(--border-radius-sm); border-left: 3px solid var(--primary);
+            background: rgba(255, 255, 255, 0.08); padding: var(--spacing-sm);
+            border-radius: var(--border-radius-sm); border-left: 3px solid var(--spring-red);
         }
 
         .modal-body .info-label {
@@ -768,15 +817,15 @@
         }
 
         .modal-button {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, var(--spring-red), var(--spring-gold));
             border: none; color: white; padding: var(--spacing-sm) var(--spacing-lg);
             border-radius: var(--border-radius); font-weight: 600;
             cursor: pointer; transition: all var(--duration-fast) var(--transition-bounce);
         }
 
         .modal-button:hover {
-            transform: translateY(-2px) scale(1.03);
-            box-shadow: var(--shadow-glow);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
         }
 
         footer {
@@ -788,7 +837,7 @@
         footer::before {
             content: ''; position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 0%, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            background: radial-gradient(circle at 50% 0%, rgba(255, 107, 107, 0.1) 0%, transparent 70%);
         }
         
         .footer-content { 
@@ -802,6 +851,35 @@
             transform: translateY(-2px);
         }
 
+        /* 新年烟花彩蛋 - 点击触发 */
+        .firework {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .firework-particle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            animation: firework-explode 1.5s ease-out forwards;
+        }
+
+        @keyframes firework-explode {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--x), var(--y)) scale(0);
+                opacity: 0;
+            }
+        }
+
         @media (max-width: 768px) {
             .nav-menu {
                 position: fixed; top: 70px; left: -100%;
@@ -809,7 +887,7 @@
                 background: rgba(26, 26, 46, 0.95);
                 flex-direction: column; align-items: center; justify-content: flex-start;
                 padding-top: var(--spacing-xl); transition: left 0.5s var(--transition-bounce);
-                backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 217, 61, 0.1);
             }
             
             .nav-menu li { 
@@ -820,7 +898,7 @@
             }
 
             .nav-menu li:hover {
-                background: rgba(102, 126, 234, 0.1);
+                background: rgba(255, 107, 107, 0.12);
                 transform: translateX(5px);
             }
             
@@ -836,7 +914,6 @@
                 display: flex; 
             }
 
-            /* 优化移动端动画 */
             .hero {
                 margin: var(--spacing-xs) auto;
                 padding: clamp(1.5rem, 5vw, 3rem) clamp(1rem, 4vw, 1.5rem);
@@ -939,61 +1016,52 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: linear-gradient(var(--primary), var(--accent));
+            background: linear-gradient(var(--spring-red), var(--spring-gold));
             border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(var(--primary-dark), var(--accent-secondary));
+            background: linear-gradient(var(--spring-red), var(--spring-pink));
         }
 
         ::selection {
-            background: rgba(102, 126, 234, 0.3);
+            background: rgba(255, 107, 107, 0.4);
             color: var(--white);
         }
 
         *:focus {
-            outline: 2px solid var(--primary);
+            outline: 2px solid var(--spring-red);
             outline-offset: 2px;
         }
 
-        .ua-pc { color: var(--primary); }
+        .ua-pc { color: var(--spring-red); }
         .ua-ios { color: var(--success); }
         .ua-android { color: var(--warning); }
-        .ua-mobile { color: var(--accent); }
+        .ua-mobile { color: var(--spring-pink); }
         .ua-wechat { color: #07C160; }
         .ua-qq { color: #12B7F5; }
 
-        /* 优化音乐播放器动画 */
+        /* 新年音乐播放器动画 */
         .music-player {
             position: fixed; bottom: var(--spacing-lg); right: var(--spacing-lg);
-            z-index: 999; opacity: 0; transform: scale(0);
+            z-index: 999; opacity: 1;
             transition: all var(--duration-slow) var(--transition-bounce);
         }
 
-        .music-player.show {
-            opacity: 1; transform: scale(1);
-        }
-
-        /* 兼容模式下隐藏音乐播放器 */
-        body.compatibility-mode .music-player {
-            display: none !important;
-        }
-
         .music-button {
-            width: 60px; height: 60px; border: none; border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2); color: var(--white);
-            font-size: 1.5rem; cursor: pointer; position: relative;
+            width: 65px; height: 65px; border: none; border-radius: 50%;
+            background: rgba(255, 107, 107, 0.9); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 217, 61, 0.3); color: var(--white);
+            font-size: 1.6rem; cursor: pointer; position: relative;
             overflow: hidden; transition: all var(--duration-normal) var(--transition-bounce);
             box-shadow: var(--shadow-lg); display: flex;
             align-items: center; justify-content: center;
         }
 
         .music-button:hover {
-            transform: scale(1.1) rotate(10deg);
-            box-shadow: var(--shadow-xl), var(--shadow-glow);
-            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.15) rotate(10deg);
+            box-shadow: var(--shadow-xl), 0 0 25px rgba(255, 107, 107, 0.5);
+            background: rgba(255, 217, 61, 0.95);
         }
 
         .music-button:active {
@@ -1001,15 +1069,15 @@
         }
 
         .music-button.playing {
-            animation: musicPulse 2s ease-in-out infinite;
+            animation: musicSpringPulse 2.5s ease-in-out infinite;
         }
 
-        @keyframes musicPulse {
+        @keyframes musicSpringPulse {
             0%, 100% { 
-                box-shadow: var(--shadow-lg), 0 0 0 0 rgba(102, 126, 234, 0.4);
+                box-shadow: var(--shadow-lg), 0 0 0 0 rgba(255, 107, 107, 0.5);
             }
             50% { 
-                box-shadow: var(--shadow-xl), 0 0 0 10px rgba(102, 126, 234, 0);
+                box-shadow: var(--shadow-xl), 0 0 0 12px rgba(255, 217, 61, 0);
             }
         }
 
@@ -1017,13 +1085,13 @@
             content: '';
             position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, var(--spring-red), var(--spring-gold));
             opacity: 0; transition: all var(--duration-normal) var(--transition-smooth);
             z-index: -1;
         }
 
         .music-button:hover::before {
-            opacity: 0.3;
+            opacity: 0.4;
         }
 
         .page-content {
@@ -1053,20 +1121,34 @@
             }
         }
 
-        /* 优化歌词容器动画 */
+        /* 新年歌词容器动画 */
         .lyrics-container {
             position: relative; max-width: 800px;
             margin: 2rem auto; padding: 1rem;
-            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
+            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 217, 61, 0.15); border-radius: var(--border-radius-lg);
             box-shadow: var(--shadow-lg); overflow: hidden;
             transition: all var(--duration-normal) var(--transition-smooth);
             transform: translateY(0);
         }
 
-        /* 兼容模式下隐藏歌词容器 */
-        body.compatibility-mode .lyrics-container {
-            display: none !important;
+        /* 运势文本 - 隐藏彩蛋 */
+        .fortune-text {
+            position: absolute; bottom: 0.5rem; right: 1rem;
+            font-size: 0.7rem; color: var(--text-muted);
+            opacity: 0; transition: opacity 0.5s var(--transition-smooth);
+            font-style: italic;
+            pointer-events: none;
+        }
+
+        .lyrics-container:hover .fortune-text {
+            opacity: 0.6;
+            animation: fadeInOut 8s ease-in-out infinite 1s;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
         }
 
         .lyrics-header {
@@ -1083,8 +1165,8 @@
         }
 
         .lyrics-title i {
-            color: var(--accent);
-            animation: musicPulse 2s ease-in-out infinite;
+            color: var(--spring-pink);
+            animation: musicSpringPulse 2.5s ease-in-out infinite;
         }
 
         .lyrics-toggle {
@@ -1122,7 +1204,7 @@
         }
 
         .lyrics-line:hover {
-            color: var(--text-light); background: rgba(255, 255, 255, 0.03);
+            color: var(--text-light); background: rgba(255, 255, 255, 0.05);
             border-radius: var(--border-radius);
             transform: scale(0.98);
         }
@@ -1130,17 +1212,17 @@
         .lyrics-line.active {
             color: var(--white); font-size: 1.3rem; font-weight: 600;
             opacity: 1; transform: scale(1);
-            text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+            text-shadow: 0 0 15px rgba(255, 107, 107, 0.6);
         }
 
         .lyrics-line.active::before {
             content: '♪'; position: absolute; left: 1rem;
-            color: var(--accent); animation: pulse 1s ease-in-out infinite;
+            color: var(--spring-pink); animation: pulse 1s ease-in-out infinite;
         }
 
         .lyrics-line.active::after {
             content: '♪'; position: absolute; right: 1rem;
-            color: var(--accent); animation: pulse 1s ease-in-out infinite;
+            color: var(--spring-pink); animation: pulse 1s ease-in-out infinite;
         }
 
         .lyrics-progress {
@@ -1151,9 +1233,9 @@
         }
 
         .lyrics-progress-bar {
-            height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent));
+            height: 100%; background: linear-gradient(90deg, var(--spring-red), var(--spring-gold));
             width: 0%; transition: width 0.1s linear;
-            box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
         }
 
         .lyrics-status {
@@ -1247,15 +1329,15 @@
         }
 
         .music-button.lyrics-active {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            animation: musicPulse 2s ease-in-out infinite;
+            background: linear-gradient(135deg, var(--spring-red), var(--spring-gold));
+            animation: musicSpringPulse 2.5s ease-in-out infinite;
         }
 
         .music-button.lyrics-active:hover {
-            box-shadow: var(--shadow-xl), 0 0 30px rgba(102, 126, 234, 0.6);
+            box-shadow: var(--shadow-xl), 0 0 35px rgba(255, 107, 107, 0.7);
         }
 
-        /* 优化密码模态框动画 */
+        /* 新年密码模态框 - 移除设置功能 */
         .password-modal-overlay {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -1272,7 +1354,7 @@
 
         .password-modal-content {
             background: rgba(26, 26, 46, 0.95); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: var(--border-radius-lg);
+            border: 1px solid rgba(255, 217, 61, 0.2); border-radius: var(--border-radius-lg);
             padding: var(--spacing-xl); max-width: 450px;
             width: 90%; transform: scale(0.9) translateY(30px);
             transition: all var(--duration-slow) var(--transition-bounce);
@@ -1289,7 +1371,7 @@
 
         .password-modal-title {
             font-size: 1.8rem; font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, var(--spring-red), var(--spring-gold));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             margin-bottom: var(--spacing-sm); position: relative;
         }
@@ -1297,7 +1379,7 @@
         .password-modal-title::after {
             content: ''; position: absolute; bottom: -10px; left: 50%;
             transform: translateX(-50%); width: 60px; height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
+            background: linear-gradient(90deg, var(--spring-red), var(--spring-gold));
             border-radius: 2px; transition: width var(--duration-normal) var(--transition-smooth);
         }
 
@@ -1322,15 +1404,15 @@
             width: 100%; padding: var(--spacing-md);
             border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: var(--border-radius);
-            background: rgba(255, 255, 255, 0.05); color: var(--white);
+            background: rgba(255, 255, 255, 0.08); color: var(--white);
             font-size: 1.1rem; font-weight: 500; letter-spacing: 0.1em;
             transition: all var(--duration-fast) var(--transition-smooth);
         }
 
         .password-input:focus {
-            outline: none; border-color: var(--primary);
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+            outline: none; border-color: var(--spring-red);
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
         }
 
         .password-input::placeholder {
@@ -1346,7 +1428,7 @@
         }
 
         .password-toggle:hover {
-            color: var(--accent); transform: scale(1.1);
+            color: var(--spring-pink); transform: scale(1.1);
         }
 
         .password-error {
@@ -1398,17 +1480,17 @@
         }
 
         .password-button-primary {
-            background: linear-gradient(135deg, var(--primary), var(--accent)); color: white;
+            background: linear-gradient(135deg, var(--spring-red), var(--spring-gold)); color: white;
         }
 
         .password-button-primary:hover {
             transform: translateY(-3px) scale(1.05);
-            box-shadow: var(--shadow-glow), 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.5), 0 5px 15px rgba(255, 217, 61, 0.4);
         }
 
         .password-button-secondary {
             background: rgba(255, 255, 255, 0.08); color: var(--text-light);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 217, 61, 0.2);
         }
 
         .password-button-secondary:hover {
@@ -1441,44 +1523,7 @@
             content: '✓'; margin-right: 0.5rem; font-size: 1.2rem;
         }
 
-        @media (max-width: 768px) {
-            .password-modal-content {
-                padding: var(--spacing-lg);
-                max-width: 90%;
-            }
-
-            .password-modal-title {
-                font-size: 1.5rem;
-            }
-
-            .password-modal-footer {
-                flex-direction: column; width: 100%;
-            }
-
-            .password-button {
-                width: 100%; min-width: auto;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .password-modal-content {
-                padding: var(--spacing-md);
-            }
-
-            .password-modal-title {
-                font-size: 1.3rem;
-            }
-
-            .password-input {
-                font-size: 1rem; padding: var(--spacing-sm);
-            }
-        }
-
-        body.password-modal-open {
-            overflow: hidden;
-        }
-
-        /* 优化历史记录显示（长条版本） */
+        /* 历史记录样式 - 新年版 */
         .history-content {
             display: flex; flex-direction: column;
             align-items: center; padding: var(--spacing-lg) 0;
@@ -1490,12 +1535,11 @@
             padding: var(--spacing-lg) 0; width: 100%;
         }
 
-        /* 当前版本横幅 - 独立样式 */
         .current-version-banner {
             margin-bottom: var(--spacing-xl);
             padding: var(--spacing-lg);
-            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
+            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 217, 61, 0.15); border-radius: var(--border-radius-lg);
             box-shadow: var(--shadow-lg);
             width: 100%;
             max-width: 800px;
@@ -1507,7 +1551,7 @@
             display: flex; justify-content: space-between;
             align-items: center; margin-bottom: var(--spacing-md);
             padding-bottom: var(--spacing-sm);
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+            border-bottom: 1px dashed rgba(255, 217, 61, 0.1);
             flex-wrap: wrap; gap: var(--spacing-sm);
         }
 
@@ -1522,7 +1566,7 @@
 
         .current-version-badge {
             font-size: 0.9rem; font-weight: 600; color: var(--white);
-            background: linear-gradient(135deg, var(--warning), var(--accent));
+            background: linear-gradient(135deg, var(--warning), var(--spring-pink));
             padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--border-radius-sm);
             box-shadow: var(--shadow-sm);
             animation: pulse 2s ease-in-out infinite;
@@ -1533,7 +1577,6 @@
             color: var(--text-light); font-size: 0.95rem; line-height: 1.5;
         }
 
-        /* 历史记录时间线 */
         .history-timeline {
             position: relative; padding-left: var(--spacing-lg);
             margin-left: auto; margin-right: auto; max-width: 800px;
@@ -1543,7 +1586,7 @@
             content: '';
             position: absolute; left: 0; top: 0;
             height: 100%; width: 3px;
-            background: linear-gradient(to bottom, var(--primary), var(--accent));
+            background: linear-gradient(to bottom, var(--spring-red), var(--spring-gold));
             border-radius: 2px;
         }
 
@@ -1553,35 +1596,24 @@
             animation: slideInLeft 0.6s var(--transition-smooth) forwards;
         }
 
-        .history-item:nth-child(even) {
-            animation-name: slideInLeft;
-        }
-
-        @keyframes slideInLeft {
-            to {
-                opacity: 1; transform: translateX(0);
-            }
-        }
-
         .history-item::before {
             content: '';
             position: absolute; left: -2.5rem; top: 1.5rem;
-            width: 16px; height: 16px; background: var(--primary);
+            width: 16px; height: 16px; background: var(--spring-red);
             border: 3px solid var(--dark); border-radius: 50%;
-            box-shadow: 0 0 10px var(--primary); z-index: 1;
+            box-shadow: 0 0 12px var(--spring-red); z-index: 1;
             transition: all var(--duration-normal) var(--transition-bounce);
         }
 
         .history-item:hover::before {
             transform: scale(1.2);
-            box-shadow: 0 0 15px var(--accent);
-            background: var(--accent);
+            box-shadow: 0 0 18px var(--spring-gold);
+            background: var(--spring-gold);
         }
 
-        /* 版本卡片 - 长条样式 */
         .history-card {
-            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
+            background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 217, 61, 0.1); border-radius: var(--border-radius-lg);
             padding: var(--spacing-lg); transition: all var(--duration-normal) var(--transition-bounce);
             position: relative; overflow: hidden; box-shadow: var(--shadow-md);
             width: 100%;
@@ -1591,12 +1623,11 @@
         }
 
         .history-card:hover {
-            transform: translateX(10px) scale(1.02);
-            box-shadow: var(--shadow-xl), var(--shadow-glow);
-            border-color: rgba(102, 126, 234, 0.3);
+            transform: translateX(12px) scale(1.03);
+            box-shadow: var(--shadow-xl), 0 0 25px rgba(255, 217, 61, 0.4);
+            border-color: rgba(255, 107, 107, 0.3);
         }
 
-        /* 版本头部信息 */
         .history-header {
             display: flex; justify-content: space-between;
             align-items: center; margin-bottom: var(--spacing-sm);
@@ -1604,23 +1635,22 @@
         }
 
         .history-date {
-            font-size: 1.1rem; font-weight: 600; color: var(--accent);
+            font-size: 1.1rem; font-weight: 600; color: var(--spring-gold);
             display: flex; align-items: center; gap: var(--spacing-xs);
         }
 
         .history-date i {
-            font-size: 0.9rem; color: var(--primary);
+            font-size: 0.9rem; color: var(--spring-red);
         }
 
         .history-version {
             font-size: 1.2rem; font-weight: 700; color: var(--white);
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, var(--spring-red), var(--secondary));
             padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--border-radius-sm);
             box-shadow: var(--shadow-sm);
             letter-spacing: 0.5px;
         }
 
-        /* 版本更新内容 */
         .history-changes {
             list-style: none; padding-left: 0; margin: var(--spacing-sm) 0 0 0;
         }
@@ -1633,19 +1663,18 @@
 
         .history-change::before {
             content: '•'; position: absolute; left: 0;
-            color: var(--primary); font-weight: bold; font-size: 1.2rem;
+            color: var(--spring-gold); font-weight: bold; font-size: 1.2rem;
         }
 
         .history-change:not(:last-child) {
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+            border-bottom: 1px dashed rgba(255, 217, 61, 0.05);
         }
 
-        /* 历史记录头部横幅 */
         .history-banner {
             text-align: center; margin-bottom: var(--spacing-xl);
             padding: var(--spacing-lg);
-            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
+            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 217, 61, 0.15); border-radius: var(--border-radius-lg);
             box-shadow: var(--shadow-lg);
             margin-left: auto;
             margin-right: auto;
@@ -1653,14 +1682,14 @@
         }
 
         .history-banner-icon {
-            font-size: 3rem; color: var(--accent);
+            font-size: 3rem; color: var(--spring-pink);
             margin-bottom: var(--spacing-md);
             animation: pulse 2s ease-in-out infinite;
         }
 
         .history-banner-title {
             font-size: 1.8rem; font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, var(--spring-red), var(--spring-gold));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             margin-bottom: var(--spacing-sm);
         }
@@ -1669,74 +1698,96 @@
             color: var(--text-light); font-size: 1rem;
         }
 
-        /* 反馈区域 */
-        .feedback-section {
-            margin-top: var(--spacing-xl);
-            padding: 0 var(--spacing-md);
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
+        /* 新年下载区域 */
+        .download-content {
+            display: flex; flex-direction: column;
+            align-items: center; padding: var(--spacing-lg) 0;
         }
 
-        /* 响应式调整 */
-        @media (max-width: 768px) {
-            .history-timeline {
-                padding-left: var(--spacing-md);
-            }
+        /* 新年设置模态框 - 隐藏 */
+        .settings-modal {
+            display: none !important;
+        }
 
-            .history-item::before {
-                left: -2rem;
-            }
+        #settingsModal {
+            display: none !important;
+        }
 
-            .history-banner {
-                margin: 0 var(--spacing-sm) var(--spacing-lg);
-                padding: var(--spacing-md);
-            }
+        /* 新年烟花彩蛋样式 */
+        .firework-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
 
-            .history-banner-title {
-                font-size: 1.5rem;
-            }
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--spring-gold);
+            animation: sparkle-animation 1s ease-out forwards;
+        }
 
-            .history-banner-icon {
-                font-size: 2.5rem;
+        @keyframes sparkle-animation {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
             }
-
-            .current-version-banner {
-                margin: 0 var(--spacing-sm) var(--spacing-lg);
-            }
-
-            .history-card {
-                padding: var(--spacing-md);
-            }
-
-            .history-header {
-                flex-direction: column; align-items: flex-start;
-            }
-
-            .history-version {
-                align-self: flex-start;
+            100% {
+                transform: translate(var(--x), var(--y)) scale(0);
+                opacity: 0;
             }
         }
 
-        @media (max-width: 480px) {
-            .history-timeline {
-                padding-left: var(--spacing-sm);
-            }
+        /* 隐藏彩蛋：新年祝福语 */
+        .new-year-blessing {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--spring-red), var(--spring-gold));
+            padding: 1rem 2rem;
+            border-radius: var(--border-radius-lg);
+            font-weight: 700;
+            color: white;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all var(--duration-slow) var(--transition-bounce);
+            box-shadow: var(--shadow-xl);
+        }
 
-            .history-item::before {
-                left: -1.8rem;
-            }
+        .new-year-blessing.show {
+            bottom: 2rem;
+            opacity: 1;
+            animation: blessing-pulse 3s ease-in-out infinite 0.5s;
+        }
 
-            .history-date {
-                font-size: 1rem;
-            }
+        @keyframes blessing-pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.05); }
+        }
 
-            .history-version {
-                font-size: 1.1rem;
+        /* 低功耗模式适配 */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
             }
         }
 
-        /* 优化自动刷新提示动画 */
+        /* 新年滚动效果优化 */
+        .scroll-effect {
+            will-change: transform;
+        }
+
+        /* 新年自动刷新提示 */
         #refreshIndicator {
             display: none;
         }
@@ -1744,359 +1795,22 @@
         .ua-android { color: var(--warning); }
         .ua-ios { color: var(--success); }
 
-        /* 模式选择弹窗样式 */
-        .mode-selector-modal {
-            position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(26, 26, 46, 0.95); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl); max-width: 400px;
-            width: 90%; z-index: 4000; box-shadow: var(--shadow-xl);
-        }
-
-        .mode-selector-modal h3 {
-            color: var(--white); text-align: center; margin-bottom: var(--spacing-lg);
-        }
-
-        .mode-btn {
-            width: 100%; padding: var(--spacing-md); margin-bottom: var(--spacing-sm);
-            border: none; border-radius: var(--border-radius); font-weight: 600;
-            cursor: pointer; transition: all var(--duration-fast) var(--transition-bounce);
-        }
-
-        .mode-btn.performance {
-            background: linear-gradient(135deg, var(--primary), var(--accent)); color: white;
-        }
-
-        .mode-btn.compatibility {
-            background: rgba(255, 255, 255, 0.08); color: var(--text-light);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-
-        .mode-btn:hover {
-            transform: translateY(-3px) scale(1.02);
-        }
-
-        .mode-btn.performance:hover {
-            box-shadow: var(--shadow-glow);
-        }
-
-        /* 兼容模式样式 */
+        /* 新年模式样式 - 移除兼容模式 */
         body.compatibility-mode #particles-canvas,
         body.compatibility-mode .music-player,
         body.compatibility-mode .lyrics-container {
             display: none !important;
         }
 
-        /* 低功耗模式适配 */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-            .loading-spinner {
-                animation: spin 4s cubic-bezier(0.68, -0.55, 0.265, 1.55) 2;
-            }
-        }
-
-        .download-content {
-            display: flex; flex-direction: column;
-            align-items: center; padding: var(--spacing-lg) 0;
-        }
-
-        /* ===== 设置模态框样式 ===== */
-        .settings-modal {
-            max-width: 500px;
-            width: 90%;
-        }
-
-        .settings-body {
-            padding: 1.5rem 0;
-        }
-
-        /* 设置项容器 */
-        .setting-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: var(--border-radius-lg);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all var(--duration-normal) var(--transition-bounce);
-        }
-
-        .setting-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateX(5px);
-            box-shadow: var(--shadow-md);
-        }
-
-        /* 设置信息区域 */
-        .setting-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .setting-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            border-radius: var(--border-radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-            box-shadow: var(--shadow-sm);
-            transition: all var(--duration-fast) var(--transition-bounce);
-        }
-
-        .setting-item:hover .setting-icon {
-            transform: scale(1.1) rotate(10deg);
-            box-shadow: var(--shadow-glow);
-        }
-
-        .setting-text {
-            flex: 1;
-        }
-
-        .setting-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--white);
-            margin-bottom: 0.25rem;
-        }
-
-        .setting-description {
-            font-size: 0.85rem;
-            color: var(--text-light);
-        }
-
-        /* 高级开关样式 - 玻璃拟态效果 */
-        .toggle-switch {
-            position: relative;
-            width: 140px;
-            height: 45px;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            inset: 0;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 45px;
-            transition: all var(--duration-normal) var(--transition-bounce);
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 8px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .toggle-slider::before {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 41px;
-            height: 41px;
-            background: linear-gradient(135deg, var(--white), var(--lighter));
-            border-radius: 50%;
-            transition: all var(--duration-normal) var(--transition-bounce);
-            box-shadow: var(--shadow-md);
-            z-index: 2;
-        }
-
-        .toggle-switch input:checked + .toggle-slider::before {
-            transform: translateX(95px);
-            background: linear-gradient(135deg, var(--accent), var(--primary));
-        }
-
-        .toggle-switch input:checked + .toggle-slider {
-            background: rgba(102, 126, 234, 0.2);
-            border-color: rgba(102, 126, 234, 0.3);
-        }
-
-        .toggle-label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            position: relative;
-            z-index: 1;
-            transition: all var(--duration-fast) var(--transition-smooth);
-            padding: 0.25rem 0.5rem;
-            border-radius: var(--border-radius-sm);
-        }
-
-        .toggle-label.performance {
-            color: var(--success);
-        }
-
-        .toggle-label.compatibility {
-            color: var(--warning);
-        }
-
-        .toggle-switch input:not(:checked) + .toggle-slider .performance,
-        .toggle-switch input:checked + .toggle-slider .compatibility {
-            background: rgba(255, 255, 255, 0.15);
-            color: var(--white);
-            transform: scale(1.05);
-        }
-
-        /* 过渡动画覆盖层 */
-        .transition-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, var(--darker), var(--dark));
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: all var(--duration-normal) var(--transition-smooth);
-            backdrop-filter: blur(20px);
-        }
-
-        .transition-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .transition-content {
-            text-align: center;
-            background: var(--card-bg);
-            padding: 2rem;
-            border-radius: var(--border-radius-lg);
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-xl);
-        }
-
-        .transition-spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid var(--border-color);
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-            margin: 0 auto 1rem;
-        }
-
-        .transition-text {
-            color: var(--text-primary);
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-
-        /* 设置图标动画 */
-        #settingsMenuItem i {
-            transition: all var(--duration-fast) var(--transition-bounce);
-        }
-
-        #settingsMenuItem:hover i {
-            transform: rotate(30deg) scale(1.2);
-        }
-
-        /* 响应式调整 */
-        @media (max-width: 768px) {
-            .settings-modal {
-                width: 95%;
-                margin: 1rem;
-            }
-            
-            .setting-item {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: flex-start;
-            }
-            
-            .toggle-switch {
-                align-self: flex-end;
-            }
-        }
-
-        /* 模式选择弹窗样式 */
-        .mode-selector-modal {
-            position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(26, 26, 46, 0.95); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl); max-width: 400px;
-            width: 90%; z-index: 4000; box-shadow: var(--shadow-xl);
-        }
-
-        .mode-selector-modal h3 {
-            color: var(--white); text-align: center; margin-bottom: var(--spacing-lg);
-        }
-
-        .mode-btn {
-            width: 100%; padding: var(--spacing-md); margin-bottom: var(--spacing-sm);
-            border: none; border-radius: var(--border-radius); font-weight: 600;
-            cursor: pointer; transition: all var(--duration-fast) var(--transition-bounce);
-        }
-
-        .mode-btn.performance {
-            background: linear-gradient(135deg, var(--primary), var(--accent)); color: white;
-        }
-
-        .mode-btn.compatibility {
-            background: rgba(255, 255, 255, 0.08); color: var(--text-light);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-
-        .mode-btn:hover {
-            transform: translateY(-3px) scale(1.02);
-        }
-
-        .mode-btn.performance:hover {
-            box-shadow: var(--shadow-glow);
-        }
-
-        /* 兼容模式样式 */
-        body.compatibility-mode #particles-canvas,
-        body.compatibility-mode .music-player,
-        body.compatibility-mode .lyrics-container {
-            display: none !important;
-        }
-
-        /* 低功耗模式适配 */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-            .loading-spinner {
-                animation: spin 4s cubic-bezier(0.68, -0.55, 0.265, 1.55) 2;
-            }
-        }
-
-        .download-content {
-            display: flex; flex-direction: column;
-            align-items: center; padding: var(--spacing-lg) 0;
+        body.performance-mode {
+            /* 默认性能模式 */
         }
     </style>
 </head>
-<body>
+<body class="performance-mode">
     <canvas id="particles-canvas"></canvas>
 
-    <!-- 加载页面 -->
+    <!-- 新年加载页面 -->
     <div class="loading" id="loading">
         <div class="loading-content">
             <div class="loading-spinner" id="loadingSpinner"></div>
@@ -2118,7 +1832,7 @@
                 <li data-page="history">关于我们</li>
                 <li data-page="homework">作业</li>
                 <li data-page="download">下载客户端</li>
-                <li data-page="settings" id="settingsMenuItem"><i class="fas fa-cog"></i> 设置</li>
+                <!-- 设置菜单已移除 -->
             </ul>
             <button class="mobile-toggle" id="mobileToggle" aria-label="打开菜单">
                 <i class="fas fa-bars"></i>
@@ -2131,7 +1845,7 @@
         <div class="page active" data-page="home" id="page-home">
             <section class="hero">
                 <div class="hero-content">
-                    <h1>GLcn Hello</h1>
+                    <h1>GLcn · 新年</h1>
                     <div id="beijingTime"></div>
                     <div class="time-date" id="beijingDate"></div>
                     <div class="uptime-display" id="uptimeDisplay">
@@ -2143,8 +1857,10 @@
                         <span id="uaText">当前访问UA：检测中...</span>
                     </div>
                     <div class="stn-studio-display">
-                        STNStudio
+                        STNStudio · 2026
                     </div>
+                    <!-- 新年隐藏祝福 -->
+                    <div class="fortune-text">愿新岁，顺遂如意</div>
                 </div>
             </section>
             
@@ -2152,7 +1868,7 @@
                 <div class="lyrics-header">
                     <div class="lyrics-title">
                         <i class="fas fa-align-center"></i>
-                        <span id="lyricsTitle">歌词</span>
+                        <span id="lyricsTitle">音乐</span>
                     </div>
                     <button class="lyrics-toggle" id="lyricsToggle">
                         <i class="fas fa-chevron-up"></i>
@@ -2171,7 +1887,7 @@
                 
                 <div class="lyrics-status" id="lyricsStatus">
                     <i class="fas fa-info-circle"></i>
-                    <span>点击音乐按钮开始播放</span>
+                    <span>点击音乐按钮开始新春旋律</span>
                 </div>
             </div>
         </div>
@@ -2183,8 +1899,8 @@
                         <div class="feature-icon">
                             <i class="fas fa-bullhorn"></i>
                         </div>
-                        <h3 class="feature-title">公告</h3>
-                        <p class="feature-description">微信公众号搜:STcn关注可更快看到新信息 丨点击下载客户端快速下载安卓客户端，可快速查看信息</p>
+                        <h3 class="feature-title">新春公告</h3>
+                        <p class="feature-description">微信公众号搜: STcn关注可更快看到新信息 | 点击下载客户端获取新年特别版，新春快乐！</p>
                     </div>
                 </div>
             </div>
@@ -2193,16 +1909,16 @@
         <div class="page" data-page="history" id="page-history">
             <div class="history-content">
                 <div class="history-container">
-                    <!-- 历史记录头部横幅 -->
+                    <!-- 新年横幅 -->
                     <div class="history-banner stagger-fade-in">
                         <div class="history-banner-icon">
-                            <i class="fas fa-code-branch"></i>
+                            <i class="fas fa-fireworks"></i>
                         </div>
-                        <h2 class="history-banner-title">关于我们</h2>
-                        <p class="history-banner-subtitle">记录每一次进步的足迹</p>
+                        <h2 class="history-banner-title">关于我们 · 2026</h2>
+                        <p class="history-banner-subtitle">记录每一次进步的足迹 · 新岁新程</p>
                     </div>
                     
-                    <!-- 当前进行中版本 - 独立显示 -->
+                    <!-- 当前进行中版本 -->
                     <div class="current-version-banner stagger-fade-in" style="animation-delay: 0.1s">
                         <div class="current-version-header">
                             <div class="current-version-title">
@@ -2210,18 +1926,18 @@
                                 进行中
                             </div>
                             <div class="current-version-badge">
-                                Version
+                                Version1.9新春版
                             </div>
                         </div>
                         <div class="current-version-text">
                             <i class="fas fa-cog fa-spin"></i>
-                            体验优化
+                            春节版本 · 龙腾虎跃
                         </div>
                     </div>
 
                     <!-- 历史版本时间线 -->
                     <div class="history-timeline" id="historyTimeline">
-                        <!-- 关于我们内容将通过JavaScript动态渲染 -->
+                        <!-- 新年历史记录 -->
                     </div>
                     
                     <!-- 用户反馈区域 -->
@@ -2230,8 +1946,8 @@
                             <div class="feature-icon">
                                 <i class="fas fa-comment-dots"></i>
                             </div>
-                            <h3 class="feature-title">用户反馈</h3>
-                            <p class="feature-description">您的意见对我们很重要，欢迎通过腾讯问卷提交反馈</p>
+                            <h3 class="feature-title">用户反馈 · 新春有礼</h3>
+                            <p class="feature-description">您的意见对我们很重要，欢迎通过腾讯问卷提交反馈，有机会获得新年惊喜！</p>
                             <button class="modal-button" onclick="window.open('https://docs.qq.com/form/page/DT0hkWkRCYXNvcHFm', '_blank')">
                                 <i class="fas fa-external-link-alt"></i> 提交反馈
                             </button>
@@ -2248,8 +1964,8 @@
                         <div class="feature-icon">
                             <i class="fas fa-tasks"></i>
                         </div>
-                        <h3 class="feature-title">作业列表</h3>
-                        <p class="feature-description">点击以下科目查看详细作业内容</p>
+                        <h3 class="feature-title">新春作业列表</h3>
+                        <p class="feature-description">点击以下科目查看详细作业内容 · 学业进步</p>
                     </div>
                     
                     <div class="homework-grid">
@@ -2258,8 +1974,8 @@
                                 <i class="fas fa-book"></i>
                             </div>
                             <h4 class="homework-title">语文作业</h4>
-                            <p class="homework-subtitle">复习</p>
-                            <span class="homework-status pending">1月13日</span>
+                            <p class="homework-subtitle">新年阅读计划</p>
+                            <span class="homework-status pending">L</span>
                         </div>
 
                         <div class="homework-card math stagger-fade-in" data-subject="math">
@@ -2267,8 +1983,8 @@
                                 <i class="fas fa-calculator"></i>
                             </div>
                             <h4 class="homework-title">数学作业</h4>
-                            <p class="homework-subtitle">复习</p>
-                            <span class="homework-status pending">1月13日</span>
+                            <p class="homework-subtitle">新春练习册</p>
+                            <span class="homework-status pending">L</span>
                         </div>
 
                         <div class="homework-card english stagger-fade-in" data-subject="english">
@@ -2276,8 +1992,8 @@
                                 <i class="fas fa-language"></i>
                             </div>
                             <h4 class="homework-title">英语作业</h4>
-                            <p class="homework-subtitle">复习</p>
-                            <span class="homework-status completed">1月13日</span>
+                            <p class="homework-subtitle">新年词汇打卡</p>
+                            <span class="homework-status completed">1月22日</span>
                         </div>
 
                         <div class="homework-card physics stagger-fade-in" data-subject="physics">
@@ -2285,7 +2001,7 @@
                                 <i class="fas fa-atom"></i>
                             </div>
                             <h4 class="homework-title">物理作业</h4>
-                            <p class="homework-subtitle">复习</p>
+                            <p class="homework-subtitle">假期实验</p>
                             <span class="homework-status pending">持续更新</span>
                         </div>
 
@@ -2294,8 +2010,8 @@
                                 <i class="fas fa-flask"></i>
                             </div>
                             <h4 class="homework-title">化学作业</h4>
-                            <p class="homework-subtitle">无</p>
-                            <span class="homework-status pending">1月13日</span>
+                            <p class="homework-subtitle">新春元素表</p>
+                            <span class="homework-status pending">L</span>
                         </div>
 
                         <div class="homework-card politics stagger-fade-in" data-subject="politics">
@@ -2303,17 +2019,17 @@
                                 <i class="fas fa-landmark"></i>
                             </div>
                             <h4 class="homework-title">政治作业</h4>
-                            <p class="homework-subtitle">复习</p>
-                            <span class="homework-status pending">1月13日</span>
+                            <p class="homework-subtitle">时事热点</p>
+                            <span class="homework-status pending">1月22日</span>
                         </div>
 
                         <div class="homework-card other stagger-fade-in" data-subject="other">
                             <div class="homework-icon">
                                 <i class="fas fa-ellipsis-h"></i>
                             </div>
-                            <h4 class="homework-title">其他作业</h4>
-                            <p class="homework-subtitle">暂无</p>
-                            <span class="homework-status completed">暂无</span>
+                            <h4 class="homework-title">综合实践</h4>
+                            <p class="homework-subtitle">新年快乐</p>
+                            <span class="homework-status completed">新春快乐</span>
                         </div>
                     </div>
                 </div>
@@ -2327,25 +2043,29 @@
                         <div class="feature-icon">
                             <i class="fas fa-download"></i>
                         </div>
-                        <h3 class="feature-title">下载安卓客户端</h3>
-                        <p class="feature-description">点击下方按钮获取最新版本的客户端应用</p>
+                        <h3 class="feature-title">新春客户端下载</h3>
+                        <p class="feature-description">点击下方按钮获取新年特别版客户端，体验全新功能！</p>
                         <button class="modal-button" onclick="window.open('https://wwp.lanzoup.com/iBO0U3es5rad', '_blank')">
-                            <i class="fas fa-download"></i> 立即下载
+                            <i class="fas fa-download"></i> 立即下载新春版
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="page" data-page="settings" id="page-settings" style="display: none;">
-            <!-- 设置页面内容由模态框处理 -->
-        </div>
+        <!-- 设置页面已移除 -->
     </div>
 
-    <div class="music-player" id="musicPlayer">
+    <!-- 新年音乐播放器 -->
+    <div class="music-player show" id="musicPlayer">
         <button class="music-button" id="musicButton" aria-label="播放/暂停音乐">
             <i class="fas fa-play" id="musicIcon"></i>
         </button>
+    </div>
+
+    <!-- 新年祝福彩蛋 -->
+    <div class="new-year-blessing" id="newYearBlessing">
+        <i class="fas fa-star"></i> 2026新年快乐 · 心想事成
     </div>
 
     <audio id="bgMusic" loop preload="metadata">
@@ -2379,7 +2099,7 @@
                 验证成功！
             </div>
             <div class="password-modal-header">
-                <h2 class="password-modal-title">验证测试码</h2>
+                <h2 class="password-modal-title">验证新春测试码</h2>
                 <p class="password-modal-subtitle">请输入密码以访问内容</p>
             </div>
             <div class="password-input-group">
@@ -2410,62 +2130,23 @@
                     确认
                 </button>
             </div>
-            <p class="password-hint">提示：正在测试</p>
+            <p class="password-hint">提示：新春测试</p>
         </div>
     </div>
 
-    <!-- 设置模态框 -->
-    <div class="modal-overlay" id="settingsModal">
-        <div class="modal-content settings-modal">
-            <div class="modal-header">
-                <h3 class="modal-title">
-                    <i class="fas fa-cog"></i>
-                    <span>设置</span>
-                </h3>
-                <button class="modal-close" id="settingsClose">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body settings-body">
-                <!-- 性能模式切换 -->
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div class="setting-icon">
-                            <i class="fas fa-rocket"></i>
-                        </div>
-                        <div class="setting-text">
-                            <div class="setting-title">性能模式</div>
-                            <div class="setting-description">切换高性能或兼容模式</div>
-                        </div>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="performanceToggle" />
-                        <span class="toggle-slider">
-                            <span class="toggle-label performance">高性能</span>
-                            <span class="toggle-label compatibility">兼容</span>
-                        </span>
-                    </label>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- 设置模态框已移除 -->
 
-    <!-- 设置过渡动画覆盖层 -->
-    <div class="transition-overlay" id="transitionOverlay">
-        <div class="transition-content">
-            <div class="transition-spinner"></div>
-            <div class="transition-text">正在应用设置...</div>
-        </div>
-    </div>
+    <!-- 烟花彩蛋容器 -->
+    <div class="firework-container" id="fireworkContainer"></div>
 
     <footer>
         <div class="footer-content">
-            <p>&copy; 2025-2026 最终解释权 GLcn | STNStudio </p>
+            <p>&copy; 2025-2026 最终解释权 GLcn | STNStudio · 新岁启封</p>
         </div>
     </footer>
 
     <script>
-        // 增强版粒子系统 - 高性能模式专属
+        // 增强版粒子系统 - 新年特别版
         class EnhancedParticleNetwork {
             constructor() {
                 this.canvas = document.getElementById('particles-canvas');
@@ -2484,16 +2165,15 @@
                 this.fps = 0;
                 this.targetFPS = 60;
                 this.isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                this.isPerformanceMode = document.body.classList.contains('performance-mode');
-                this.particleConfig = this.isPerformanceMode ? {
-                    background: { count: 40, speed: 0.3, size: [1.5, 2.5], opacity: [0.2, 0.4], color: '#7c5aa0' },
-                    middle: { count: 50, speed: 0.8, size: [2, 3], opacity: [0.4, 0.6], color: '#6d7aea' },
-                    foreground: { count: 30, speed: 1.5, size: [3, 4], opacity: [0.6, 0.8], color: '#ec8bf7' }
-                } : {
-                    background: { count: 20, speed: 0.2, size: [1, 2], opacity: [0.1, 0.3], color: '#7c5aa0' },
-                    middle: { count: 30, speed: 0.5, size: [1.5, 2.5], opacity: [0.3, 0.5], color: '#6d7aea' },
-                    foreground: { count: 15, speed: 1.0, size: [2, 3], opacity: [0.5, 0.7], color: '#ec8bf7' }
+                this.particleConfig = {
+                    background: { count: 45, speed: 0.4, size: [1.8, 2.8], opacity: [0.25, 0.45], color: '#ffd93d' },
+                    middle: { count: 55, speed: 0.9, size: [2.2, 3.2], opacity: [0.45, 0.65], color: '#ff6b6b' },
+                    foreground: { count: 35, speed: 1.6, size: [3.2, 4.2], opacity: [0.65, 0.85], color: '#ff9ff3' }
                 };
+                
+                this.isSpringMode = true; // 新年模式
+                this.specialName = '林曦'; // 隐藏名字
+                this.nameRevealTime = false;
                 
                 this.init();
                 this.createParticles();
@@ -2508,7 +2188,6 @@
                     this.createParticles();
                 });
                 
-                // FPS监控
                 setInterval(() => {
                     this.fps = this.frameCount;
                     this.frameCount = 0;
@@ -2526,14 +2205,14 @@
                 
                 Object.keys(this.layers).forEach(layerName => {
                     const config = this.particleConfig[layerName];
-                    const count = Math.min(config.count, Math.floor((window.innerWidth * window.innerHeight) / 15000));
+                    const count = Math.min(config.count, Math.floor((window.innerWidth * window.innerHeight) / 12000));
                     
                     for (let i = 0; i < count; i++) {
                         this.layers[layerName].push({
                             x: Math.random() * this.canvas.width,
                             y: Math.random() * this.canvas.height,
-                            vx: (Math.random() - 0.5) * config.speed * 0.5,
-                            vy: (Math.random() - 0.5) * config.speed * 0.5,
+                            vx: (Math.random() - 0.5) * config.speed * 0.6,
+                            vy: (Math.random() - 0.5) * config.speed * 0.6,
                             radius: config.size[0] + Math.random() * (config.size[1] - config.size[0]),
                             opacity: config.opacity[0] + Math.random() * (config.opacity[1] - config.opacity[0]),
                             originalRadius: 0,
@@ -2541,32 +2220,32 @@
                             color: config.color,
                             trail: [],
                             glowIntensity: 0,
-                            breathOffset: Math.random() * Math.PI * 2
+                            breathOffset: Math.random() * Math.PI * 2,
+                            isSpecial: Math.random() < 0.05 // 5%特殊粒子
                         });
                     }
                 });
             }
             
             adjustParticleCount() {
-                if (!this.isPerformanceMode) return;
-                
-                if (this.fps < 45 && this.layers.foreground.length > 10) {
-                    this.layers.foreground = this.layers.foreground.slice(0, -5);
+                if (this.fps < 50 && this.layers.foreground.length > 15) {
+                    this.layers.foreground = this.layers.foreground.slice(0, -8);
                 } else if (this.fps > 55 && this.layers.foreground.length < this.particleConfig.foreground.count) {
                     this.createParticles();
                 }
             }
             
             bindEvents() {
+                let clickCount = 0;
                 const updateMouse = (e) => {
                     this.mouse.x = e.clientX;
                     this.mouse.y = e.clientY;
                     
                     const now = Date.now();
-                    if (now - this.lastMouseTime > 30) {
+                    if (now - this.lastMouseTime > 25) {
                         this.mouseTrail.push({ x: e.clientX, y: e.clientY, time: now });
                         this.lastMouseTime = now;
-                        if (this.mouseTrail.length > 8) this.mouseTrail.shift();
+                        if (this.mouseTrail.length > 10) this.mouseTrail.shift();
                     }
                 };
 
@@ -2575,8 +2254,14 @@
                     if (e.touches.length > 0) updateMouse(e.touches[0]);
                 });
                 
+                // 新年彩蛋：三击触发烟花
                 window.addEventListener('click', (e) => {
-                    if (this.isPerformanceMode) this.createClickEffect(e.clientX, e.clientY);
+                    clickCount++;
+                    if (clickCount >= 3) {
+                        this.createSpringFirework(e.clientX, e.clientY);
+                        clickCount = 0;
+                        this.showNewYearBlessing();
+                    }
                 });
                 
                 window.addEventListener('mouseleave', () => {
@@ -2591,50 +2276,36 @@
                 });
             }
             
-            createClickEffect(x, y) {
-                // 三层涟漪爆炸
-                for (let layer = 0; layer < 3; layer++) {
-                    const particleCount = 6 + layer * 6;
-                    const speed = 4 - layer * 1.2;
-                    const color = layer === 0 ? '#ec8bf7' : layer === 1 ? '#6d7aea' : '#7c5aa0';
+            createSpringFirework(x, y) {
+                const colors = ['#ff6b6b', '#ffd93d', '#ff9ff3', '#4dabf7', '#51cf66'];
+                const particleCount = 36;
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const angle = (Math.PI * 2 / particleCount) * i + Math.random() * 0.2;
+                    const velocity = 4 + Math.random() * 4;
+                    const color = colors[Math.floor(Math.random() * colors.length)];
                     
-                    for (let i = 0; i < particleCount; i++) {
-                        const angle = (Math.PI * 2 / particleCount) * i + Math.random() * 0.3;
-                        this.layers.foreground.push({
-                            x: x + Math.random() * 20 - 10,
-                            y: y + Math.random() * 20 - 10,
-                            vx: Math.cos(angle) * speed,
-                            vy: Math.sin(angle) * speed,
-                            radius: 2 + Math.random() * 2,
-                            opacity: 0.9,
-                            color: color,
-                            life: 40 + layer * 10,
-                            isEffect: true
-                        });
-                    }
+                    this.layers.foreground.push({
+                        x: x + Math.random() * 10 - 5,
+                        y: y + Math.random() * 10 - 5,
+                        vx: Math.cos(angle) * velocity,
+                        vy: Math.sin(angle) * velocity,
+                        radius: 2 + Math.random() * 3,
+                        opacity: 1,
+                        color: color,
+                        life: 45,
+                        isEffect: true,
+                        isFirework: true
+                    });
                 }
             }
             
-            createPageTransitionEffect() {
-                if (!this.isPerformanceMode) return;
-                
-                const centerX = window.innerWidth / 2;
-                const centerY = window.innerHeight / 2;
-                
-                for (let i = 0; i < 360; i += 20) {
-                    const angle = (i * Math.PI) / 180;
-                    this.layers.foreground.push({
-                        x: centerX,
-                        y: centerY,
-                        vx: Math.cos(angle) * 6,
-                        vy: Math.sin(angle) * 6,
-                        radius: 3,
-                        opacity: 0.8,
-                        color: '#ec8bf7',
-                        life: 60,
-                        isEffect: true
-                    });
-                }
+            showNewYearBlessing() {
+                const blessing = document.getElementById('newYearBlessing');
+                blessing.classList.add('show');
+                setTimeout(() => {
+                    blessing.classList.remove('show');
+                }, 4000);
             }
             
             animate() {
@@ -2651,9 +2322,17 @@
 
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 
+                // 检查是否为特殊时间（如第26秒）
+                const currentSecond = new Date().getSeconds();
+                if (currentSecond === 26 || currentSecond === 6) {
+                    this.nameRevealTime = true;
+                } else {
+                    this.nameRevealTime = false;
+                }
+                
                 // 鼠标轨迹
-                if (this.mouseTrail.length > 1 && this.isPerformanceMode) {
-                    this.ctx.strokeStyle = 'rgba(102, 126, 234, 0.3)';
+                if (this.mouseTrail.length > 1) {
+                    this.ctx.strokeStyle = 'rgba(255, 217, 61, 0.3)';
                     this.ctx.lineWidth = 2;
                     this.ctx.beginPath();
                     this.mouseTrail.forEach((point, index) => {
@@ -2666,7 +2345,7 @@
                 // 渲染各层
                 ['background', 'middle', 'foreground'].forEach((layerName, layerIndex) => {
                     const particles = this.layers[layerName];
-                    const layerMultiplier = (layerIndex + 1) * 0.5;
+                    const layerMultiplier = (layerIndex + 1) * 0.6;
                     
                     particles.forEach((particle, i) => {
                         if (particle.isEffect) {
@@ -2676,43 +2355,41 @@
                                 return;
                             }
                             
-                            particle.vx *= 0.95;
-                            particle.vy *= 0.95;
-                            particle.opacity = particle.life / 60 * 0.8;
+                            const decay = particle.isFirework ? 0.98 : 0.96;
+                            particle.vx *= decay;
+                            particle.vy *= decay;
+                            particle.opacity = particle.life / 50 * (particle.isFirework ? 0.9 : 0.7);
                         }
                         
                         // 呼吸动画
-                        const breathScale = 1 + Math.sin(Date.now() * 0.003 + particle.breathOffset) * 0.1;
+                        const breathScale = 1 + Math.sin(Date.now() * 0.002 + particle.breathOffset) * 0.12;
                         const currentRadius = particle.radius * breathScale;
                         
-                        // 鼠标交互
+                        // 鼠标交互增强
                         const dx = this.mouse.x - particle.x;
                         const dy = this.mouse.y - particle.y;
                         const distance = Math.sqrt(dx * dx + dy * dy);
-                        const influenceRange = 120 + layerIndex * 30;
+                        const influenceRange = 130 + layerIndex * 35;
                         
                         if (distance < influenceRange && distance > 0) {
-                            const force = (1 - distance / influenceRange) * 0.02 * layerMultiplier;
+                            const force = (1 - distance / influenceRange) * 0.025 * layerMultiplier;
                             const angle = Math.atan2(dy, dx);
                             
-                            if (distance < 30) {
-                                // 排斥
-                                particle.vx -= Math.cos(angle) * force * 3;
-                                particle.vy -= Math.sin(angle) * force * 3;
-                                particle.glowIntensity = 1.0;
-                            } else if (distance < 80) {
-                                // 吸引
+                            if (distance < 35) {
+                                particle.vx -= Math.cos(angle) * force * 3.5;
+                                particle.vy -= Math.sin(angle) * force * 3.5;
+                                particle.glowIntensity = 1.2;
+                            } else if (distance < 85) {
                                 particle.vx += Math.cos(angle) * force;
                                 particle.vy += Math.sin(angle) * force;
-                                particle.glowIntensity = 0.6;
+                                particle.glowIntensity = 0.8;
                             } else {
-                                // 微弱吸引
-                                particle.vx += Math.cos(angle) * force * 0.3;
-                                particle.vy += Math.sin(angle) * force * 0.3;
-                                particle.glowIntensity = 0.3;
+                                particle.vx += Math.cos(angle) * force * 0.4;
+                                particle.vy += Math.sin(angle) * force * 0.4;
+                                particle.glowIntensity = 0.4;
                             }
                         } else {
-                            particle.glowIntensity *= 0.95;
+                            particle.glowIntensity *= 0.92;
                         }
                         
                         // 更新位置
@@ -2721,28 +2398,32 @@
                         
                         // 边界反弹
                         if (particle.x < currentRadius || particle.x > this.canvas.width - currentRadius) {
-                            particle.vx *= -0.8;
+                            particle.vx *= -0.85;
                             particle.x = Math.max(currentRadius, Math.min(this.canvas.width - currentRadius, particle.x));
                         }
                         if (particle.y < currentRadius || particle.y > this.canvas.height - currentRadius) {
-                            particle.vy *= -0.8;
+                            particle.vy *= -0.85;
                             particle.y = Math.max(currentRadius, Math.min(this.canvas.height - currentRadius, particle.y));
                         }
                         
                         // 拖尾记录
-                        if (this.isPerformanceMode) {
-                            particle.trail.push({ x: particle.x, y: particle.y });
-                            if (particle.trail.length > 8) particle.trail.shift();
-                        }
+                        particle.trail.push({ x: particle.x, y: particle.y });
+                        if (particle.trail.length > 12) particle.trail.shift();
                         
                         // 绘制
                         this.ctx.save();
                         
+                        // 特殊粒子效果
+                        let particleColor = particle.color;
+                        if (particle.isSpecial && this.nameRevealTime) {
+                            particleColor = '#ff9ff3'; // 特殊时间变粉色
+                        }
+                        
                         // 绘制拖尾
-                        if (particle.trail && particle.trail.length > 1) {
+                        if (particle.trail.length > 1) {
                             particle.trail.forEach((pos, j) => {
-                                this.ctx.globalAlpha = (j / particle.trail.length) * particle.opacity * 0.3;
-                                this.ctx.fillStyle = particle.color;
+                                this.ctx.globalAlpha = (j / particle.trail.length) * particle.opacity * 0.4;
+                                this.ctx.fillStyle = particleColor;
                                 this.ctx.beginPath();
                                 this.ctx.arc(pos.x, pos.y, currentRadius * (j / particle.trail.length), 0, Math.PI * 2);
                                 this.ctx.fill();
@@ -2751,31 +2432,46 @@
                         
                         // 绘制粒子
                         this.ctx.globalAlpha = particle.opacity;
-                        this.ctx.fillStyle = particle.color;
+                        this.ctx.fillStyle = particleColor;
                         
                         // 光晕效果
-                        if (this.isPerformanceMode && particle.glowIntensity > 0.1) {
-                            this.ctx.shadowBlur = 15 * particle.glowIntensity;
-                            this.ctx.shadowColor = particle.color + Math.floor(particle.opacity * 255).toString(16).padStart(2, '0');
+                        if (particle.glowIntensity > 0.1) {
+                            this.ctx.shadowBlur = 18 * particle.glowIntensity;
+                            this.ctx.shadowColor = particleColor + Math.floor(particle.opacity * 255).toString(16).padStart(2, '0');
                         }
                         
-                        this.ctx.beginPath();
-                        this.ctx.arc(particle.x, particle.y, currentRadius, 0, Math.PI * 2);
-                        this.ctx.fill();
+                        // 特殊粒子心形
+                        if (particle.isSpecial && this.nameRevealTime) {
+                            this.drawHeart(particle.x, particle.y, currentRadius * 2);
+                        } else {
+                            this.ctx.beginPath();
+                            this.ctx.arc(particle.x, particle.y, currentRadius, 0, Math.PI * 2);
+                            this.ctx.fill();
+                        }
                         
                         this.ctx.restore();
                     });
                     
                     // 层间连线
-                    if (this.isPerformanceMode && layerName === 'middle') {
-                        this.drawConnections(particles, 80);
+                    if (layerName === 'middle') {
+                        this.drawConnections(particles, 90);
                     }
                 });
             }
             
+            drawHeart(x, y, size) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y + size * 0.3);
+                this.ctx.bezierCurveTo(x, y, x - size, y, x - size, y + size * 0.3);
+                this.ctx.bezierCurveTo(x - size, y + size * 0.8, x, y + size * 1.4, x, y + size * 1.4);
+                this.ctx.bezierCurveTo(x, y + size * 1.4, x + size, y + size * 0.8, x + size, y + size * 0.3);
+                this.ctx.bezierCurveTo(x + size, y, x, y, x, y + size * 0.3);
+                this.ctx.fill();
+            }
+            
             drawConnections(particles, maxDistance) {
-                this.ctx.strokeStyle = 'rgba(102, 126, 234, 0.4)';
-                this.ctx.lineWidth = 1;
+                this.ctx.strokeStyle = 'rgba(255, 217, 61, 0.4)';
+                this.ctx.lineWidth = 1.2;
                 
                 for (let i = 0; i < particles.length; i++) {
                     for (let j = i + 1; j < particles.length; j++) {
@@ -2784,7 +2480,7 @@
                         const distance = Math.sqrt(dx * dx + dy * dy);
                         
                         if (distance < maxDistance) {
-                            const opacity = (maxDistance - distance) / maxDistance * 0.4;
+                            const opacity = (maxDistance - distance) / maxDistance * 0.5;
                             this.ctx.globalAlpha = opacity;
                             this.ctx.beginPath();
                             this.ctx.moveTo(particles[i].x, particles[i].y);
@@ -2827,7 +2523,6 @@
             let iconClass = '';
             let deviceClass = '';
             
-            // 优先检测iOS，再检测安卓
             if (/iphone|ipad|ipod/.test(ua)) {
                 deviceType = 'IOS';
                 iconClass = 'fa-mobile-alt';
@@ -2837,14 +2532,6 @@
                 deviceType = '安卓手机端';
                 iconClass = 'fa-android';
                 deviceClass = 'ua-android';
-                
-                // 确保Font Awesome已加载，避免正方形图标
-                if (!document.querySelector('link[href*="font-awesome"]')) {
-                    const link = document.createElement('link');
-                    link.rel = 'stylesheet';
-                    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
-                    document.head.appendChild(link);
-                }
             }
             else if (/micromessenger/.test(ua)) {
                 deviceType = '微信端';
@@ -2897,230 +2584,249 @@
             chinese: {
                 title: '语文作业',
                 icon: 'fas fa-book',
-                color: '#e53e3e',
+                color: '#ff6b6b',
                 content: {
                     subject: '语文',
                     teacher: '庄老师',
-                    deadline: '2026-1-C',
+                    deadline: '2026-1-新春',
                     status: '已更新',
-                    description: '无数据',
+                    description: '新年主题阅读与写作练习',
                     requirements: [
-                        '暂无'
+                        '完成新年主题作文一篇',
+                        '阅读推荐书单（春节特辑）',
+                        '古诗词背诵（含新春诗词）'
                     ],
-                    tips: '暂无。'
+                    tips: '新年快乐！注意书写工整。'
                 }
             },
             math: {
                 title: '数学作业',
                 icon: 'fas fa-calculator',
-                color: '#3182ce',
+                color: '#4dabf7',
                 content: {
                     subject: '数学',
                     teacher: '殷老师',
-                    deadline: '2026-1-C',
+                    deadline: '2026-1-新春',
                     status: '已更新',
-                    description: '无数据',
+                    description: '新春数学思维训练题',
                     requirements: [
-                        '暂无。'
+                        '完成练习册新春专题',
+                        '整理错题集',
+                        '预习下学期内容'
                     ],
-                    tips: '暂无。'
+                    tips: '新的一年，数学更上一层楼！'
                 }
             },
             english: {
                 title: '英语作业',
                 icon: 'fas fa-language',
-                color: '#38a169',
+                color: '#51cf66',
                 content: {
                     subject: '英语',
                     teacher: '黄老师',
-                    deadline: '2026-1-C',
+                    deadline: '2026-1-22',
                     status: '已更新',
-                    description: '无数据',
+                    description: '30Day打卡和学习通新春卷子',
                     requirements: [
-                        ' 暂无'
+                        '每日单词打卡',
+                        '新春英语手抄报',
+                        '完成学习通新春练习'
                     ],
-                    tips: '无'
+                    tips: 'Happy New Year! 坚持就是胜利！'
                 }
             },
             physics: {
                 title: '物理作业',
                 icon: 'fas fa-atom',
-                color: '#d69e2e',
+                color: '#ffd93d',
                 content: {
                     subject: '物理',
                     teacher: '孔老师',
-                    deadline: '今天',
+                    deadline: '新春假期',
                     status: '已更新',
-                    description: '无',
+                    description: '物理实验与理论复习',
                     requirements: [
-                        '无'
+                        '完成实验报告',
+                        '复习力学章节',
+                        '准备开学测试'
                     ],
-                    tips: '认真复习'
+                    tips: '新年新气象，物理不难！'
                 }
             },
             chemistry: {
                 title: '化学作业',
                 icon: 'fas fa-flask',
-                color: '#805ad5',
+                color: '#cc5de8',
                 content: {
                     subject: '化学',
                     teacher: '林老师',
-                    deadline: '2026-1-C',
+                    deadline: '2026-1-新春',
                     status: '已更新',
-                    description: '无数据',
+                    description: '化学元素新春表',
                     requirements: [
-                        '无'
+                        '背诵元素周期表',
+                        '完成化学方程式练习',
+                        '制作元素卡片'
                     ],
-                    tips: '暂无。'
+                    tips: '化学元素，新年新记忆！'
                 }
             },
             politics: {
                 title: '政治作业',
                 icon: 'fas fa-landmark',
-                color: '#dd6b20',
+                color: '#ff922b',
                 content: {
                     subject: '政治',
                     teacher: '叶老师',
-                    deadline: '2026-1-C',
+                    deadline: '2026-1-22',
                     status: '已更新',
-                    description: '无数据',
+                    description: '时事政治与新春热点',
                     requirements: [
-                        '无'
+                        '关注时事新闻',
+                        '整理新春热点',
+                        '撰写时事评论'
                     ],
-                    tips: '暂无'
+                    tips: '新年快乐，关心国家大事！'
                 }
             },
             other: {
-                title: '其他作业',
+                title: '综合实践',
                 icon: 'fas fa-ellipsis-h',
-                color: '#718096',
+                color: '#adb5bd',
                 content: {
-                    subject: '暂无',
-                    teacher: '暂无',
-                    deadline: '2026-1-20',
-                    status: '已更新',
-                    description: '无',
+                    subject: '综合实践',
+                    teacher: '全体老师',
+                    deadline: '新春假期',
+                    status: '新春特辑',
+                    description: '新春综合实践活动',
                     requirements: [
-                        '暂无'
+                        '参与家庭劳动',
+                        '记录春节习俗',
+                        '完成社会实践报告'
                     ],
-                    tips: '哈基米'
+                    tips: '新春快乐，全面发展！'
                 }
             }
         };
 
-        // 更新历史数据 - 以长条形式显示
+        // 新年历史数据
         const updateHistory = [
            {
-                date: '2026-1-20',
-                version: 'Version1.9',
-                changes: ['计划更新']
+                date: '2026-1-22',
+                version: 'Version1.9新春版',
+                changes: ['新春特别版本发布', '全新粒子动画系统', '新年彩蛋与祝福']
+            },
+           {
+                date: '2026-1-15',
+                version: '新春预热版',
+                changes: ['优化界面动画', '添加新春元素', '性能优化提升']
             },
            {
                 date: '2026-1-10',
                 version: '公众号计划',
-                changes: ['STcnAGLcn']
+                changes: ['STcnAGLcn新春计划', '春节活动预告', '用户反馈收集']
             },
            {
                 date: '2026-1-7',
                 version: 'Version1.8',
-                changes: ['设置更新']
+                changes: ['设置界面优化', '新年倒计时功能', '界面美化']
             },
            {
                 date: '2026-1-5',
                 version: 'Version1.7',
-                changes: ['粒子模型优化']
+                changes: ['粒子模型新年优化', '春节主题配色', '流畅度提升']
             },
            {
                 date: '2026-1-4',
                 version: 'Version1.65',
-                changes: ['显示优化']
+                changes: ['显示效果优化', '新年字体调整', '用户体验提升']
             },
             {
                 date: '2025-12-31',
                 version: 'Version1.65',
-                changes: ['UI优化，播放器优化，模式可选']
+                changes: ['UI新年优化', '播放器优化', '模式可选']
             },
             {
                 date: '2025-12-30',
                 version: 'Version1.5',
-                changes: ['动画粒子大优化，提高体验']
+                changes: ['动画粒子大优化', '提高体验', '新年准备']
             },
             {
                 date: '2025-12-29',
                 version: 'Version1.4',
-                changes: ['音乐播放逻辑优化', '优化网页加载', '更新app版本（无黑边）']
+                changes: ['音乐播放逻辑优化', '新年界面设计', '更新app版本']
             },
             {
                 date: '2025-12-29',
                 version: 'Version1.3',
-                changes: ['新增安卓客户端', '更新下载链接', '优化播放逻辑']
+                changes: ['新增安卓客户端', '新年功能预告', '优化播放逻辑']
             },
             {
                 date: '2025-12-25',
                 version: 'Version1.26',
-                changes: ['哈希算法修改', '新增端侧省流（Lazy Loading策略）省流量']
+                changes: ['哈希算法修改', '端侧省流策略', '新年节能模式']
             },
             {
                 date: '2025-12-25',
                 version: 'Version1.24',
-                changes: ['导航栏优化']
+                changes: ['导航栏优化', '圣诞新年主题', '流畅度提升']
             },
             {
                 date: '2025-12-24',
                 version: 'Version1.19',
-                changes: ['API北京时间修复']
+                changes: ['API北京时间修复', '新年倒计时', '节日氛围']
             },
             {
                 date: '2025-12-24',
                 version: 'Version1.17',
-                changes: ['修复安全访问问题']
+                changes: ['修复安全访问问题', '新年安全升级', '稳定运行']
             },
             {
                 date: '2025-12-23',
                 version: 'Version1.15',
-                changes: ['新增安全时间']
+                changes: ['新增安全时间', '新年安全模式', '保护用户']
             },
             {
                 date: '2025-12-23',
                 version: 'Version1.14',
-                changes: ['修改优化过渡动画']
+                changes: ['修改优化过渡动画', '新年动画效果', '视觉享受']
             },
             {
                 date: '2025-12-22',
                 version: 'Version1.12',
-                changes: ['新增测试码功能']
+                changes: ['新增测试码功能', '新年测试计划', '功能完善']
             },
             {
                 date: '2025-12-21',
                 version: 'Version1.1',
-                changes: ['新增歌词Lrc显示']
+                changes: ['新增歌词Lrc显示', '新年音乐播放', '歌词同步']
             },
             {
                 date: '2025-12-21',
                 version: 'Version1.09',
-                changes: ['新增音乐播放器']
+                changes: ['新增音乐播放器', '新年背景音乐', '用户体验']
             },
             {
                 date: '2025-12-21',
                 version: 'Version1.07',
-                changes: ['粒子版本上线']
+                changes: ['粒子版本上线', '新年粒子特效', '视觉盛宴']
             },
             {
                 date: '2025-12-20',
                 version: 'Version1.05',
-                changes: ['UI优化大版本']
+                changes: ['UI优化大版本', '新年界面美化', '全新体验']
             },
             {
                 date: '2025-12-18',
                 version: 'Version1.0',
-                changes: ['18:00正式测试']
+                changes: ['18:00正式测试', '项目正式启动', '未来可期']
             }
         ];
 
-        // 密码验证系统 - 密码不区分大小写
+        // 密码验证系统 - 新年版
         class PasswordVerificationSystem {
             constructor() {
-                this.CORRECT_PASSWORD = '2525CN';
+                this.CORRECT_PASSWORD = '2526CN'; // 新年密码
                 this.MAX_ATTEMPTS = 3;
                 this.LOCK_TIME = 5;
 
@@ -3221,7 +2927,7 @@
                 const inputPassword = this.input.value.trim();
                 
                 if (!inputPassword) {
-                    this.showError('请输入密码');
+                    this.showError('请输入新春测试码');
                     return;
                 }
                 
@@ -3248,7 +2954,7 @@
             
             onError() {
                 this.attempts++;
-                this.showError('密码错误，请重试');
+                this.showError('新春测试码错误，请重试');
                 this.shakeInput();
                 this.input.value = '';
                 this.updateAttemptsDisplay();
@@ -3341,139 +3047,27 @@
             
             showLockMessage() {
                 const remainingMinutes = Math.ceil((this.lockEndTime - Date.now()) / (60 * 1000));
-                alert(`密码输入错误次数过多！\n请 ${remainingMinutes} 分钟后再试。`);
+                alert(`新春测试码输入错误次数过多！\n请 ${remainingMinutes} 分钟后再试。`);
             }
         }
 
-        // 性能模式管理器
-        class PerformanceModeManager {
-            constructor() {
-                this.mode = this.getStoredMode() || 'auto';
-                this.isPC = this.detectPC();
-            }
-            
-            detectPC() {
-                return !/android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
-            }
-            
-            async showModeSelector() {
-                if (this.isPC) {
-                    this.setMode('performance');
-                    return;
-                }
-                
-                // 手机端显示选择弹窗
-                return new Promise(resolve => {
-                    const modal = document.createElement('div');
-                    modal.className = 'mode-selector-modal';
-                    modal.innerHTML = `
-                        <h3>选择运行模式</h3>
-                        <button class="mode-btn performance">粒子音乐模式</button>
-                        <button class="mode-btn compatibility">兼容模式</button>
-                    `;
-                    document.body.appendChild(modal);
-                    
-                    modal.querySelector('.performance').onclick = () => {
-                        this.setMode('performance');
-                        modal.remove();
-                        resolve('performance');
-                    };
-                    modal.querySelector('.compatibility').onclick = () => {
-                        this.setMode('compatibility');
-                        modal.remove();
-                        resolve('compatibility');
-                    };
-                });
-            }
-            
-            setMode(mode) {
-                this.mode = mode;
-                localStorage.setItem('performanceMode', mode);
-                this.applyMode(mode);
-            }
-            
-            applyMode(mode) {
-                const body = document.body;
-                if (mode === 'compatibility') {
-                    body.classList.remove('performance-mode');
-                    body.classList.add('compatibility-mode');
-                    if (window.particleNetwork) window.particleNetwork.stop();
-                } else {
-                    body.classList.remove('compatibility-mode');
-                    body.classList.add('performance-mode');
-                    if (window.particleNetwork) window.particleNetwork.start();
-                }
-            }
-            
-            getStoredMode() {
-                return localStorage.getItem('performanceMode');
-            }
-        }
-
-        // 设置系统
+        // 设置系统 - 新年版（已移除，但保留兼容）
         class SettingsSystem {
             constructor() {
-                this.settingsModal = document.getElementById('settingsModal');
-                this.settingsClose = document.getElementById('settingsClose');
-                this.performanceToggle = document.getElementById('performanceToggle');
-                this.transitionOverlay = document.getElementById('transitionOverlay');
-                
-                this.init();
-            }
-            
-            init() {
-                // 绑定事件
-                this.settingsClose.addEventListener('click', () => this.hide());
-                this.settingsModal.addEventListener('click', (e) => {
-                    if (e.target === this.settingsModal) this.hide();
-                });
-                
-                // 性能模式切换
-                this.performanceToggle.addEventListener('change', (e) => {
-                    this.showTransition(() => {
-                        const mode = e.target.checked ? 'performance' : 'compatibility';
-                        modeManager.setMode(mode);
-                        this.performanceToggle.checked = mode === 'performance';
-                    });
-                });
-                
-                // 键盘快捷键
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape' && this.settingsModal.classList.contains('active')) {
-                        this.hide();
-                    }
-                });
+                // 设置功能已移除
             }
             
             show() {
-                // 初始化当前状态
-                this.performanceToggle.checked = document.body.classList.contains('performance-mode');
-                
-                this.settingsModal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                
-                // 添加显示动画
+                // 显示新年祝福弹窗
+                const blessing = document.getElementById('newYearBlessing');
+                blessing.classList.add('show');
                 setTimeout(() => {
-                    this.settingsModal.querySelector('.modal-content').style.transform = 'scale(1) translateY(0)';
-                }, 10);
+                    blessing.classList.remove('show');
+                }, 3000);
             }
             
             hide() {
-                this.settingsModal.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-            
-            showTransition(callback) {
-                this.transitionOverlay.classList.add('active');
-                
-                setTimeout(() => {
-                    callback();
-                    
-                    // 等待DOM更新
-                    setTimeout(() => {
-                        this.transitionOverlay.classList.remove('active');
-                    }, 600);
-                }, 400);
+                // 无需操作
             }
         }
 
@@ -3534,7 +3128,7 @@
             icon.classList.remove('fa-times');
         }
 
-        // 渲染更新历史 - 长条版本显示
+        // 渲染更新历史 - 新年版
         function renderUpdateHistory() {
             const timeline = document.getElementById('historyTimeline');
             if (!timeline) return;
@@ -3559,6 +3153,35 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        // 新年烟花彩蛋触发
+        function setupFireworkEasterEgg() {
+            let fireworkCount = 0;
+            document.addEventListener('dblclick', (e) => {
+                if (fireworkCount < 5) {
+                    createFireworkAt(e.clientX, e.clientY);
+                    fireworkCount++;
+                }
+            });
+        }
+
+        function createFireworkAt(x, y) {
+            const container = document.getElementById('fireworkContainer');
+            const colors = ['#ff6b6b', '#ffd93d', '#ff9ff3', '#4dabf7', '#51cf66'];
+            
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'sparkle';
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.setProperty('--x', `${(Math.random() - 0.5) * 200}px`);
+                particle.style.setProperty('--y', `${(Math.random() - 0.5) * 200}px`);
+                container.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 1000);
+            }
         }
 
         function setupMobileMenu() {
@@ -3657,7 +3280,7 @@
                     ${content.requirements.map(req => `<li>${req}</li>`).join('')}
                 </ul>
 
-                <h4>提示</h4>
+                <h4>新春提示</h4>
                 <p>${content.tips}</p>
             `;
 
@@ -3671,7 +3294,7 @@
             document.body.style.overflow = '';
         }
 
-        // 优化加载动画
+        // 新年优化加载动画
         function hideLoading() {
             const loading = document.getElementById('loading');
             const spinner = loading.querySelector('.loading-spinner');
@@ -3681,8 +3304,8 @@
             
             setTimeout(() => {
                 spinner.style.display = 'none';
-                loadingText.textContent = '已验证安全Version1.85';
-                loadingSubtext.textContent = '验证完成，正在加载界面...';
+                loadingText.textContent = '已验证安全 Version1.90新春版';
+                loadingSubtext.textContent = '验证完成，正在加载新春界面...';
                 loadingCheck.style.display = 'block';
                 
                 setTimeout(() => {
@@ -3691,12 +3314,20 @@
                     setTimeout(() => {
                         loading.style.display = 'none';
                         document.getElementById('musicPlayer').classList.add('show');
-                    }, 500);
-                }, 800);
-            }, 2000);
+                        // 显示新年祝福
+                        setTimeout(() => {
+                            const blessing = document.getElementById('newYearBlessing');
+                            blessing.classList.add('show');
+                            setTimeout(() => {
+                                blessing.classList.remove('show');
+                            }, 4000);
+                        }, 1000);
+                    }, 600);
+                }, 1000);
+            }, 1800);
         }
 
-        // 多格式音乐文件加载器
+        // 多格式音乐加载器
         class MusicLoader {
             constructor() {
                 this.supportedFormats = [
@@ -3717,7 +3348,7 @@
             async detectMusic() {
                 const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
                 
-                const namePatterns = ['music', 'bgm', 'background', 'audio'];
+                const namePatterns = ['music', 'bgm', 'background', 'audio', 'spring'];
                 
                 for (const name of namePatterns) {
                     for (const format of this.supportedFormats) {
@@ -3791,7 +3422,7 @@
             }
         }
 
-        // 初始化音乐播放器 - 增强Media Session API
+        // 初始化音乐播放器
         async function initializeMusicPlayer() {
             const musicLoader = new MusicLoader();
             await musicLoader.detectMusic();
@@ -3803,10 +3434,10 @@
             if (statusElement) {
                 if (updated) {
                     const info = musicLoader.getMusicInfo();
-                    statusElement.innerHTML = `<i class="fas fa-check-circle"></i> <span>音乐已加载 (${info.format}格式)</span>`;
+                    statusElement.innerHTML = `<i class="fas fa-check-circle"></i> <span>新春音乐已加载 (${info.format}格式)</span>`;
                     statusElement.className = 'lyrics-status success';
                 } else {
-                    statusElement.innerHTML = `<i class="fas fa-info-circle"></i> <span>使用默认音乐文件</span>`;
+                    statusElement.innerHTML = `<i class="fas fa-info-circle"></i> <span>使用默认新春音乐</span>`;
                 }
             }
             
@@ -3857,11 +3488,13 @@
                 }
             });
             
+            // 播放时触发烟花
             musicButton.addEventListener('click', () => {
                 if (!isPlaying) {
                     bgMusic.play().then(() => {
                         isPlaying = true;
                         updateButtonState('playing');
+                        createFireworkAt(window.innerWidth / 2, window.innerHeight / 2);
                     }).catch(e => {
                         console.error('播放失败:', e);
                         updateButtonState('error');
@@ -3882,7 +3515,7 @@
             
             bgMusic.addEventListener('loadedmetadata', () => {
                 if(statusElement) {
-                    statusElement.innerHTML = `<i class="fas fa-check-circle"></i> <span>音乐已加载：${bgMusic.duration.toFixed(1)}秒</span>`;
+                    statusElement.innerHTML = `<i class="fas fa-check-circle"></i> <span>新春音乐已加载：${bgMusic.duration.toFixed(1)}秒</span>`;
                 }
                 setupMediaSession();
             });
@@ -3897,9 +3530,9 @@
                 if ('mediaSession' in navigator) {
                     mediaSessionSupported = true;
                     navigator.mediaSession.metadata = new MediaMetadata({
-                        title: 'STNStudio背景音乐',
-                        artist: 'GLcn',
-                        album: '网页播放器',
+                        title: 'STNStudio新春背景音乐',
+                        artist: 'GLcn新春特辑',
+                        album: '网页播放器新年版',
                         artwork: [
                             { 
                                 src: 'https://raw.githubusercontent.com/glcn26/glcn26.github.io/main/musiclogo.jpg', 
@@ -3917,7 +3550,7 @@
                         if (isPlaying) musicButton.click();
                     });
                     
-                    console.log('✅ Media Session API 已启用');
+                    console.log('✅ 新春 Media Session API 已启用');
                 }
             }
             
@@ -4016,10 +3649,27 @@
             const timeElement = document.getElementById('beijingTime');
             const dateElement = document.getElementById('beijingDate');
             
+            // 隐藏彩蛋：在特定秒数显示名字
+            const currentSecond = beijingTime.getSeconds();
+            const shouldShowName = currentSecond === 26 || currentSecond === 6;
+            
             if (timeElement && dateElement) {
                 timeElement.textContent = timeString;
                 dateElement.textContent = dateString;
                 timeElement.style.opacity = serverTimeManager.isInitialized ? '1' : '0.6';
+                
+                // 特殊时间显示彩蛋
+                if (shouldShowName && !timeElement.classList.contains('name-shown')) {
+                    timeElement.classList.add('name-shown');
+                    const originalText = timeElement.textContent;
+                    timeElement.textContent = '26 · 新春';
+                    timeElement.style.fontSize = '0.8em';
+                    setTimeout(() => {
+                        timeElement.textContent = originalText;
+                        timeElement.style.fontSize = '';
+                        timeElement.classList.remove('name-shown');
+                    }, 800);
+                }
             }
         }
 
@@ -4048,6 +3698,7 @@
             });
         }
 
+        // 新年歌词解析器
         class LyricParser {
             constructor() {
                 this.lyrics = [];
@@ -4096,6 +3747,7 @@
             }
         }
 
+        // 新年歌词显示 - 隐藏彩蛋
         class LyricDisplay {
             constructor() {
                 this.lyrics = [];
@@ -4143,7 +3795,7 @@
             }
             
             async loadLyrics(url) {
-                this.showStatus('loading', '正在加载歌词...');
+                this.showStatus('loading', '正在加载新春歌词...');
                 
                 try {
                     const controller = new AbortController();
@@ -4164,7 +3816,7 @@
                     
                     this.lyrics = result.lyrics;
                     this.renderLyrics();
-                    this.showStatus('success', `歌词加载成功：${result.title || '音乐'}`);
+                    this.showStatus('success', `新春歌词加载成功：${result.title || '新春乐章'}`);
                     
                     if (result.title) {
                         this.title.textContent = result.title;
@@ -4177,15 +3829,23 @@
                             }
                         }, 500);
                     }
+                    
+                    // 隐藏彩蛋：加载完成后显示祝福
+                    setTimeout(() => {
+                        const fortune = this.container.querySelector('.fortune-text');
+                        if (fortune) {
+                            fortune.textContent = '愿新岁，顺遂如意 · 学业进步';
+                        }
+                    }, 2000);
                 } catch (error) {
-                    let message = '歌词加载失败';
+                    let message = '新春歌词加载失败';
                     if (error.name === 'AbortError') {
                         message = '歌词加载超时';
                     } else if (error.message) {
                         message += '：' + error.message;
                     }
                     this.showStatus('error', message);
-                    this.title.textContent = '暂无歌词';
+                    this.title.textContent = '新春乐章';
                     console.error('歌词加载错误:', error);
                 }
             }
@@ -4220,6 +3880,11 @@
                 const totalDuration = this.lyrics[this.lyrics.length - 1].time;
                 const progress = (currentTime / totalDuration) * 100;
                 this.progressBar.style.width = Math.min(progress, 100) + '%';
+                
+                // 隐藏彩蛋：特定歌词时间显示名字
+                if (this.currentIndex === 26 || this.currentIndex === 6) {
+                    this.showSecretName();
+                }
             }
             
             highlightLine(index) {
@@ -4239,6 +3904,17 @@
                             this.linesContainer.style.transform = `translateY(-${offset}px)`;
                         }
                     }
+                }
+            }
+            
+            showSecretName() {
+                // 随机显示隐藏名字
+                if (Math.random() < 0.1) { // 10%概率
+                    const originalTitle = this.title.textContent;
+                    this.title.textContent = '新春 · 2026';
+                    setTimeout(() => {
+                        this.title.textContent = originalTitle;
+                    }, 1000);
                 }
             }
             
@@ -4286,7 +3962,8 @@
             const musicButton = document.getElementById('musicButton');
             const lyricDisplay = new LyricDisplay();
             
-            lyricDisplay.loadLyrics('歌词.lrc');
+            // 加载新春歌词
+            lyricDisplay.loadLyrics('新春.lrc');
             
             audio.addEventListener('timeupdate', () => {
                 if (!audio.paused && audio.readyState >= 2) {
@@ -4308,15 +3985,15 @@
             });
             
             audio.addEventListener('loadedmetadata', () => {
-                lyricDisplay.showStatus('success', `音乐已加载：${audio.duration.toFixed(1)}秒`);
+                lyricDisplay.showStatus('success', `新春音乐已加载：${audio.duration.toFixed(1)}秒`);
             });
             
             audio.addEventListener('error', (e) => {
-                lyricDisplay.showStatus('error', '音乐加载失败');
+                lyricDisplay.showStatus('error', '新春音乐加载失败');
             });
         }
 
-        // 优化自动刷新系统 - 仅隐藏UI，功能保留
+        // 新年自动刷新系统
         function setupAutoRefresh() {
             const REFRESH_INTERVAL = 8 * 60 * 1000;
             let lastRefreshTime = Date.now();
@@ -4359,8 +4036,8 @@
             modeManager = new PerformanceModeManager();
             settingsSystem = new SettingsSystem();
             
-            // 显示模式选择
-            await modeManager.showModeSelector();
+            // 默认性能模式（新年版）
+            document.body.classList.add('performance-mode');
             
             await serverTimeManager.syncTime();
             
@@ -4373,15 +4050,13 @@
             setupScrollEffects();
             applyStaggerAnimation();
             setupLyricsIntegration();
+            setupFireworkEasterEgg();
             detectUA();
             
-            // 启动粒子系统（性能模式）
-            if (modeManager.mode === 'performance') {
-                document.body.classList.add('performance-mode');
-                particleNetwork = new EnhancedParticleNetwork();
-            }
+            // 启动粒子系统（新年版）
+            particleNetwork = new EnhancedParticleNetwork();
             
-            // 优化定时器 - 使用requestAnimationFrame对齐的时间更新
+            // 优化定时器
             let lastTimeUpdate = Date.now();
             let lastUptimeUpdate = Date.now();
             
@@ -4415,7 +4090,7 @@
                 if (homeworkNavItem) {
                     homeworkNavItem.style.opacity = '0.5';
                     homeworkNavItem.style.pointerEvents = 'none';
-                    homeworkNavItem.title = '密码尝试次数过多，请稍后再试';
+                    homeworkNavItem.title = '新春测试码尝试次数过多，请稍后再试';
                 }
             }
 
@@ -4434,7 +4109,7 @@
             setTimeout(() => {
                 initializeApp().catch(console.error);
                 hideLoading();
-            }, 500);
+            }, 400);
         });
         
         document.addEventListener('keydown', (e) => {
@@ -4453,7 +4128,7 @@
                     hideHomeworkModal();
                 }
                 
-                if (settingsSystem && settingsSystem.settingsModal.classList.contains('active')) {
+                if (settingsSystem && settingsSystem.settingsModal && settingsSystem.settingsModal.classList.contains('active')) {
                     settingsSystem.hide();
                 }
             }
@@ -4474,6 +4149,11 @@
                 updateUptime();
             }
         });
+
+        // 新年特别：页面加载3秒后自动播放一次烟花
+        setTimeout(() => {
+            createFireworkAt(window.innerWidth / 2, window.innerHeight * 0.3);
+        }, 3000);
     </script>
 </body>
 </html>
