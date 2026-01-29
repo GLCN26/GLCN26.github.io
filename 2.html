@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>恐怖迷宫</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+            -webkit-focus-ring-color: transparent;
+        }
+        
+        *:focus {
+            outline: none;
+        }
+        
+        button:focus {
+            outline: none;
+        }
+        
+        input:focus {
+            outline: none;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: auto;
+        }
+        
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .interactive {
+            pointer-events: auto;
+        }
+        
+        #joystick-zone {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+        }
+        
+        #joystick-knob {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: #fff;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            margin-left: -25px;
+            margin-top: -25px;
+            will-change: transform;
+        }
+        
+        #settings-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        #settings-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        #settings-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 90%;
+            max-width: 360px;
+            background: #1c1b1f;
+            border-radius: 28px;
+            padding: 24px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, transform 0.2s;
+            color: #e6e1e5;
+        }
+        
+        #settings-panel.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .settings-title {
+            font-size: 24px;
+            font-weight: 400;
+            color: #e6e1e5;
+        }
+        
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            color: #e6e1e5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .icon-btn:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .setting-item {
+            margin-bottom: 20px;
+        }
+        
+        .setting-label {
+            font-size: 14px;
+            color: #cac4d0;
+            margin-bottom: 12px;
+            display: block;
+            letter-spacing: 0.5px;
+        }
+        
+        .md-slider {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: #49454f;
+            outline: none;
+            -webkit-appearance: none;
+            position: relative;
+        }
+        
+        .md-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #d0bcff;
+            cursor: pointer;
+            transition: transform 0.1s;
+            outline: none;
+            border: none;
+        }
+        
+        .md-slider::-webkit-slider-thumb:active {
+            transform: scale(1.2);
+        }
+        
+        .md-slider:focus {
+            outline: none;
+        }
+        
+        .setting-value {
+            font-size: 14px;
+            color: #d0bcff;
+            margin-top: 8px;
+            display: inline-block;
+        }
+        
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: opacity 0.3s;
+        }
+        
+        .game-title {
+            font-size: 48px;
+            color: #fff;
+            font-weight: 400;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+        
+        .game-subtitle {
+            font-size: 16px;
+            color: #938f99;
+            margin-bottom: 48px;
+            text-align: center;
+            line-height: 1.5;
+        }
+        
+        .md-button {
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 1.25px;
+            text-transform: uppercase;
+            background: #d0bcff;
+            color: #381e72;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        .md-button:active {
+            background: #ccc2dc;
+        }
+        
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        
+        #crosshair::before,
+        #crosshair::after {
+            content: '';
+            position: absolute;
+            background: #fff;
+        }
+        
+        #crosshair::before {
+            width: 2px;
+            height: 24px;
+            left: 11px;
+            top: 0;
+        }
+        
+        #crosshair::after {
+            width: 24px;
+            height: 2px;
+            left: 0;
+            top: 11px;
+        }
+        
+        #fps-counter {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            color: #4ade80;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 12px;
+            border-radius: 8px;
+            letter-spacing: 0.5px;
+        }
+        
+        #win-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 90;
+        }
+        
+        .win-title {
+            font-size: 32px;
+            color: #fff;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+        
+        .win-subtitle {
+            font-size: 16px;
+            color: #938f99;
+            margin-bottom: 32px;
+        }
+        
+        #author-credit {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            pointer-events: none;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    
+    <div class="ui-layer">
+        <div id="fps-counter">60 FPS</div>
+        
+        <div id="crosshair"></div>
+        
+        <button id="settings-btn" class="interactive" aria-label="设置">⚙️</button>
+        
+        <div id="joystick-zone" class="interactive">
+            <div id="joystick-knob"></div>
+        </div>
+        
+        <div id="author-credit">原创作者 by STNStudio</div>
+        
+        <div id="settings-panel" class="interactive">
+            <div class="settings-header">
+                <h2 class="settings-title">设置</h2>
+                <button class="icon-btn" onclick="closeSettings()" aria-label="关闭">×</button>
+            </div>
+            
+            <div class="setting-item">
+                <label class="setting-label">视角灵敏度</label>
+                <input type="range" class="md-slider" id="sensitivity" min="0.5" max="5" step="0.1" value="2">
+                <span class="setting-value" id="sens-val">2.0</span>
+            </div>
+            
+            <div class="setting-item">
+                <label class="setting-label">渲染质量</label>
+                <input type="range" class="md-slider" id="quality" min="1" max="3" step="1" value="2">
+                <span class="setting-value" id="quality-val">中</span>
+            </div>
+            
+            <div class="setting-item">
+                <label class="setting-label">视野范围 (FOV)</label>
+                <input type="range" class="md-slider" id="fov" min="60" max="120" step="5" value="75">
+                <span class="setting-value" id="fov-val">75°</span>
+            </div>
+            
+            <div class="setting-item">
+                <label class="setting-label">恐怖元素强度</label>
+                <input type="range" class="md-slider" id="horror-level" min="0" max="3" step="1" value="2">
+                <span class="setting-value" id="horror-val">中</span>
+            </div>
+        </div>
+        
+        <div id="win-screen">
+            <div class="win-title">逃脱成功</div>
+            <div class="win-subtitle">你活下来了...</div>
+            <button class="md-button" onclick="restartGame()">再次挑战</button>
+        </div>
+    </div>
+    
+    <div id="start-screen" class="interactive">
+        <h1 class="game-title">恐怖迷宫</h1>
+        <p class="game-subtitle">
+            左下角摇杆移动<br>
+            右侧滑动转向<br>
+            小心黑暗中的小黑...
+        </p>
+        <button class="md-button" onclick="startGame()">开始游戏</button>
+    </div>
+
+    <script>
+        const config = {
+            sensitivity: 2.0,
+            quality: 2,
+            fov: 75,
+            horrorLevel: 2,
+            moveSpeed: 0.04,
+            wallHeight: 1.0,
+            renderDistance: 20
+        };
+        
+        let canvas, ctx;
+        let player = { x: 1.5, y: 1.5, angle: 0 };
+        let maze = [];
+        let mazeWidth = 21;
+        let mazeHeight = 21;
+        let keys = {};
+        let joystick = { active: false, dx: 0, dy: 0, originX: 0, originY: 0 };
+        let touchLook = { active: false, lastX: 0, lastY: 0 };
+        let animationId;
+        let lastTime = 0;
+        let frameCount = 0;
+        let lastFpsTime = 0;
+        let isGameRunning = false;
+        
+        let isHallucinating = false;
+        let hallucinationIntensity = 0;
+        let distortionOffset = 0;
+        let movementGlitch = false;
+        let rotationGlitch = 0;
+        
+        let xiaohei = null;
+        let xiaoheiTimer = 0;
+        
+        let bobTime = 0;
+        let bobVelocity = 0;
+        let isMoving = false;
+        let lastPos = { x: 1.5, y: 1.5 };
+        
+        function init() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d', { alpha: false });
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            generateMaze();
+            setupControls();
+            setupSettings();
+        }
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            canvas.style.width = window.innerWidth + 'px';
+            canvas.style.height = window.innerHeight + 'px';
+        }
+        
+        function generateMaze() {
+            maze = [];
+            for (let y = 0; y < mazeHeight; y++) {
+                maze[y] = [];
+                for (let x = 0; x < mazeWidth; x++) {
+                    maze[y][x] = 1;
+                }
+            }
+            
+            const stack = [];
+            const startX = 1;
+            const startY = 1;
+            maze[startY][startX] = 0;
+            stack.push({x: startX, y: startY});
+            
+            const directions = [
+                {dx: 0, dy: -2}, {dx: 2, dy: 0},
+                {dx: 0, dy: 2}, {dx: -2, dy: 0}
+            ];
+            
+            while (stack.length > 0) {
+                const current = stack[stack.length - 1];
+                const neighbors = [];
+                
+                for (let dir of directions) {
+                    const nx = current.x + dir.dx;
+                    const ny = current.y + dir.dy;
+                    
+                    if (nx > 0 && nx < mazeWidth - 1 && 
+                        ny > 0 && ny < mazeHeight - 1 && 
+                        maze[ny][nx] === 1) {
+                        neighbors.push({x: nx, y: ny, dx: dir.dx, dy: dir.dy});
+                    }
+                }
+                
+                if (neighbors.length > 0) {
+                    const chosen = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    maze[chosen.y][chosen.x] = 0;
+                    maze[current.y + chosen.dy/2][current.x + chosen.dx/2] = 0;
+                    stack.push({x: chosen.x, y: chosen.y});
+                } else {
+                    stack.pop();
+                }
+            }
+            
+            for (let i = 0; i < 15; i++) {
+                const x = Math.floor(Math.random() * (mazeWidth - 2)) + 1;
+                const y = Math.floor(Math.random() * (mazeHeight - 2)) + 1;
+                if (maze[y][x] === 1) {
+                    let neighbors = 0;
+                    if (maze[y-1][x] === 0) neighbors++;
+                    if (maze[y+1][x] === 0) neighbors++;
+                    if (maze[y][x-1] === 0) neighbors++;
+                    if (maze[y][x+1] === 0) neighbors++;
+                    if (neighbors >= 2) maze[y][x] = 0;
+                }
+            }
+            
+            maze[mazeHeight - 2][mazeWidth - 2] = 0;
+        }
+        
+        function setupControls() {
+            const joystickZone = document.getElementById('joystick-zone');
+            const joystickKnob = document.getElementById('joystick-knob');
+            
+            const handleStart = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const touch = e.touches[0];
+                const rect = joystickZone.getBoundingClientRect();
+                
+                joystick.active = true;
+                joystick.originX = rect.left + rect.width / 2;
+                joystick.originY = rect.top + rect.height / 2;
+                
+                updateJoystick(touch.clientX, touch.clientY);
+            };
+            
+            const handleMove = (e) => {
+                if (!joystick.active) return;
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const touch = e.touches[0];
+                updateJoystick(touch.clientX, touch.clientY);
+            };
+            
+            const handleEnd = (e) => {
+                e.preventDefault();
+                joystick.active = false;
+                joystick.dx = 0;
+                joystick.dy = 0;
+                joystickKnob.style.transform = 'translate(0px, 0px)';
+            };
+            
+            joystickZone.addEventListener('touchstart', handleStart, {passive: false});
+            joystickZone.addEventListener('touchmove', handleMove, {passive: false});
+            joystickZone.addEventListener('touchend', handleEnd, {passive: false});
+            joystickZone.addEventListener('touchcancel', handleEnd, {passive: false});
+            
+            document.addEventListener('touchstart', (e) => {
+                if (e.target.closest('#joystick-zone') || e.target.closest('.interactive')) return;
+                
+                const touch = e.touches[0];
+                if (touch.clientX > window.innerWidth * 0.25) {
+                    touchLook.active = true;
+                    touchLook.lastX = touch.clientX;
+                    touchLook.lastY = touch.clientY;
+                }
+            }, {passive: false});
+            
+            document.addEventListener('touchmove', (e) => {
+                if (!touchLook.active) return;
+                
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - touchLook.lastX;
+                
+                player.angle += deltaX * 0.004 * config.sensitivity;
+                
+                touchLook.lastX = touch.clientX;
+                touchLook.lastY = touch.clientY;
+            }, {passive: false});
+            
+            document.addEventListener('touchend', () => {
+                touchLook.active = false;
+            });
+            
+            document.addEventListener('keydown', (e) => {
+                keys[e.key] = true;
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                keys[e.key] = false;
+            });
+        }
+        
+        function updateJoystick(clientX, clientY) {
+            const joystickKnob = document.getElementById('joystick-knob');
+            const maxDist = 35;
+            
+            let dx = clientX - joystick.originX;
+            let dy = clientY - joystick.originY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist > maxDist) {
+                const ratio = maxDist / dist;
+                dx *= ratio;
+                dy *= ratio;
+            }
+            
+            joystick.dx = dx / maxDist;
+            joystick.dy = dy / maxDist;
+            
+            joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+        }
+        
+        function setupSettings() {
+            const bindSlider = (id, configKey, displayId, formatter) => {
+                const slider = document.getElementById(id);
+                const display = document.getElementById(displayId);
+                
+                slider.addEventListener('input', (e) => {
+                    const val = parseFloat(e.target.value);
+                    config[configKey] = val;
+                    display.textContent = formatter ? formatter(val) : val;
+                });
+            };
+            
+            bindSlider('sensitivity', 'sensitivity', 'sens-val', v => v.toFixed(1));
+            bindSlider('quality', 'quality', 'quality-val', v => ['低', '中', '高'][v-1]);
+            bindSlider('fov', 'fov', 'fov-val', v => v + '°');
+            bindSlider('horror-level', 'horrorLevel', 'horror-val', v => ['无', '低', '中', '高'][v]);
+            
+            document.getElementById('settings-btn').addEventListener('click', () => {
+                document.getElementById('settings-panel').classList.add('active');
+            });
+        }
+        
+        function closeSettings() {
+            document.getElementById('settings-panel').classList.remove('active');
+        }
+        
+        function gameLoop(timestamp) {
+            if (!isGameRunning) return;
+            
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+            
+            update(deltaTime);
+            render();
+            
+            frameCount++;
+            if (timestamp - lastFpsTime >= 1000) {
+                document.getElementById('fps-counter').textContent = frameCount + ' FPS';
+                frameCount = 0;
+                lastFpsTime = timestamp;
+            }
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+        
+        function update(deltaTime) {
+            const exitX = mazeWidth - 2;
+            const exitY = mazeHeight - 2;
+            const distToExit = Math.sqrt(
+                Math.pow(player.x - exitX, 2) + 
+                Math.pow(player.y - exitY, 2)
+            );
+            const maxDist = Math.sqrt(mazeWidth*mazeWidth + mazeHeight*mazeHeight);
+            const progress = 1 - (distToExit / maxDist);
+            
+            updateHallucinations(progress, deltaTime);
+            
+            let moveX = 0;
+            let moveY = 0;
+            
+            if (joystick.active) {
+                moveX += joystick.dx;
+                moveY -= joystick.dy;
+            }
+            
+            if (keys['w'] || keys['ArrowUp']) moveY -= 1;
+            if (keys['s'] || keys['ArrowDown']) moveY += 1;
+            if (keys['a'] || keys['ArrowLeft']) moveX -= 1;
+            if (keys['d'] || keys['ArrowRight']) moveX += 1;
+            
+            const wasMoving = isMoving;
+            isMoving = (moveX !== 0 || moveY !== 0);
+            
+            if (isMoving) {
+                let speed = config.moveSpeed * (deltaTime / 16);
+                
+                if (movementGlitch) {
+                    speed *= (0.3 + Math.random() * 0.4);
+                }
+                
+                const angle = player.angle + rotationGlitch;
+                
+                const forwardX = Math.cos(angle);
+                const forwardY = Math.sin(angle);
+                const rightX = Math.cos(angle + Math.PI/2);
+                const rightY = Math.sin(angle + Math.PI/2);
+                
+                const newX = player.x + (forwardX * moveY + rightX * moveX) * speed;
+                const newY = player.y + (forwardY * moveY + rightY * moveX) * speed;
+                
+                if (!isWall(newX, player.y, 0.25)) player.x = newX;
+                if (!isWall(player.x, newY, 0.25)) player.y = newY;
+                
+                const moveDist = Math.sqrt(
+                    Math.pow(player.x - lastPos.x, 2) + 
+                    Math.pow(player.y - lastPos.y, 2)
+                );
+                
+                bobVelocity += moveDist * 0.5;
+                lastPos.x = player.x;
+                lastPos.y = player.y;
+            }
+            
+            const targetBob = isMoving ? 1.0 : 0.0;
+            const currentBobSpeed = isMoving ? 0.3 : 0.1;
+            bobVelocity += (targetBob - Math.min(bobVelocity, 1.0)) * currentBobSpeed;
+            bobVelocity *= 0.85;
+            
+            if (bobVelocity > 0.01) {
+                bobTime += deltaTime * 0.015 * (1.0 + bobVelocity);
+            }
+            
+            updateXiaohei(progress, deltaTime);
+            
+            if (Math.floor(player.x) === mazeWidth - 2 && Math.floor(player.y) === mazeHeight - 2) {
+                winGame();
+            }
+        }
+        
+        function updateHallucinations(progress, deltaTime) {
+            if (config.horrorLevel === 0) return;
+            
+            const baseChance = 0.001 * config.horrorLevel * (0.5 + progress * 2);
+            
+            if (!isHallucinating && Math.random() < baseChance) {
+                isHallucinating = true;
+                hallucinationIntensity = 0;
+                movementGlitch = Math.random() < 0.3;
+                rotationGlitch = movementGlitch ? (Math.random() - 0.5) * 0.5 : 0;
+            }
+            
+            if (isHallucinating) {
+                hallucinationIntensity += deltaTime * 0.001;
+                distortionOffset += deltaTime * 0.01;
+                
+                if (hallucinationIntensity > 0.7) {
+                    player.angle += Math.sin(distortionOffset) * 0.002 * config.horrorLevel;
+                }
+                
+                if (hallucinationIntensity > 1.0 || Math.random() < 0.005) {
+                    isHallucinating = false;
+                    hallucinationIntensity = 0;
+                    movementGlitch = false;
+                    rotationGlitch = 0;
+                    distortionOffset = 0;
+                }
+            }
+        }
+        
+        function updateXiaohei(progress, deltaTime) {
+            if (config.horrorLevel === 0) return;
+            
+            xiaoheiTimer += deltaTime;
+            
+            if (!xiaohei && xiaoheiTimer > 3000 + Math.random() * 5000) {
+                const angle = player.angle + (Math.random() - 0.5) * 1.2;
+                const dist = 4 + Math.random() * 5;
+                const x = player.x + Math.cos(angle) * dist;
+                const y = player.y + Math.sin(angle) * dist;
+                
+                const gridX = Math.floor(x);
+                const gridY = Math.floor(y);
+                if (gridX > 0 && gridX < mazeWidth-1 && gridY > 0 && gridY < mazeHeight-1 && maze[gridY][gridX] === 0) {
+                    xiaohei = {
+                        x: x,
+                        y: y,
+                        birthTime: Date.now(),
+                        lifeTime: 150 + Math.random() * 250,
+                        seen: false
+                    };
+                }
+                xiaoheiTimer = 0;
+            }
+            
+            if (xiaohei && Date.now() - xiaohei.birthTime > xiaohei.lifeTime) {
+                xiaohei = null;
+            }
+        }
+        
+        function isWall(x, y, buffer) {
+            const gridX = Math.floor(x);
+            const gridY = Math.floor(y);
+            
+            if (gridX < 0 || gridX >= mazeWidth || gridY < 0 || gridY >= mazeHeight) {
+                return true;
+            }
+            
+            if (maze[gridY][gridX] === 1) return true;
+            
+            const localX = x - gridX;
+            const localY = y - gridY;
+            
+            if (localX < buffer && gridX > 0 && maze[gridY][gridX-1] === 1) return true;
+            if (localX > 1-buffer && gridX < mazeWidth-1 && maze[gridY][gridX+1] === 1) return true;
+            if (localY < buffer && gridY > 0 && maze[gridY-1][gridX] === 1) return true;
+            if (localY > 1-buffer && gridY < mazeHeight-1 && maze[gridY+1][gridX] === 1) return true;
+            
+            return false;
+        }
+        
+        function render() {
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, width, height);
+            
+            ctx.save();
+            if (isHallucinating && hallucinationIntensity > 0.3) {
+                const shakeX = (Math.random() - 0.5) * hallucinationIntensity * 10;
+                const shakeY = (Math.random() - 0.5) * hallucinationIntensity * 10;
+                ctx.translate(shakeX, shakeY);
+            }
+            
+            const fov = config.fov * Math.PI / 180;
+            const numRays = Math.floor(width / (config.quality === 1 ? 2 : config.quality === 2 ? 1.5 : 1));
+            
+            const bobY = Math.sin(bobTime) * bobVelocity * 8;
+            const bobAngle = Math.cos(bobTime * 0.5) * bobVelocity * 0.02;
+            
+            drawFloorAndCeiling(width, height, bobY);
+            
+            const zBuffer = new Array(numRays);
+            
+            for (let i = 0; i < numRays; i++) {
+                const rayAngle = player.angle + bobAngle - fov/2 + (i / numRays) * fov;
+                const ray = castRay(rayAngle);
+                zBuffer[i] = ray.distance;
+                
+                const perpDist = ray.distance * Math.cos(rayAngle - player.angle - bobAngle);
+                const wallHeight = (height / perpDist) * 0.6;
+                const wallTop = (height - wallHeight) / 2 + bobY;
+                
+                const shade = Math.max(0.15, 1 - perpDist / config.renderDistance);
+                const baseColor = ray.side === 0 ? [35, 35, 45] : [25, 25, 35];
+                const r = Math.floor(baseColor[0] * shade);
+                const g = Math.floor(baseColor[1] * shade);
+                const b = Math.floor(baseColor[2] * shade);
+                
+                const stripWidth = width / numRays;
+                ctx.fillStyle = `rgb(${r},${g},${b})`;
+                ctx.fillRect(i * stripWidth, wallTop, stripWidth + 1, wallHeight);
+                
+                if (config.quality >= 2) {
+                    ctx.fillStyle = `rgba(0,0,0,${0.4 - shade * 0.3})`;
+                    ctx.fillRect(i * stripWidth, wallTop, stripWidth + 1, wallHeight);
+                }
+            }
+            
+            if (xiaohei) {
+                drawXiaohei(width, height, fov, zBuffer, bobY);
+            }
+            
+            ctx.restore();
+            
+            drawMinimap(width, height);
+            
+            if (isHallucinating && hallucinationIntensity > 0.5) {
+                const alpha = (hallucinationIntensity - 0.5) * 0.3;
+                ctx.strokeStyle = `rgba(255, 0, 0, ${alpha})`;
+                ctx.lineWidth = 10;
+                ctx.strokeRect(0, 0, width, height);
+            }
+        }
+        
+        function castRay(angle) {
+            const sin = Math.sin(angle);
+            const cos = Math.cos(angle);
+            
+            let dist = 0;
+            const step = 0.02;
+            let side = 0;
+            
+            while (dist < config.renderDistance) {
+                dist += step;
+                const x = player.x + cos * dist;
+                const y = player.y + sin * dist;
+                
+                const gridX = Math.floor(x);
+                const gridY = Math.floor(y);
+                
+                if (gridX < 0 || gridX >= mazeWidth || gridY < 0 || gridY >= mazeHeight) {
+                    break;
+                }
+                
+                if (maze[gridY][gridX] === 1) {
+                    const hitX = x - gridX;
+                    const hitY = y - gridY;
+                    side = Math.abs(hitX - 0.5) > Math.abs(hitY - 0.5) ? 0 : 1;
+                    break;
+                }
+            }
+            
+            return { distance: dist, side };
+        }
+        
+        function drawFloorAndCeiling(width, height, bobY) {
+            const floorGrad = ctx.createLinearGradient(0, height/2 + bobY, 0, height);
+            floorGrad.addColorStop(0, '#0f0f0f');
+            floorGrad.addColorStop(1, '#1a1a1a');
+            ctx.fillStyle = floorGrad;
+            ctx.fillRect(0, height/2 + bobY, width, height/2 - bobY);
+            
+            const ceilGrad = ctx.createLinearGradient(0, 0, 0, height/2 + bobY);
+            ceilGrad.addColorStop(0, '#050505');
+            ceilGrad.addColorStop(1, '#0f0f0f');
+            ctx.fillStyle = ceilGrad;
+            ctx.fillRect(0, 0, width, height/2 + bobY);
+        }
+        
+        function drawXiaohei(width, height, fov, zBuffer, bobY) {
+            const dx = xiaohei.x - player.x;
+            const dy = xiaohei.y - player.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist > config.renderDistance * 0.7) return;
+            
+            const angle = Math.atan2(dy, dx);
+            const relativeAngle = normalizeAngle(angle - player.angle);
+            
+            if (Math.abs(relativeAngle) > fov/2) return;
+            
+            const screenX = width/2 + Math.tan(relativeAngle) * (width/2) / Math.tan(fov/2);
+            const size = (height / dist) * 0.6;
+            
+            const rayIndex = Math.floor((relativeAngle + fov/2) / fov * zBuffer.length);
+            if (rayIndex < 0 || rayIndex >= zBuffer.length || dist > zBuffer[rayIndex]) return;
+            
+            const centerDist = Math.abs(screenX - width/2) / (width/2);
+            if (centerDist > 0.7) return;
+            
+            const alpha = Math.min(0.9, (1 - dist/config.renderDistance) * 1.5);
+            ctx.fillStyle = `rgba(0,0,0,${alpha})`;
+            
+            const x = screenX - size/6;
+            const y = height/2 - size/2 + bobY;
+            const w = size/3;
+            const h = size;
+            
+            ctx.fillRect(x, y + h*0.3, w, h*0.7);
+            
+            ctx.beginPath();
+            ctx.arc(x + w/2, y + h*0.15, w/2.5, 0, Math.PI*2);
+            ctx.fill();
+            
+            const eyeGlow = Math.sin(Date.now() * 0.02) * 0.5 + 0.5;
+            ctx.fillStyle = `rgba(255,0,0,${alpha * eyeGlow})`;
+            ctx.fillRect(x + w*0.2, y + h*0.12, w*0.15, w*0.1);
+            ctx.fillRect(x + w*0.65, y + h*0.12, w*0.15, w*0.1);
+            
+            xiaohei.seen = true;
+        }
+        
+        function drawMinimap(width, height) {
+            const mapSize = 80;
+            const cellSize = mapSize / Math.max(mazeWidth, mazeHeight);
+            const offsetX = 20;
+            const offsetY = 20;
+            
+            ctx.fillStyle = 'rgba(0,0,0,0.8)';
+            ctx.fillRect(offsetX, offsetY, mapSize, mapSize);
+            
+            for (let y = 0; y < mazeHeight; y++) {
+                for (let x = 0; x < mazeWidth; x++) {
+                    if (maze[y][x] === 1) {
+                        ctx.fillStyle = '#333';
+                        ctx.fillRect(
+                            offsetX + x * cellSize,
+                            offsetY + y * cellSize,
+                            cellSize - 0.5,
+                            cellSize - 0.5
+                        );
+                    }
+                }
+            }
+            
+            ctx.fillStyle = '#4ade80';
+            ctx.fillRect(
+                offsetX + (mazeWidth - 2) * cellSize,
+                offsetY + (mazeHeight - 2) * cellSize,
+                cellSize,
+                cellSize
+            );
+            
+            ctx.fillStyle = '#d0bcff';
+            ctx.beginPath();
+            ctx.arc(
+                offsetX + player.x * cellSize,
+                offsetY + player.y * cellSize,
+                2,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+            
+            ctx.strokeStyle = 'rgba(208,188,255,0.5)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(
+                offsetX + player.x * cellSize,
+                offsetY + player.y * cellSize
+            );
+            ctx.lineTo(
+                offsetX + (player.x + Math.cos(player.angle) * 0.3) * cellSize,
+                offsetY + (player.y + Math.sin(player.angle) * 0.3) * cellSize
+            );
+            ctx.stroke();
+        }
+        
+        function normalizeAngle(angle) {
+            while (angle > Math.PI) angle -= 2 * Math.PI;
+            while (angle < -Math.PI) angle += 2 * Math.PI;
+            return angle;
+        }
+        
+        function startGame() {
+            document.getElementById('start-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('start-screen').classList.add('hidden');
+            }, 300);
+            
+            isGameRunning = true;
+            lastTime = performance.now();
+            gameLoop(lastTime);
+        }
+        
+        function winGame() {
+            isGameRunning = false;
+            cancelAnimationFrame(animationId);
+            document.getElementById('win-screen').style.display = 'flex';
+        }
+        
+        function restartGame() {
+            player = { x: 1.5, y: 1.5, angle: 0 };
+            isHallucinating = false;
+            xiaohei = null;
+            bobTime = 0;
+            bobVelocity = 0;
+            lastPos = { x: 1.5, y: 1.5 };
+            generateMaze();
+            document.getElementById('win-screen').style.display = 'none';
+            isGameRunning = true;
+            lastTime = performance.now();
+            gameLoop(lastTime);
+        }
+        
+        window.onload = init;
+    </script>
+</body>
+</html>

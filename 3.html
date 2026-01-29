@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>细胞进化 - 移动端</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: none;
+        }
+        
+        body {
+            background: #0a0a1a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #gameCanvas {
+            display: block;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #0a0a1a 100%);
+        }
+        
+        /* HUD */
+        #hud {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 10px 15px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .hud-item {
+            text-align: center;
+            color: white;
+        }
+        
+        .hud-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0,255,136,0.5);
+        }
+        
+        .hud-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+        
+        .hud-center {
+            text-align: center;
+        }
+        
+        .stage-badge {
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        
+        /* 虚拟摇杆 */
+        #joystick-zone {
+            position: fixed;
+            bottom: 100px;
+            left: 80px;
+            width: 120px;
+            height: 120px;
+            z-index: 200;
+        }
+        
+        #joystick-base {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 3px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+        }
+        
+        #joystick-knob {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px rgba(0,255,136,0.5);
+            transition: transform 0.1s;
+        }
+        
+        #joystick-knob.active {
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+        
+        /* 技能按钮 */
+        #skill-panel {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 200;
+        }
+        
+        .skill-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid rgba(0,255,136,0.3);
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            position: relative;
+            transition: all 0.2s;
+        }
+        
+        .skill-btn:active {
+            transform: scale(0.95);
+            background: rgba(0,255,136,0.2);
+        }
+        
+        .skill-btn.cooldown {
+            opacity: 0.4;
+            border-color: #444;
+        }
+        
+        .skill-btn.active {
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0,255,136,0.5);
+            background: rgba(0,255,136,0.2);
+        }
+        
+        .skill-name {
+            font-size: 8px;
+            margin-top: 1px;
+            color: #aaa;
+        }
+        
+        .cooldown-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        
+        /* 进化菜单按钮 */
+        #evolution-btn {
+            position: fixed;
+            top: 80px;
+            right: 15px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #ffaa00, #ff8800);
+            border-radius: 50%;
+            border: none;
+            color: #000;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 200;
+            box-shadow: 0 4px 15px rgba(255,170,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #evolution-btn.pulse {
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        #evolution-btn .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff0000;
+            color: white;
+            font-size: 12px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 小地图 */
+        #minimap {
+            position: fixed;
+            top: 80px;
+            left: 15px;
+            width: 100px;
+            height: 100px;
+            background: rgba(0,0,0,0.6);
+            border: 2px solid rgba(0,255,136,0.3);
+            border-radius: 50%;
+            overflow: hidden;
+            z-index: 100;
+        }
+        
+        #minimap-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 底部进度条 */
+        #progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            z-index: 300;
+        }
+        
+        #progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        /* 开始界面 */
+        #start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+        }
+        
+        .game-title {
+            font-size: 48px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .game-subtitle {
+            color: #888;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        .start-btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .start-btn {
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            border: none;
+            color: #000;
+            padding: 20px 60px;
+            border-radius: 30px;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 20px rgba(0,255,136,0.4);
+            transition: all 0.3s;
+        }
+        
+        .easy-btn {
+            background: linear-gradient(135deg, #ffaa00, #ff8800);
+            border: none;
+            color: #000;
+            padding: 15px 50px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 4px 20px rgba(255,170,0,0.4);
+            transition: all 0.3s;
+        }
+        
+        .tutorial {
+            color: #aaa;
+            font-size: 14px;
+            text-align: center;
+            line-height: 1.6;
+            max-width: 300px;
+        }
+        
+        .tutorial-item {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* 进化面板 */
+        #evolution-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        #evolution-panel.show {
+            display: flex;
+        }
+        
+        .panel-header {
+            position: sticky;
+            top: 0;
+            background: rgba(0,0,0,0.98);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,255,136,0.3);
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+        
+        .panel-title {
+            color: #00ff88;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .close-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .dna-display {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,255,136,0.1);
+            border-bottom: 1px solid rgba(0,255,136,0.3);
+        }
+        
+        .dna-value {
+            font-size: 32px;
+            color: #00ff88;
+            font-weight: bold;
+        }
+        
+        .dna-label {
+            color: #888;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        .evolution-tree-container {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overflow-scrolling: touch;
+            padding: 20px;
+        }
+        
+        .evolution-tree {
+            min-height: min-content;
+            padding-bottom: 40px;
+        }
+        
+        .evolution-tier {
+            margin-bottom: 30px;
+        }
+        
+        .tier-title {
+            color: #00ff88;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .tier-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ff88, transparent);
+        }
+        
+        .tier-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 0 10px;
+        }
+        
+        .evolution-card {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .evolution-card.available {
+            border-color: #00ff88;
+            background: rgba(0,255,136,0.1);
+        }
+        
+        .evolution-card.unlocked {
+            border-color: #00ff88;
+            background: rgba(0,255,136,0.2);
+            opacity: 0.8;
+        }
+        
+        .evolution-card.locked {
+            opacity: 0.4;
+        }
+        
+        .evo-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .evo-name {
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+        
+        .evo-desc {
+            font-size: 10px;
+            color: #aaa;
+            margin-bottom: 10px;
+            line-height: 1.3;
+            min-height: 26px;
+        }
+        
+        .evo-cost {
+            background: rgba(255,170,0,0.2);
+            color: #ffaa00;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        
+        .evo-cost.paid {
+            background: rgba(0,255,136,0.3);
+            color: #00ff88;
+        }
+        
+        /* 特效 */
+        @keyframes magnetPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .magnet-active {
+            animation: magnetPulse 0.5s infinite;
+        }
+        
+        @keyframes godPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(255,215,0,0.5); }
+            50% { transform: scale(1.15); box-shadow: 0 0 40px rgba(255,215,0,0.8); }
+        }
+        
+        .god-active {
+            animation: godPulse 0.4s infinite;
+        }
+        
+        /* 通知 */
+        #notification {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 16px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 500;
+            pointer-events: none;
+            box-shadow: 0 4px 20px rgba(0,255,136,0.4);
+        }
+        
+        #notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        /* 特殊教程项 */
+        .tutorial-item.orange {
+            color: #ffaa00;
+        }
+    </style>
+</head>
+<body>
+    <!-- 游戏画布 -->
+    <canvas id="gameCanvas"></canvas>
+    
+    <!-- 小地图 -->
+    <div id="minimap">
+        <canvas id="minimap-canvas"></canvas>
+    </div>
+    
+    <!-- HUD -->
+    <div id="hud">
+        <div class="hud-item">
+            <div class="hud-value" id="massDisplay">10</div>
+            <div class="hud-label">质量</div>
+        </div>
+        <div class="hud-center">
+            <div class="stage-badge" id="stageDisplay">原始细胞</div>
+        </div>
+        <div class="hud-item">
+            <div class="hud-value" id="dnaDisplay">0</div>
+            <div class="hud-label">DNA</div>
+        </div>
+    </div>
+    
+    <!-- 进度条 -->
+    <div id="progress-bar">
+        <div id="progress-fill"></div>
+    </div>
+    
+    <!-- 虚拟摇杆 -->
+    <div id="joystick-zone">
+        <div id="joystick-base"></div>
+        <div id="joystick-knob"></div>
+    </div>
+    
+    <!-- 技能按钮 -->
+    <div id="skill-panel">
+        <div class="skill-btn" id="skill-boost" data-skill="boost">
+            ⚡
+            <span class="skill-name">加速</span>
+            <div class="cooldown-overlay hidden" id="cd-boost">0</div>
+        </div>
+        <div class="skill-btn" id="skill-split" data-skill="split">
+            🔄
+            <span class="skill-name">分裂</span>
+            <div class="cooldown-overlay hidden" id="cd-split">0</div>
+        </div>
+        <div class="skill-btn" id="skill-shield" data-skill="shield">
+            🛡️
+            <span class="skill-name">护盾</span>
+            <div class="cooldown-overlay hidden" id="cd-shield">0</div>
+        </div>
+        <div class="skill-btn" id="skill-magnet" data-skill="magnet">
+            🧲
+            <span class="skill-name">磁铁</span>
+            <div class="cooldown-overlay hidden" id="cd-magnet">0</div>
+        </div>
+        <div class="skill-btn" id="skill-god" data-skill="god">
+            👑
+            <span class="skill-name">无敌</span>
+            <div class="cooldown-overlay hidden" id="cd-god">0</div>
+        </div>
+    </div>
+    
+    <!-- 进化菜单按钮 -->
+    <button id="evolution-btn">
+        🧬
+        <span class="badge hidden" id="evo-badge">!</span>
+    </button>
+    
+    <!-- 进化面板 -->
+    <div id="evolution-panel">
+        <div class="panel-header">
+            <div class="panel-title">进化树</div>
+            <button class="close-btn" onclick="closeEvolution()">×</button>
+        </div>
+        <div class="dna-display">
+            <div class="dna-value" id="panel-dna">0 DNA</div>
+            <div class="dna-label">可用点数</div>
+        </div>
+        <div class="evolution-tree-container">
+            <div class="evolution-tree" id="evolution-tree"></div>
+        </div>
+    </div>
+    
+    <!-- 通知 -->
+    <div id="notification"></div>
+    
+    <!-- 开始界面 -->
+    <div id="start-screen">
+        <div class="game-title">🧬 细胞进化</div>
+        <div class="game-subtitle">生存 · 吞噬 · 进化</div>
+        <div class="start-btn-container">
+            <button class="start-btn" onclick="startGame(false)">开始游戏</button>
+            <button class="easy-btn" onclick="startGame(true)">🛋️ 躺平模式</button>
+        </div>
+        <div class="tutorial">
+            <div class="tutorial-item">🎮 左下角摇杆控制移动</div>
+            <div class="tutorial-item">⚡ 右下角技能按钮释放能力</div>
+            <div class="tutorial-item">🍽️ 吞噬小球和弱小细胞成长</div>
+            <div class="tutorial-item">🧬 收集DNA解锁进化</div>
+            <div class="tutorial-item">⚠️ 躲避比你大的红色细胞</div>
+            <div class="tutorial-item orange">🛋️ 躺平模式: 开局500质量</div>
+        </div>
+    </div>
+
+    <script>
+        // 画布设置
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const minimapCanvas = document.getElementById('minimap-canvas');
+        const minimapCtx = minimapCanvas.getContext('2d');
+        
+        // 游戏状态
+        const game = {
+            width: window.innerWidth,
+            height: window.innerHeight,
+            camera: { x: 0, y: 0 },
+            particles: [],
+            foods: [],
+            enemies: [],
+            staticCells: [],
+            evolutionStage: 0,
+            dna: 0,
+            totalMass: 0,
+            gameTime: 0,
+            running: false,
+            joystick: { active: false, dx: 0, dy: 0, originX: 0, originY: 0 },
+            magnetActive: false,
+            easyMode: false
+        };
+        
+        // 玩家
+        const player = {
+            x: 0,
+            y: 0,
+            radius: 10,
+            mass: 10,
+            vx: 0,
+            vy: 0,
+            speed: 2.5,
+            maxSpeed: 5,
+            senseRange: 120,
+            efficiency: 1,
+            color: '#00ff88',
+            abilities: {
+                boost: { cooldown: 0, maxCooldown: 150, active: false },
+                split: { cooldown: 0, maxCooldown: 500, active: false },
+                shield: { cooldown: 0, maxCooldown: 800, active: false, duration: 0 },
+                magnet: { cooldown: 0, maxCooldown: 350, active: false, duration: 0 },
+                god: { cooldown: 0, maxCooldown: 1000, active: false, duration: 0 }
+            },
+            trail: [],
+            unlockedEvolutions: ['basic']
+        };
+        
+        // 进化树
+        const evolutionTree = {
+            tier0: [
+                { id: 'basic', name: '原始细胞', desc: '基础细胞', cost: 0, icon: '🧬', unlocked: true }
+            ],
+            tier1: [
+                { id: 'membrane', name: '强化膜', desc: '减少被吞噬损失', cost: 50, requires: ['basic'], icon: '🛡️', stats: { defense: 0.3 } },
+                { id: 'flagella', name: '鞭毛', desc: '移动速度+50%', cost: 80, requires: ['basic'], icon: '⚡', stats: { speed: 1.5 } },
+                { id: 'cilia', name: '纤毛', desc: '转向更灵活', cost: 100, requires: ['basic'], icon: '🌀', stats: { agility: 1.3 } }
+            ],
+            tier2: [
+                { id: 'chloroplast', name: '叶绿体', desc: '静止恢复质量', cost: 150, requires: ['membrane'], icon: '🌿', stats: { photosynthesis: true } },
+                { id: 'mitochondria', name: '线粒体', desc: '技能冷却-30%', cost: 200, requires: ['flagella'], icon: '⚡', stats: { efficiency: 1.3 } },
+                { id: 'nucleus', name: '细胞核', desc: '感知范围翻倍', cost: 250, requires: ['cilia'], icon: '👁️', stats: { sense: 2 } }
+            ],
+            tier3: [
+                { id: 'toxin', name: '毒素', desc: '减缓附近敌人', cost: 400, requires: ['chloroplast', 'mitochondria'], icon: '☠️', stats: { toxin: true } },
+                { id: 'carnivore', name: '捕食者', desc: '吞噬双倍收益', cost: 500, requires: ['mitochondria', 'nucleus'], icon: '🦈', stats: { carnivore: 2 } },
+                { id: 'magnet', name: '磁铁', desc: '吸引弱小细胞', cost: 300, requires: ['mitochondria'], icon: '🧲', stats: { magnet: true } }
+            ],
+            tier4: [
+                { id: 'multicell', name: '多细胞', desc: '控制多个分身', cost: 1000, requires: ['toxin', 'carnivore'], icon: '🔷', stats: { multicell: true } },
+                { id: 'god', name: '无敌', desc: '吞噬一切', cost: 1200, requires: ['multicell'], icon: '👑', stats: { god: true } }
+            ]
+        };
+        
+        // 初始化
+        function init() {
+            resize();
+            window.addEventListener('resize', resize);
+            setupJoystick();
+            setupSkills();
+            setupEvolution();
+            setupTouchScroll();
+        }
+        
+        function setupTouchScroll() {
+            const container = document.querySelector('.evolution-tree-container');
+            if (!container) return;
+            
+            let startY = 0;
+            let scrollTop = 0;
+            let isScrolling = false;
+            
+            container.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].pageY;
+                scrollTop = container.scrollTop;
+                isScrolling = true;
+            }, { passive: true });
+            
+            container.addEventListener('touchmove', (e) => {
+                if (!isScrolling) return;
+                const currentY = e.touches[0].pageY;
+                const deltaY = currentY - startY;
+                container.scrollTop = scrollTop - deltaY;
+                e.preventDefault();
+            }, { passive: false });
+            
+            container.addEventListener('touchend', () => {
+                isScrolling = false;
+            }, { passive: true });
+        }
+        
+        function resize() {
+            game.width = window.innerWidth;
+            game.height = window.innerHeight;
+            canvas.width = game.width;
+            canvas.height = game.height;
+            minimapCanvas.width = 100;
+            minimapCanvas.height = 100;
+        }
+        
+        function startGame(easyMode = false) {
+            document.getElementById('start-screen').classList.add('hidden');
+            game.running = true;
+            game.easyMode = easyMode;
+            
+            if (easyMode) {
+                player.mass = 500;
+                player.radius = Math.sqrt(player.mass) * 3;
+                showNotification('🛋️ 躺平模式已启动！质量+490');
+            }
+            
+            spawnStaticCells();
+            for (let i = 0; i < 40; i++) spawnFood();
+            for (let i = 0; i < 12; i++) spawnEnemy();
+            
+            gameLoop();
+        }
+        
+        // 生成静态细胞
+        function spawnStaticCells() {
+            for (let i = 0; i < 80; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * 2500 + 200;
+                
+                game.staticCells.push({
+                    x: player.x + Math.cos(angle) * dist,
+                    y: player.y + Math.sin(angle) * dist,
+                    radius: Math.random() * 4 + 3,
+                    mass: Math.random() * 8 + 5,
+                    color: `hsl(${Math.random() * 40 + 90}, 85%, 55%)`,
+                    pulse: Math.random() * Math.PI,
+                    respawnTime: 0
+                });
+            }
+        }
+        
+        // 生成食物
+        function spawnFood() {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * 1500 + 300;
+            game.foods.push({
+                x: player.x + Math.cos(angle) * dist,
+                y: player.y + Math.sin(angle) * dist,
+                radius: Math.random() * 3 + 2,
+                color: `hsl(${Math.random() * 30 + 60}, 80%, 65%)`,
+                pulse: Math.random() * Math.PI
+            });
+        }
+        
+        // 生成敌人
+        function spawnEnemy() {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * 1200 + 400;
+            const mass = Math.random() * player.mass * 1.8 + 8;
+            game.enemies.push({
+                x: player.x + Math.cos(angle) * dist,
+                y: player.y + Math.sin(angle) * dist,
+                vx: 0,
+                vy: 0,
+                mass: mass,
+                radius: Math.sqrt(mass) * 2.5,
+                color: `hsl(${Math.random() * 40 + 340}, 80%, 55%)`,
+                ai: Math.random() > 0.4 ? 'hunter' : 'wander'
+            });
+        }
+        
+        // 虚拟摇杆
+        function setupJoystick() {
+            const zone = document.getElementById('joystick-zone');
+            const knob = document.getElementById('joystick-knob');
+            
+            let startX, startY;
+            
+            zone.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = zone.getBoundingClientRect();
+                startX = rect.left + rect.width / 2;
+                startY = rect.top + rect.height / 2;
+                
+                game.joystick.active = true;
+                updateJoystick(touch.clientX, touch.clientY);
+                knob.classList.add('active');
+            }, { passive: false });
+            
+            zone.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!game.joystick.active) return;
+                updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
+            }, { passive: false });
+            
+            zone.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                game.joystick.active = false;
+                game.joystick.dx = 0;
+                game.joystick.dy = 0;
+                knob.style.transform = `translate(-50%, -50%)`;
+                knob.classList.remove('active');
+            });
+            
+            function updateJoystick(clientX, clientY) {
+                const maxDist = 35;
+                let dx = clientX - startX;
+                let dy = clientY - startY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist > maxDist) {
+                    dx = (dx / dist) * maxDist;
+                    dy = (dy / dist) * maxDist;
+                }
+                
+                knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+                game.joystick.dx = dx / maxDist;
+                game.joystick.dy = dy / maxDist;
+            }
+        }
+        
+        // 技能按钮
+        function setupSkills() {
+            document.querySelectorAll('.skill-btn').forEach(btn => {
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    useSkill(btn.dataset.skill);
+                }, { passive: false });
+            });
+        }
+        
+        function useSkill(skill) {
+            const ability = player.abilities[skill];
+            if (ability.cooldown > 0) return;
+            
+            switch(skill) {
+                case 'boost':
+                    if (player.mass > 20) {
+                        ability.active = true;
+                        ability.cooldown = ability.maxCooldown;
+                        const speed = Math.sqrt(player.vx**2 + player.vy**2);
+                        if (speed > 0) {
+                            player.vx = (player.vx / speed) * player.maxSpeed * 4;
+                            player.vy = (player.vy / speed) * player.maxSpeed * 4;
+                        } else {
+                            player.vx = game.joystick.dx * player.maxSpeed * 4;
+                            player.vy = game.joystick.dy * player.maxSpeed * 4;
+                        }
+                        player.mass -= 5;
+                        showNotification('⚡ 加速!');
+                        createParticle(player.x, player.y, '#00ff88', 8);
+                    }
+                    break;
+                    
+                case 'split':
+                    if (player.mass > 50) {
+                        ability.active = true;
+                        ability.cooldown = ability.maxCooldown;
+                        player.mass *= 0.5;
+                        player.vx += game.joystick.dx * 15;
+                        player.vy += game.joystick.dy * 15;
+                        showNotification('🔄 分裂!');
+                        createExplosion(player.x, player.y, '#00ff88');
+                    }
+                    break;
+                    
+                case 'shield':
+                    ability.active = true;
+                    ability.duration = 150;
+                    ability.cooldown = ability.maxCooldown;
+                    showNotification('🛡️ 护盾!');
+                    break;
+                    
+                case 'magnet':
+                    if (player.unlockedEvolutions.includes('magnet')) {
+                        ability.active = true;
+                        ability.duration = 120;
+                        ability.cooldown = ability.maxCooldown;
+                        showNotification('🧲 磁铁激活!');
+                        game.magnetActive = true;
+                        createExplosion(player.x, player.y, '#4169E1');
+                    } else {
+                        showNotification('🧬 需先解锁磁铁进化');
+                    }
+                    break;
+                    
+                case 'god':
+                    if (player.unlockedEvolutions.includes('god')) {
+                        ability.active = true;
+                        ability.duration = 180;
+                        showNotification('👑 无敌模式! 吞噬一切!');
+                        game.godActive = true;
+                        createExplosion(player.x, player.y, '#FFD700');
+                        document.getElementById('skill-god').classList.add('god-active');
+                    } else {
+                        showNotification('🧬 需先解锁无敌进化');
+                    }
+                    break;
+            }
+        }
+        
+        // 进化系统
+        function setupEvolution() {
+            document.getElementById('evolution-btn').addEventListener('click', openEvolution);
+            renderEvolutionTree();
+        }
+        
+        function openEvolution() {
+            document.getElementById('evolution-panel').classList.add('show');
+            updateEvolutionUI();
+        }
+        
+        function closeEvolution() {
+            document.getElementById('evolution-panel').classList.remove('show');
+        }
+        
+        function renderEvolutionTree() {
+            const treeContainer = document.getElementById('evolution-tree');
+            treeContainer.innerHTML = '';
+            
+            const tiers = ['tier0', 'tier1', 'tier2', 'tier3', 'tier4'];
+            const tierNames = ['初始', '基础进化', '中级进化', '高级进化', '终极进化'];
+            
+            tiers.forEach((tier, index) => {
+                const tierData = evolutionTree[tier];
+                if (!tierData || tierData.length === 0) return;
+                
+                const tierDiv = document.createElement('div');
+                tierDiv.className = 'evolution-tier';
+                
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'tier-title';
+                titleDiv.textContent = tierNames[index];
+                tierDiv.appendChild(titleDiv);
+                
+                const cardsDiv = document.createElement('div');
+                cardsDiv.className = 'tier-cards';
+                
+                tierData.forEach(evo => {
+                    const card = createEvolutionCard(evo);
+                    cardsDiv.appendChild(card);
+                });
+                
+                tierDiv.appendChild(cardsDiv);
+                treeContainer.appendChild(tierDiv);
+            });
+        }
+        
+        function createEvolutionCard(evo) {
+            const card = document.createElement('div');
+            card.className = 'evolution-card';
+            
+            const canUnlock = evo.requires ? 
+                evo.requires.every(r => player.unlockedEvolutions.includes(r)) : true;
+            const isUnlocked = player.unlockedEvolutions.includes(evo.id);
+            const hasCost = game.dna >= evo.cost;
+            
+            if (isUnlocked) {
+                card.classList.add('unlocked');
+            } else if (canUnlock && hasCost) {
+                card.classList.add('available');
+                card.onclick = () => unlockEvolution(evo);
+            } else {
+                card.classList.add('locked');
+            }
+            
+            card.innerHTML = `
+                <div class="evo-icon">${evo.icon}</div>
+                <div class="evo-name">${evo.name}</div>
+                <div class="evo-desc">${evo.desc}</div>
+                <div class="evo-cost ${isUnlocked ? 'paid' : ''}">${isUnlocked ? '已解锁' : evo.cost + ' DNA'}</div>
+            `;
+            
+            return card;
+        }
+        
+        function updateEvolutionUI() {
+            const dna = game.dna;
+            document.getElementById('panel-dna').textContent = Math.floor(dna) + ' DNA';
+            
+            let hasAvailable = false;
+            const tiers = ['tier1', 'tier2', 'tier3', 'tier4'];
+            
+            tiers.forEach(tier => {
+                const tierData = evolutionTree[tier];
+                if (!tierData) return;
+                
+                tierData.forEach(evo => {
+                    const canUnlock = evo.requires ? 
+                        evo.requires.every(r => player.unlockedEvolutions.includes(r)) : true;
+                    const isUnlocked = player.unlockedEvolutions.includes(evo.id);
+                    const hasCost = dna >= evo.cost;
+                    
+                    if (canUnlock && hasCost && !isUnlocked) {
+                        hasAvailable = true;
+                    }
+                });
+            });
+            
+            const badge = document.getElementById('evo-badge');
+            const btn = document.getElementById('evolution-btn');
+            if (hasAvailable) {
+                badge.classList.remove('hidden');
+                btn.classList.add('pulse');
+            } else {
+                badge.classList.add('hidden');
+                btn.classList.remove('pulse');
+            }
+            
+            renderEvolutionTree();
+        }
+        
+        function unlockEvolution(evo) {
+            if (game.dna >= evo.cost && !player.unlockedEvolutions.includes(evo.id)) {
+                game.dna -= evo.cost;
+                player.unlockedEvolutions.push(evo.id);
+                
+                if (evo.stats.speed) player.speed *= evo.stats.speed;
+                if (evo.stats.sense) player.senseRange *= evo.stats.sense;
+                if (evo.stats.efficiency) player.efficiency *= evo.stats.efficiency;
+                
+                showNotification(`🧬 进化: ${evo.name}!`);
+                updateEvolutionUI();
+                createExplosion(player.x, player.y, '#00ff88');
+            }
+        }
+        
+        // 游戏逻辑
+        function update() {
+            if (!game.running) return;
+            game.gameTime++;
+            
+            updateSkills();
+            
+            // 玩家移动
+            if (game.joystick.active) {
+                player.vx += game.joystick.dx * 0.3 * player.speed;
+                player.vy += game.joystick.dy * 0.3 * player.speed;
+            }
+            
+            // 摩擦力
+            player.vx *= 0.92;
+            player.vy *= 0.92;
+            
+            // 护盾减速
+            if (player.abilities.shield.active) {
+                player.vx *= 0.6;
+                player.vy *= 0.6;
+            }
+            
+            player.x += player.vx;
+            player.y += player.vy;
+            
+            // 更新半径
+            player.radius = Math.sqrt(player.mass) * 3;
+            
+            // 轨迹
+            if (game.gameTime % 4 === 0) {
+                player.trail.push({ x: player.x, y: player.y, alpha: 1 });
+                if (player.trail.length > 15) player.trail.shift();
+            }
+            player.trail.forEach(t => t.alpha *= 0.9);
+            
+            // 边界
+            const boundary = 3000;
+            player.x = Math.max(-boundary, Math.min(boundary, player.x));
+            player.y = Math.max(-boundary, Math.min(boundary, player.y));
+            
+            // 相机跟随
+            game.camera.x += (player.x - game.camera.x) * 0.15;
+            game.camera.y += (player.y - game.camera.y) * 0.15;
+            
+            // 光合作用
+            if (player.unlockedEvolutions.includes('chloroplast')) {
+                if (Math.abs(player.vx) < 0.5 && Math.abs(player.vy) < 0.5) {
+                    if (game.gameTime % 60 === 0) {
+                        player.mass += 0.2 * player.efficiency;
+                        createParticle(player.x, player.y, '#00ff00', 1);
+                    }
+                }
+            }
+            
+            // 磁铁效应
+            if (player.abilities.magnet.active) {
+                applyMagnetEffect();
+            }
+            
+            // 静态细胞更新
+            updateStaticCells();
+            
+            // 更新其他实体
+            updateFoods();
+            updateEnemies();
+            updateParticles();
+            
+            // 生成新实体
+            if (game.gameTime % 40 === 0 && game.foods.length < 60) spawnFood();
+            if (game.gameTime % 150 === 0 && game.enemies.length < 20) spawnEnemy();
+            
+            // 进化检查
+            checkEvolution();
+        }
+        
+        // 静态细胞更新
+        function updateStaticCells() {
+            for (let i = game.staticCells.length - 1; i >= 0; i--) {
+                const staticCell = game.staticCells[i];
+                
+                if (staticCell.respawnTime > 0) {
+                    staticCell.respawnTime--;
+                    if (staticCell.respawnTime === 0) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const dist = Math.random() * 2500 + 200;
+                        staticCell.x = player.x + Math.cos(angle) * dist;
+                        staticCell.y = player.y + Math.sin(angle) * dist;
+                    }
+                    continue;
+                }
+                
+                const dx = player.x - staticCell.x;
+                const dy = player.y - staticCell.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < player.senseRange && dist > player.radius + staticCell.radius) {
+                    staticCell.x += dx * 0.002;
+                    staticCell.y += dy * 0.002;
+                }
+                
+                if (dist < player.radius + staticCell.radius) {
+                    const gain = staticCell.mass * 0.5 * player.efficiency;
+                    player.mass += gain;
+                    game.dna += gain * 0.2;
+                    createParticle(staticCell.x, staticCell.y, staticCell.color, 4);
+                    staticCell.respawnTime = 300;
+                    showNotification(`吞噬细胞 +${Math.floor(gain)}`);
+                }
+                
+                staticCell.pulse += 0.06;
+            }
+        }
+        
+        // 磁铁效应
+        function applyMagnetEffect() {
+            const magnetRange = player.senseRange * 1.5;
+            const magnetStrength = 0.15;
+            
+            // 吸引静态细胞
+            game.staticCells.forEach(staticCell => {
+                if (staticCell.respawnTime > 0) return;
+                
+                const dx = player.x - staticCell.x;
+                const dy = player.y - staticCell.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < magnetRange && dist > player.radius + staticCell.radius) {
+                    staticCell.x += (dx / dist) * magnetStrength;
+                    staticCell.y += (dy / dist) * magnetStrength;
+                    
+                    if (game.gameTime % 5 === 0) {
+                        createParticle(
+                            staticCell.x + (player.x - staticCell.x) * 0.5,
+                            staticCell.y + (player.y - staticCell.y) * 0.5,
+                            '#00FF00',
+                            1
+                        );
+                    }
+                }
+            });
+            
+            // 吸引食物
+            game.foods.forEach(food => {
+                const dx = player.x - food.x;
+                const dy = player.y - food.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < magnetRange && dist > player.radius + food.radius) {
+                    food.x += (dx / dist) * magnetStrength;
+                    food.y += (dy / dist) * magnetStrength;
+                    
+                    if (game.gameTime % 5 === 0) {
+                        createParticle(
+                            food.x + (player.x - food.x) * 0.5,
+                            food.y + (player.y - food.y) * 0.5,
+                            '#4169E1',
+                            1
+                        );
+                    }
+                }
+            });
+            
+            // 吸引比玩家小的敌人
+            game.enemies.forEach(enemy => {
+                const dx = player.x - enemy.x;
+                const dy = player.y - enemy.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (enemy.mass < player.mass * 0.8 && dist < magnetRange && dist > player.radius + enemy.radius) {
+                    enemy.x += (dx / dist) * magnetStrength * 0.8;
+                    enemy.y += (dy / dist) * magnetStrength * 0.8;
+                    
+                    if (game.gameTime % 8 === 0) {
+                        createParticle(
+                            enemy.x + (player.x - enemy.x) * 0.4,
+                            enemy.y + (player.y - enemy.y) * 0.4,
+                            '#9370DB',
+                            1
+                        );
+                    }
+                }
+            });
+        }
+        
+        function updateSkills() {
+            for (let key in player.abilities) {
+                const ability = player.abilities[key];
+                if (ability.cooldown > 0) {
+                    ability.cooldown--;
+                    const cd = Math.ceil(ability.cooldown / 60);
+                    const overlay = document.getElementById('cd-' + key);
+                    const btn = document.getElementById('skill-' + key);
+                    
+                    if (cd > 0) {
+                        overlay.textContent = cd;
+                        overlay.classList.remove('hidden');
+                        btn.classList.add('cooldown');
+                        btn.classList.remove('active');
+                    } else {
+                        overlay.classList.add('hidden');
+                        btn.classList.remove('cooldown');
+                        btn.classList.add('active');
+                    }
+                } else {
+                    document.getElementById('skill-' + key).classList.add('active');
+                }
+                
+                if (ability.duration > 0) {
+                    ability.duration--;
+                    if (ability.duration === 0) {
+                        ability.active = false;
+                        if (key === 'magnet') {
+                            game.magnetActive = false;
+                            document.getElementById('skill-magnet').classList.remove('magnet-active');
+                        }
+                        if (key === 'god') {
+                            game.godActive = false;
+                            document.getElementById('skill-god').classList.remove('god-active');
+                        }
+                    }
+                }
+            }
+        }
+        
+        function updateFoods() {
+            for (let i = game.foods.length - 1; i >= 0; i--) {
+                const food = game.foods[i];
+                const dx = player.x - food.x;
+                const dy = player.y - food.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < player.radius + food.radius) {
+                    const gain = food.radius * 0.6 * player.efficiency;
+                    player.mass += gain;
+                    game.dna += gain * 0.15;
+                    createParticle(food.x, food.y, food.color, 4);
+                    game.foods.splice(i, 1);
+                }
+                
+                food.pulse += 0.08;
+            }
+        }
+        
+        function updateEnemies() {
+            for (let i = game.enemies.length - 1; i >= 0; i--) {
+                const enemy = game.enemies[i];
+                const dx = player.x - enemy.x;
+                const dy = player.y - enemy.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                // 无敌模式
+                if (player.abilities.god.active && dist < player.radius + enemy.radius) {
+                    const gain = enemy.mass * 0.5;
+                    player.mass += gain;
+                    game.dna += gain * 1.2;
+                    createExplosion(enemy.x, enemy.y, '#FFD700');
+                    game.enemies.splice(i, 1);
+                    showNotification(`无敌吞噬! +${Math.floor(gain)}`);
+                    continue;
+                }
+                
+                // AI
+                if (enemy.ai === 'hunter' && dist < 400) {
+                    if (enemy.mass > player.mass * 1.1 && !player.abilities.god.active) {
+                        enemy.vx += (dx / dist) * 0.08;
+                        enemy.vy += (dy / dist) * 0.08;
+                    } else if (enemy.mass < player.mass * 0.9) {
+                        enemy.vx -= (dx / dist) * 0.12;
+                        enemy.vy -= (dy / dist) * 0.12;
+                    }
+                } else {
+                    enemy.vx += (Math.random() - 0.5) * 0.08;
+                    enemy.vy += (Math.random() - 0.5) * 0.08;
+                }
+                
+                // 毒素效果
+                if (player.unlockedEvolutions.includes('toxin') && dist < 250) {
+                    enemy.vx *= 0.85;
+                    enemy.vy *= 0.85;
+                    if (game.gameTime % 10 === 0) {
+                        createParticle(enemy.x, enemy.y, '#00ff00', 1);
+                    }
+                }
+                
+                enemy.vx *= 0.96;
+                enemy.vy *= 0.96;
+                enemy.x += enemy.vx;
+                enemy.y += enemy.vy;
+                
+                // 普通碰撞
+                if (dist < player.radius + enemy.radius && !player.abilities.god.active) {
+                    if (player.mass > enemy.mass * 1.2 && !player.abilities.shield.active) {
+                        const gain = enemy.mass * (player.unlockedEvolutions.includes('carnivore') ? 0.6 : 0.4);
+                        player.mass += gain;
+                        game.dna += gain * 0.8;
+                        createExplosion(enemy.x, enemy.y, enemy.color);
+                        game.enemies.splice(i, 1);
+                        showNotification(`吞噬! +${Math.floor(gain)}`);
+                    } else if (enemy.mass > player.mass * 1.2 && !player.abilities.shield.active) {
+                        const loss = player.mass * 0.25;
+                        player.mass -= loss;
+                        showNotification('危险! 快逃!');
+                        createExplosion(player.x, player.y, '#ff0000');
+                        player.vx -= (dx / dist) * 8;
+                        player.vy -= (dy / dist) * 8;
+                    }
+                }
+            }
+        }
+        
+        function updateParticles() {
+            for (let i = game.particles.length - 1; i >= 0; i--) {
+                const p = game.particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                p.alpha = p.life / p.maxLife;
+                if (p.life <= 0) game.particles.splice(i, 1);
+            }
+        }
+        
+        function createParticle(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                game.particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 5,
+                    vy: (Math.random() - 0.5) * 5,
+                    life: 25,
+                    maxLife: 25,
+                    color: color,
+                    size: Math.random() * 3 + 1
+                });
+            }
+        }
+        
+        function createExplosion(x, y, color) {
+            for (let i = 0; i < 15; i++) {
+                const angle = (Math.PI * 2 / 15) * i;
+                game.particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * 6,
+                    vy: Math.sin(angle) * 6,
+                    life: 35,
+                    maxLife: 35,
+                    color: color,
+                    size: Math.random() * 5 + 2
+                });
+            }
+        }
+        
+        function checkEvolution() {
+            const stages = ['原始细胞', '原核生物', '真核生物', '多细胞体', '智慧生命'];
+            let newStage = 0;
+            if (player.mass > 100) newStage = 1;
+            if (player.mass > 600) newStage = 2;
+            if (player.mass > 2500) newStage = 3;
+            if (player.mass > 10000) newStage = 4;
+            
+            if (newStage > game.evolutionStage) {
+                game.evolutionStage = newStage;
+                showNotification(`🧬 进化: ${stages[newStage]}!`);
+                document.getElementById('stageDisplay').textContent = stages[newStage];
+            }
+        }
+        
+        // 渲染
+        function render() {
+            ctx.fillStyle = 'rgba(10, 10, 26, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.save();
+            ctx.translate(game.width / 2 - game.camera.x, game.height / 2 - game.camera.y);
+            
+            drawGrid();
+            
+            // 静态细胞（绿色）
+            game.staticCells.forEach(staticCell => {
+                if (staticCell.respawnTime > 0) return;
+                
+                const pulse = Math.sin(staticCell.pulse) * 0.2 + 1;
+                ctx.beginPath();
+                ctx.arc(staticCell.x, staticCell.y, staticCell.radius * pulse, 0, Math.PI * 2);
+                ctx.fillStyle = staticCell.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = staticCell.color;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                ctx.beginPath();
+                ctx.arc(staticCell.x, staticCell.y, staticCell.radius * pulse * 0.6, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.fill();
+            });
+            
+            // 食物
+            game.foods.forEach(food => {
+                const pulse = Math.sin(food.pulse) * 0.3 + 1;
+                ctx.beginPath();
+                ctx.arc(food.x, food.y, food.radius * pulse, 0, Math.PI * 2);
+                ctx.fillStyle = food.color;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = food.color;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+            
+            // 敌人
+            game.enemies.forEach(enemy => {
+                ctx.beginPath();
+                ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
+                const grad = ctx.createRadialGradient(
+                    enemy.x - enemy.radius * 0.3, enemy.y - enemy.radius * 0.3, 0,
+                    enemy.x, enemy.y, enemy.radius
+                );
+                grad.addColorStop(0, '#ff8888');
+                grad.addColorStop(1, enemy.color);
+                ctx.fillStyle = grad;
+                ctx.fill();
+                
+                if (enemy.mass > player.mass && !player.abilities.god.active) {
+                    ctx.fillStyle = '#ff0000';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.fillText('!', enemy.x - 4, enemy.y - enemy.radius - 8);
+                }
+            });
+            
+            // 玩家轨迹
+            player.trail.forEach((t, i) => {
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, player.radius * (i / player.trail.length) * 0.4, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(0, 255, 136, ${t.alpha * 0.3})`;
+                ctx.fill();
+            });
+            
+            // 玩家
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            const grad = ctx.createRadialGradient(
+                player.x - player.radius * 0.3, player.y - player.radius * 0.3, 0,
+                player.x, player.y, player.radius
+            );
+            grad.addColorStop(0, '#aaffcc');
+            grad.addColorStop(0.5, '#00ff88');
+            grad.addColorStop(1, '#006644');
+            ctx.fillStyle = grad;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#00ff88';
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            // 护盾
+            if (player.abilities.shield.active) {
+                ctx.beginPath();
+                ctx.arc(player.x, player.y, player.radius + 12, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(0, 200, 255, ${0.6 + Math.sin(game.gameTime * 0.3) * 0.3})`;
+                ctx.lineWidth = 4;
+                ctx.stroke();
+            }
+            
+            // 磁铁特效
+            if (player.abilities.magnet.active) {
+                ctx.beginPath();
+                ctx.arc(player.x, player.y, player.senseRange * 1.5, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(65, 105, 225, ${0.3 + Math.sin(game.gameTime * 0.5) * 0.2})`;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                const pulseRadius = player.senseRange * 1.5 + Math.sin(game.gameTime * 0.3) * 10;
+                ctx.beginPath();
+                ctx.arc(player.x, player.y, pulseRadius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(147, 112, 219, 0.1)`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            
+            // 无敌特效
+            if (player.abilities.god.active) {
+                ctx.beginPath();
+                ctx.arc(player.x, player.y, player.radius + 25, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(255, 215, 0, ${0.6 + Math.sin(game.gameTime * 0.4) * 0.3})`;
+                ctx.lineWidth = 6;
+                ctx.shadowBlur = 30;
+                ctx.shadowColor = '#FFD700';
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                
+                const innerRadius = player.radius + 10 + Math.sin(game.gameTime * 0.5) * 5;
+                ctx.beginPath();
+                ctx.arc(player.x, player.y, innerRadius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(255, 165, 0, 0.8)`;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+            
+            // 细胞核
+            if (!player.abilities.god.active) {
+                ctx.beginPath();
+                ctx.arc(player.x, player.y, player.radius * 0.25, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.fill();
+            }
+            
+            // 感知圈
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.senseRange, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(0, 255, 136, 0.08)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 粒子
+            game.particles.forEach(p => {
+                ctx.globalAlpha = p.alpha;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+            
+            ctx.restore();
+            
+            // 绘制小地图
+            drawMinimap();
+            
+            updateUI();
+        }
+        
+        function drawMinimap() {
+            // 清空小地图
+            minimapCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            minimapCtx.fillRect(0, 0, 100, 100);
+            
+            // 绘制范围圈
+            minimapCtx.strokeStyle = 'rgba(0, 255, 136, 0.2)';
+            minimapCtx.lineWidth = 1;
+            minimapCtx.beginPath();
+            minimapCtx.arc(50, 50, 48, 0, Math.PI * 2);
+            minimapCtx.stroke();
+            
+            const scale = 0.015;
+            const centerX = 50;
+            const centerY = 50;
+            
+            // 静态细胞
+            minimapCtx.fillStyle = '#00ff88';
+            game.staticCells.forEach(staticCell => {
+                if (staticCell.respawnTime > 0) return;
+                const dx = (staticCell.x - player.x) * scale;
+                const dy = (staticCell.y - player.y) * scale;
+                if (Math.abs(dx) < 48 && Math.abs(dy) < 48) {
+                    minimapCtx.fillRect(centerX + dx - 1, centerY + dy - 1, 2, 2);
+                }
+            });
+            
+            // 食物
+            game.foods.forEach(food => {
+                const dx = (food.x - player.x) * scale;
+                const dy = (food.y - player.y) * scale;
+                if (Math.abs(dx) < 48 && Math.abs(dy) < 48) {
+                    minimapCtx.fillRect(centerX + dx - 1, centerY + dy - 1, 2, 2);
+                }
+            });
+            
+            // 敌人
+            minimapCtx.fillStyle = '#ff4444';
+            game.enemies.forEach(enemy => {
+                const dx = (enemy.x - player.x) * scale;
+                const dy = (enemy.y - player.y) * scale;
+                if (Math.abs(dx) < 48 && Math.abs(dy) < 48) {
+                    const size = Math.max(1, enemy.radius * scale);
+                    minimapCtx.beginPath();
+                    minimapCtx.arc(centerX + dx, centerY + dy, size, 0, Math.PI * 2);
+                    minimapCtx.fill();
+                }
+            });
+            
+            // 玩家
+            minimapCtx.fillStyle = '#ffffff';
+            minimapCtx.beginPath();
+            minimapCtx.arc(centerX, centerY, 2, 0, Math.PI * 2);
+            minimapCtx.fill();
+            
+            // 玩家方向指示
+            if (player.vx !== 0 || player.vy !== 0) {
+                minimapCtx.strokeStyle = '#00ff88';
+                minimapCtx.lineWidth = 1;
+                minimapCtx.beginPath();
+                minimapCtx.moveTo(centerX, centerY);
+                minimapCtx.lineTo(centerX + player.vx * 3, centerY + player.vy * 3);
+                minimapCtx.stroke();
+            }
+        }
+        
+        function drawGrid() {
+            const gridSize = 150;
+            const offsetX = Math.floor(game.camera.x / gridSize) * gridSize;
+            const offsetY = Math.floor(game.camera.y / gridSize) * gridSize;
+            
+            ctx.strokeStyle = 'rgba(0, 255, 136, 0.04)';
+            ctx.lineWidth = 1;
+            
+            for (let x = -game.width; x < game.width * 2; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x + offsetX, -game.height);
+                ctx.lineTo(x + offsetX, game.height * 2);
+                ctx.stroke();
+            }
+            for (let y = -game.height; y < game.height * 2; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(-game.width, y + offsetY);
+                ctx.lineTo(game.width * 2, y + offsetY);
+                ctx.stroke();
+            }
+        }
+        
+        function updateUI() {
+            document.getElementById('massDisplay').textContent = Math.floor(player.mass);
+            document.getElementById('dnaDisplay').textContent = Math.floor(game.dna);
+            
+            let nextThreshold = 100;
+            if (player.mass > 100) nextThreshold = 600;
+            if (player.mass > 600) nextThreshold = 2500;
+            if (player.mass > 2500) nextThreshold = 10000;
+            
+            let prevThreshold = 0;
+            if (player.mass > 100) prevThreshold = 100;
+            if (player.mass > 600) prevThreshold = 600;
+            if (player.mass > 2500) prevThreshold = 2500;
+            if (player.mass > 10000) prevThreshold = 10000;
+            
+            const progress = (player.mass - prevThreshold) / (nextThreshold - prevThreshold) * 100;
+            document.getElementById('progress-fill').style.width = Math.min(100, progress) + '%';
+            
+            if (game.gameTime % 60 === 0) updateEvolutionUI();
+        }
+        
+        function showNotification(text) {
+            const notif = document.getElementById('notification');
+            notif.textContent = text;
+            notif.classList.add('show');
+            setTimeout(() => notif.classList.remove('show'), 2000);
+        }
+        
+        // 游戏循环
+        function gameLoop() {
+            if (!game.running) return;
+            update();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 启动
+        init();
+    </script>
+</body>
+</html>

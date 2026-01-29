@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>移动编程工作室</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            height: 100vh;
+            overflow: hidden;
+            color: #e2e8f0;
+        }
+
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 语言选择界面 - 玻璃拟态效果 */
+        .language-selector {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(10px);
+        }
+
+        .app-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa 0%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+            text-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
+        }
+
+        .language-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .language-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(2, 8, 20, 0.3);
+        }
+
+        .language-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #60a5fa, #38bdf8);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .language-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .language-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(56, 189, 248, 0.2);
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(56, 189, 248, 0.4);
+        }
+
+        .language-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .language-card:hover .language-icon {
+            transform: scale(1.1);
+        }
+
+        .language-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #f1f5f9;
+        }
+
+        .language-desc {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        /* 编辑器界面 - 深色主题 */
+        .editor-container {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+        }
+
+        .editor-header {
+            background: rgba(15, 23, 42, 0.9);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            color: #e2e8f0;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: rgba(56, 189, 248, 0.4);
+        }
+
+        .current-language {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #38bdf8;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+        }
+
+        .editor-toolbar {
+            background: rgba(15, 23, 42, 0.8);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+            padding: 10px 16px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .toolbar-btn {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            color: #e2e8f0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            backdrop-filter: blur(10px);
+        }
+
+        .toolbar-btn:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: rgba(56, 189, 248, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .toolbar-btn.primary {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            border: none;
+            color: white;
+            font-weight: 500;
+        }
+
+        .toolbar-btn.primary:hover {
+            background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+            box-shadow: 0 0 15px rgba(2, 132, 199, 0.4);
+        }
+
+        .editor-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .code-editor {
+            flex: 1;
+            background: #0f172a;
+            color: #e2e8f0;
+            border: none;
+            padding: 16px;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            tab-size: 4;
+        }
+
+        .code-editor::placeholder {
+            color: #64748b;
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 10px 25px rgba(2, 8, 20, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .autocomplete-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: 'Fira Code', monospace;
+            color: #e2e8f0;
+            transition: background 0.2s;
+        }
+
+        .autocomplete-item:hover,
+        .autocomplete-item.active {
+            background: rgba(56, 189, 248, 0.2);
+        }
+
+        .output-panel {
+            height: 0;
+            background: #0a0e1a;
+            border-top: 1px solid rgba(56, 189, 248, 0.1);
+            transition: height 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .output-panel.active {
+            height: 40%;
+        }
+
+        .output-header {
+            background: rgba(15, 23, 42, 0.9);
+            padding: 10px 16px;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .output-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #38bdf8;
+        }
+
+        .close-output {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .output-content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .output-content .success {
+            color: #4ade80;
+        }
+
+        .output-content .error {
+            color: #f87171;
+        }
+
+        .output-content .info {
+            color: #60a5fa;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(30, 41, 59, 0.8);
+            border-top: 3px solid #38bdf8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .app-title {
+                font-size: 2rem;
+            }
+            
+            .language-grid {
+                max-width: 100%;
+            }
+            
+            .language-card {
+                padding: 1.5rem;
+            }
+            
+            .editor-toolbar {
+                padding: 8px 12px;
+            }
+            
+            .toolbar-btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+            
+            .code-editor {
+                font-size: 13px;
+                padding: 12px;
+            }
+        }
+
+        /* 语法高亮 - 深色主题 */
+        .keyword {
+            color: #c084fc;
+            font-weight: 500;
+        }
+
+        .string {
+            color: #86efac;
+        }
+
+        .number {
+            color: #fbbf24;
+        }
+
+        .comment {
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .function {
+            color: #60a5fa;
+        }
+
+        .variable {
+            color: #f87171;
+        }
+
+        .operator {
+            color: #f472b6;
+        }
+
+        /* 加载动画 */
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(56, 189, 248, 0.5);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(56, 189, 248, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 语言选择界面 -->
+        <div class="language-selector fade-in" id="languageSelector">
+            <h1 class="app-title">移动编程工作室</h1>
+            <div class="language-grid">
+                <div class="language-card" data-language="python">
+                    <div class="language-icon">🐍</div>
+                    <div class="language-name">Python</div>
+                    <div class="language-desc">强大的数据科学与AI语言</div>
+                </div>
+                <div class="language-card" data-language="java">
+                    <div class="language-icon">☕</div>
+                    <div class="language-name">Java</div>
+                    <div class="language-desc">企业级应用开发首选</div>
+                </div>
+                <div class="language-card" data-language="cpp">
+                    <div class="language-icon">⚡</div>
+                    <div class="language-name">C++</div>
+                    <div class="language-desc">高性能系统编程语言</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 编辑器界面 -->
+        <div class="editor-container" id="editorContainer">
+            <div class="editor-header">
+                <button class="back-btn" id="backBtn">← 返回</button>
+                <div class="current-language" id="currentLanguage">Python</div>
+                <div style="width: 80px;"></div>
+            </div>
+
+            <div class="editor-toolbar">
+                <button class="toolbar-btn" id="clearBtn">
+                    <span>🗑️</span> 清空
+                </button>
+                <button class="toolbar-btn" id="formatBtn">
+                    <span>✨</span> 格式化
+                </button>
+                <button class="toolbar-btn primary" id="runBtn">
+                    <span>▶️</span> 运行
+                </button>
+                <button class="toolbar-btn" id="saveBtn">
+                    <span>💾</span> 保存
+                </button>
+            </div>
+
+            <div class="editor-main">
+                <textarea class="code-editor" id="codeEditor" placeholder="在这里输入你的代码..." spellcheck="false"></textarea>
+                <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+            </div>
+
+            <div class="output-panel" id="outputPanel">
+                <div class="output-header">
+                    <div class="output-title">输出结果</div>
+                    <button class="close-output" id="closeOutput">✕</button>
+                </div>
+                <div class="output-content" id="outputContent"></div>
+            </div>
+
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentLanguage = 'python';
+        let codeEditor = document.getElementById('codeEditor');
+        let autocompleteDropdown = document.getElementById('autocompleteDropdown');
+        let outputPanel = document.getElementById('outputPanel');
+        let outputContent = document.getElementById('outputContent');
+        let loadingOverlay = document.getElementById('loadingOverlay');
+
+        // 语言配置
+        const languageConfig = {
+            python: {
+                name: 'Python',
+                icon: '🐍',
+                color: '#3776ab',
+                example: '# Python 示例代码\nprint("Hello, World!")\n\n# 计算斐波那契数列\ndef fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)\n\n# 调用函数\nresult = fibonacci(10)\nprint(f"斐波那契数列第10项: {result}")',
+                keywords: ['print', 'def', 'return', 'if', 'else', 'elif', 'for', 'while', 'in', 'import', 'from', 'as', 'class', 'try', 'except', 'finally', 'with', 'lambda', 'yield', 'async', 'await', 'and', 'or', 'not', 'is', 'None', 'True', 'False'],
+                functions: ['print()', 'input()', 'len()', 'range()', 'list()', 'dict()', 'set()', 'tuple()', 'str()', 'int()', 'float()', 'bool()', 'type()', 'sorted()', 'sum()', 'max()', 'min()', 'abs()', 'round()', 'enumerate()', 'zip()', 'map()', 'filter()']
+            },
+            java: {
+                name: 'Java',
+                icon: '☕',
+                color: '#007396',
+                example: '// Java 示例代码\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n        \n        // 计算斐波那契数列\n        int result = fibonacci(10);\n        System.out.println("斐波那契数列第10项: " + result);\n    }\n    \n    public static int fibonacci(int n) {\n        if (n <= 1) {\n            return n;\n        }\n        return fibonacci(n-1) + fibonacci(n-2);\n    }\n}',
+                keywords: ['public', 'private', 'protected', 'static', 'final', 'class', 'interface', 'extends', 'implements', 'new', 'this', 'super', 'return', 'if', 'else', 'switch', 'case', 'default', 'for', 'while', 'do', 'break', 'continue', 'try', 'catch', 'finally', 'throw', 'throws', 'import', 'package', 'void', 'int', 'double', 'float', 'char', 'boolean', 'String'],
+                functions: ['System.out.println()', 'System.out.print()', 'Math.max()', 'Math.min()', 'Math.abs()', 'Math.pow()', 'Math.sqrt()', 'Integer.parseInt()', 'Double.parseDouble()', 'String.valueOf()', 'Arrays.sort()', 'Arrays.toString()', 'ArrayList.add()', 'HashMap.put()']
+            },
+            cpp: {
+                name: 'C++',
+                icon: '⚡',
+                color: '#00599c',
+                example: '// C++ 示例代码\n#include <iostream>\nusing namespace std;\n\nint fibonacci(int n) {\n    if (n <= 1) {\n        return n;\n    }\n    return fibonacci(n-1) + fibonacci(n-2);\n}\n\nint main() {\n    cout << "Hello, World!" << endl;\n    \n    // 计算斐波那契数列\n    int result = fibonacci(10);\n    cout << "斐波那契数列第10项: " << result << endl;\n    \n    return 0;\n}',
+                keywords: ['include', 'using', 'namespace', 'int', 'float', 'double', 'char', 'bool', 'void', 'return', 'if', 'else', 'switch', 'case', 'default', 'for', 'while', 'do', 'break', 'continue', 'try', 'catch', 'throw', 'class', 'struct', 'public', 'private', 'protected', 'static', 'const', 'new', 'delete', 'this', 'virtual', 'override', 'final'],
+                functions: ['cout', 'cin', 'printf()', 'scanf()', 'strlen()', 'strcpy()', 'strcmp()', 'std::vector.push_back()', 'std::map.insert()', 'std::sort()', 'std::max()', 'std::min()', 'abs()', 'pow()', 'sqrt()', 'malloc()', 'free()']
+            }
+        };
+
+        // 自动补全建议
+        const autocompleteSuggestions = {
+            python: [
+                'print()', 'input()', 'len()', 'range()', 'list()', 'dict()', 'set()', 'tuple()',
+                'str()', 'int()', 'float()', 'bool()', 'type()', 'sorted()', 'sum()', 'max()', 'min()',
+                'abs()', 'round()', 'enumerate()', 'zip()', 'map()', 'filter()', 'lambda', 'def', 'return',
+                'if', 'else', 'elif', 'for', 'while', 'in', 'import', 'from', 'as', 'class', 'try', 'except',
+                'finally', 'with', 'yield', 'async', 'await', 'and', 'or', 'not', 'is', 'None', 'True', 'False'
+            ],
+            java: [
+                'System.out.println()', 'System.out.print()', 'Math.max()', 'Math.min()', 'Math.abs()', 'Math.pow()', 'Math.sqrt()',
+                'Integer.parseInt()', 'Double.parseDouble()', 'String.valueOf()', 'public', 'private', 'protected', 'static',
+                'final', 'class', 'interface', 'extends', 'implements', 'new', 'this', 'super', 'return', 'if', 'else',
+                'switch', 'case', 'default', 'for', 'while', 'do', 'break', 'continue', 'try', 'catch', 'finally', 'throw',
+                'throws', 'import', 'package', 'void', 'int', 'double', 'float', 'char', 'boolean', 'String'
+            ],
+            cpp: [
+                'cout', 'cin', 'printf()', 'scanf()', 'strlen()', 'strcpy()', 'strcmp()', 'std::vector.push_back()',
+                'std::map.insert()', 'std::sort()', 'std::max()', 'std::min()', 'abs()', 'pow()', 'sqrt()', 'malloc()', 'free()',
+                'include', 'using', 'namespace', 'int', 'float', 'double', 'char', 'bool', 'void', 'return', 'if', 'else',
+                'switch', 'case', 'default', 'for', 'while', 'do', 'break', 'continue', 'try', 'catch', 'throw', 'class',
+                'struct', 'public', 'private', 'protected', 'static', 'const', 'new', 'delete', 'this', 'virtual', 'override'
+            ]
+        };
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeEventListeners();
+            loadSavedCode();
+        });
+
+        // 初始化事件监听器
+        function initializeEventListeners() {
+            // 语言选择
+            document.querySelectorAll('.language-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const language = this.dataset.language;
+                    selectLanguage(language);
+                });
+            });
+
+            // 返回按钮
+            document.getElementById('backBtn').addEventListener('click', function() {
+                showLanguageSelector();
+            });
+
+            // 工具栏按钮
+            document.getElementById('clearBtn').addEventListener('click', clearCode);
+            document.getElementById('formatBtn').addEventListener('click', formatCode);
+            document.getElementById('runBtn').addEventListener('click', runCode);
+            document.getElementById('saveBtn').addEventListener('click', saveCode);
+
+            // 关闭输出面板
+            document.getElementById('closeOutput').addEventListener('click', function() {
+                outputPanel.classList.remove('active');
+            });
+
+            // 代码编辑器事件
+            codeEditor.addEventListener('input', handleCodeInput);
+            codeEditor.addEventListener('keydown', handleCodeKeydown);
+            codeEditor.addEventListener('scroll', handleCodeScroll);
+            codeEditor.addEventListener('click', hideAutocomplete);
+
+            // 点击其他地方隐藏自动补全
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#autocompleteDropdown') && !e.target.closest('#codeEditor')) {
+                    hideAutocomplete();
+                }
+            });
+        }
+
+        // 选择语言
+        function selectLanguage(language) {
+            currentLanguage = language;
+            const config = languageConfig[language];
+            
+            // 更新当前语言显示
+            document.getElementById('currentLanguage').textContent = config.name;
+            
+            // 加载示例代码
+            codeEditor.value = config.example;
+            
+            // 显示编辑器
+            showEditor();
+            
+            // 保存选择
+            localStorage.setItem('selectedLanguage', language);
+        }
+
+        // 显示语言选择器
+        function showLanguageSelector() {
+            document.getElementById('languageSelector').style.display = 'flex';
+            document.getElementById('editorContainer').style.display = 'none';
+            outputPanel.classList.remove('active');
+        }
+
+        // 显示编辑器
+        function showEditor() {
+            document.getElementById('languageSelector').style.display = 'none';
+            document.getElementById('editorContainer').style.display = 'flex';
+            codeEditor.focus();
+        }
+
+        // 清空代码
+        function clearCode() {
+            if (confirm('确定要清空所有代码吗？')) {
+                codeEditor.value = '';
+                codeEditor.focus();
+            }
+        }
+
+        // 格式化代码
+        function formatCode() {
+            showLoading();
+            setTimeout(() => {
+                let code = codeEditor.value;
+                
+                if (currentLanguage === 'python') {
+                    // Python格式化
+                    code = code.replace(/def\s+(\w+)\s*\(/g, 'def $1(');
+                    code = code.replace(/:\s*/g, ': ');
+                    code = code.replace(/\n\s*/g, '\n    ');
+                } else if (currentLanguage === 'java') {
+                    // Java格式化
+                    code = code.replace(/public\s+static\s+void\s+main/g, 'public static void main');
+                    code = code.replace(/\{\s*/g, ' {\n    ');
+                    code = code.replace(/\}\s*/g, '\n}\n');
+                    code = code.replace(/;\s*/g, ';\n    ');
+                } else if (currentLanguage === 'cpp') {
+                    // C++格式化
+                    code = code.replace(/\{\s*/g, ' {\n    ');
+                    code = code.replace(/\}\s*/g, '\n}\n');
+                    code = code.replace(/;\s*/g, ';\n    ');
+                }
+                
+                codeEditor.value = code;
+                hideLoading();
+                showOutput('代码已格式化', 'success');
+            }, 500);
+        }
+
+        // 运行代码
+        function runCode() {
+            const code = codeEditor.value.trim();
+            if (!code) {
+                showOutput('请先输入代码！', 'error');
+                return;
+            }
+
+            showLoading();
+            
+            // 模拟代码执行
+            setTimeout(() => {
+                try {
+                    const result = simulateCodeExecution(code, currentLanguage);
+                    hideLoading();
+                    showOutput(result, 'success');
+                } catch (error) {
+                    hideLoading();
+                    showOutput(`错误: ${error.message}`, 'error');
+                }
+            }, 1500);
+        }
+
+        // 模拟代码执行
+        function simulateCodeExecution(code, language) {
+            // 这是一个模拟的执行器，实际应用中需要连接真实的编译器/解释器
+            const outputs = [];
+            
+            // 模拟不同的执行结果
+            if (code.includes('Hello, World!')) {
+                outputs.push('Hello, World!');
+            }
+            
+            if (code.includes('fibonacci')) {
+                outputs.push('斐波那契数列第10项: 55');
+            }
+            
+            if (code.includes('input()')) {
+                outputs.push('提示: 请输入一个数字: 42');
+                outputs.push('你输入的数字是: 42');
+            }
+            
+            if (code.includes('for') || code.includes('while')) {
+                outputs.push('循环执行结果:');
+                outputs.push('1');
+                outputs.push('2');
+                outputs.push('3');
+                outputs.push('4');
+                outputs.push('5');
+            }
+            
+            if (code.includes('def ') || code.includes('class ') || code.includes('function')) {
+                outputs.push('函数定义成功');
+            }
+            
+            if (outputs.length === 0) {
+                outputs.push('代码执行完成 (模拟输出)');
+                outputs.push('执行时间: 0.123秒');
+                outputs.push('内存使用: 1.2MB');
+            }
+            
+            return outputs.join('\n');
+        }
+
+        // 保存代码
+        function saveCode() {
+            const code = codeEditor.value;
+            const timestamp = new Date().toISOString();
+            
+            // 保存到localStorage
+            const savedCodes = JSON.parse(localStorage.getItem('savedCodes') || '{}');
+            if (!savedCodes[currentLanguage]) {
+                savedCodes[currentLanguage] = [];
+            }
+            
+            savedCodes[currentLanguage].push({
+                code: code,
+                timestamp: timestamp,
+                name: `代码片段 ${savedCodes[currentLanguage].length + 1}`
+            });
+            
+            // 只保留最近10个
+            if (savedCodes[currentLanguage].length > 10) {
+                savedCodes[currentLanguage] = savedCodes[currentLanguage].slice(-10);
+            }
+            
+            localStorage.setItem('savedCodes', JSON.stringify(savedCodes));
+            showOutput('代码已保存到本地存储！', 'success');
+        }
+
+        // 加载保存的代码
+        function loadSavedCode() {
+            const savedLanguage = localStorage.getItem('selectedLanguage') || 'python';
+            const savedCodes = JSON.parse(localStorage.getItem('savedCodes') || '{}');
+            
+            if (savedCodes[savedLanguage] && savedCodes[savedLanguage].length > 0) {
+                const lastCode = savedCodes[savedLanguage][savedCodes[savedLanguage].length - 1];
+                codeEditor.value = lastCode.code;
+            } else {
+                codeEditor.value = languageConfig[savedLanguage].example;
+            }
+            
+            currentLanguage = savedLanguage;
+            document.getElementById('currentLanguage').textContent = languageConfig[savedLanguage].name;
+        }
+
+        // 显示输出
+        function showOutput(message, type = 'info') {
+            outputContent.innerHTML = `<span class="${type}">${message}</span>`;
+            outputPanel.classList.add('active');
+            
+            // 自动滚动到底部
+            setTimeout(() => {
+                outputContent.scrollTop = outputContent.scrollHeight;
+            }, 100);
+        }
+
+        // 显示加载动画
+        function showLoading() {
+            loadingOverlay.style.display = 'flex';
+        }
+
+        // 隐藏加载动画
+        function hideLoading() {
+            loadingOverlay.style.display = 'none';
+        }
+
+        // 代码输入处理
+        function handleCodeInput() {
+            // 简单的语法高亮（实际项目中需要使用专业的语法高亮库）
+            highlightSyntax();
+            
+            // 触发自动补全
+            const cursorPos = codeEditor.selectionStart;
+            const textBeforeCursor = codeEditor.value.substring(0, cursorPos);
+            const lastWord = textBeforeCursor.split(/\s+/).pop();
+            
+            if (lastWord.length >= 2) {
+                showAutocomplete(lastWord);
+            } else {
+                hideAutocomplete();
+            }
+        }
+
+        // 键盘事件处理
+        function handleCodeKeydown(e) {
+            // Tab键缩进
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = codeEditor.selectionStart;
+                const end = codeEditor.selectionEnd;
+                codeEditor.value = codeEditor.value.substring(0, start) + '    ' + codeEditor.value.substring(end);
+                codeEditor.selectionStart = codeEditor.selectionEnd = start + 4;
+            }
+            
+            // Enter键
+            if (e.key === 'Enter') {
+                // 自动缩进
+                const start = codeEditor.selectionStart;
+                const textBefore = codeEditor.value.substring(0, start);
+                const lines = textBefore.split('\n');
+                const currentLine = lines[lines.length - 1];
+                const indent = currentLine.match(/^\s*/)[0];
+                
+                if (currentLine.trim().endsWith(':') || currentLine.trim().endsWith('{')) {
+                    codeEditor.value = codeEditor.value.substring(0, start) + '\n' + indent + '    ' + codeEditor.value.substring(codeEditor.selectionEnd);
+                    codeEditor.selectionStart = codeEditor.selectionEnd = start + indent.length + 5;
+                } else {
+                    codeEditor.value = codeEditor.value.substring(0, start) + '\n' + indent + codeEditor.value.substring(codeEditor.selectionEnd);
+                    codeEditor.selectionStart = codeEditor.selectionEnd = start + indent.length + 1;
+                }
+                e.preventDefault();
+            }
+            
+            // 自动补全选择
+            if (autocompleteDropdown.style.display === 'block') {
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    navigateAutocomplete(e.key);
+                } else if (e.key === 'Enter' || e.key === 'Tab') {
+                    e.preventDefault();
+                    selectAutocompleteItem();
+                } else if (e.key === 'Escape') {
+                    hideAutocomplete();
+                }
+            }
+        }
+
+        // 显示自动补全
+        function showAutocomplete(prefix) {
+            const suggestions = autocompleteSuggestions[currentLanguage].filter(item => 
+                item.toLowerCase().startsWith(prefix.toLowerCase())
+            );
+            
+            if (suggestions.length === 0) {
+                hideAutocomplete();
+                return;
+            }
+            
+            autocompleteDropdown.innerHTML = '';
+            suggestions.forEach((suggestion, index) => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                if (index === 0) item.classList.add('active');
+                item.textContent = suggestion;
+                item.addEventListener('click', () => selectAutocompleteItem(suggestion));
+                autocompleteDropdown.appendChild(item);
+            });
+            
+            const cursorPosition = getCursorPosition();
+            autocompleteDropdown.style.left = cursorPosition.left + 'px';
+            autocompleteDropdown.style.top = cursorPosition.top + 20 + 'px';
+            autocompleteDropdown.style.display = 'block';
+        }
+
+        // 隐藏自动补全
+        function hideAutocomplete() {
+            autocompleteDropdown.style.display = 'none';
+        }
+
+        // 导航自动补全
+        function navigateAutocomplete(direction) {
+            const items = autocompleteDropdown.querySelectorAll('.autocomplete-item');
+            const activeItem = autocompleteDropdown.querySelector('.autocomplete-item.active');
+            const currentIndex = Array.from(items).indexOf(activeItem);
+            
+            let newIndex;
+            if (direction === 'ArrowDown') {
+                newIndex = (currentIndex + 1) % items.length;
+            } else {
+                newIndex = currentIndex === 0 ? items.length - 1 : currentIndex - 1;
+            }
+            
+            activeItem.classList.remove('active');
+            items[newIndex].classList.add('active');
+        }
+
+        // 选择自动补全项
+        function selectAutocompleteItem(itemText) {
+            const activeItem = itemText || autocompleteDropdown.querySelector('.autocomplete-item.active')?.textContent;
+            if (!activeItem) return;
+            
+            const cursorPos = codeEditor.selectionStart;
+            const textBeforeCursor = codeEditor.value.substring(0, cursorPos);
+            const textAfterCursor = codeEditor.value.substring(cursorPos);
+            const lastSpaceIndex = textBeforeCursor.lastIndexOf(' ');
+            const lastLineBreakIndex = textBeforeCursor.lastIndexOf('\n');
+            const lastIndex = Math.max(lastSpaceIndex, lastLineBreakIndex);
+            
+            const newTextBefore = textBeforeCursor.substring(0, lastIndex + 1);
+            codeEditor.value = newTextBefore + activeItem + textAfterCursor;
+            
+            const newCursorPos = newTextBefore.length + activeItem.length;
+            codeEditor.selectionStart = codeEditor.selectionEnd = newCursorPos;
+            
+            hideAutocomplete();
+            codeEditor.focus();
+        }
+
+        // 获取光标位置
+        function getCursorPosition() {
+            const start = codeEditor.selectionStart;
+            const textBefore = codeEditor.value.substring(0, start);
+            const lines = textBefore.split('\n');
+            const currentLine = lines[lines.length - 1];
+            
+            // 计算光标在编辑器内的位置
+            const editorRect = codeEditor.getBoundingClientRect();
+            const lineHeight = 22.4; // 根据字体大小计算
+            const charWidth = 8.4; // 根据字体大小计算
+            
+            return {
+                left: editorRect.left + currentLine.length * charWidth + 16,
+                top: editorRect.top + (lines.length - 1) * lineHeight + 16
+            };
+        }
+
+        // 简单的语法高亮（实际项目中需要使用专业的语法高亮库）
+        function highlightSyntax() {
+            // 由于textarea不支持富文本，这里只是标记需要高亮的位置
+            // 实际项目中应该使用CodeMirror、Monaco Editor等专业编辑器
+        }
+
+        // 滚动处理
+        function handleCodeScroll() {
+            hideAutocomplete();
+        }
+
+        // 防止移动端键盘覆盖
+        if ('visualViewport' in window) {
+            window.visualViewport.addEventListener('resize', function() {
+                setTimeout(() => {
+                    if (document.activeElement === codeEditor) {
+                        codeEditor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 100);
+            });
+        }
+
+        // 保存到本地存储（自动保存）
+        let autoSaveTimer;
+        codeEditor.addEventListener('input', function() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                localStorage.setItem(`lastCode_${currentLanguage}`, codeEditor.value);
+                console.log('自动保存完成');
+            }, 1000);
+        });
+
+        // 页面加载时恢复代码
+        window.addEventListener('load', function() {
+            const savedCode = localStorage.getItem(`lastCode_${currentLanguage}`);
+            if (savedCode) {
+                codeEditor.value = savedCode;
+            }
+        });
+    </script>
+</body>
+</html>

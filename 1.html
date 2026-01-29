@@ -1,0 +1,2588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>高级沙盒模拟器 MD3 v3.14</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <style>
+        /* ==================== MD3 Design System ==================== */
+        :root {
+            --md-sys-color-primary: #6750A4;
+            --md-sys-color-on-primary: #FFFFFF;
+            --md-sys-color-primary-container: #EADDFF;
+            --md-sys-color-on-primary-container: #21005D;
+            --md-sys-color-secondary-container: #E8DEF8;
+            --md-sys-color-on-secondary-container: #1D192B;
+            --md-sys-color-surface: #FFFBFE;
+            --md-sys-color-surface-container: #F3EDF7;
+            --md-sys-color-on-surface: #1C1B1F;
+            --md-sys-color-on-surface-variant: #49454F;
+            --md-sys-color-outline: #79747E;
+            --md-sys-color-outline-variant: #CAC4D0;
+            --md-sys-color-surface-variant: #E7E0EC;
+            --md-sys-color-tertiary-container: #FFD8E4;
+            --md-sys-color-on-tertiary-container: #31111D;
+            --md-sys-elevation-2: 0px 4px 8px 3px rgba(0,0,0,0.15);
+            --md-sys-elevation-3: 0px 4px 12px 6px rgba(0,0,0,0.2);
+            --md-sys-motion-easing-emphasized: cubic-bezier(0.2, 0.0, 0.0, 1.0);
+            --md-sys-motion-easing-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --md-sys-motion-duration-medium: 400ms;
+            --md-dialog-bg: #EEE8F4;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --md-sys-color-primary: #D0BCFF;
+                --md-sys-color-on-primary: #381E72;
+                --md-sys-color-primary-container: #4F378B;
+                --md-sys-color-on-primary-container: #EADDFF;
+                --md-sys-color-secondary-container: #4A4458;
+                --md-sys-color-on-secondary-container: #E8DEF8;
+                --md-sys-color-surface: #1C1B1F;
+                --md-sys-color-surface-container: #25232A;
+                --md-sys-color-on-surface: #E6E1E5;
+                --md-sys-color-on-surface-variant: #CAC4D0;
+                --md-sys-color-outline: #938F99;
+                --md-sys-color-surface-variant: #49454F;
+                --md-sys-color-tertiary-container: #492532;
+                --md-sys-color-on-tertiary-container: #FFD8E4;
+                --md-dialog-bg: #2B2930;
+            }
+        }
+
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            margin: 0; 
+            background-color: var(--md-sys-color-surface); 
+            color: var(--md-sys-color-on-surface);
+            font-family: 'Roboto', sans-serif; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+        }
+
+        header {
+            height: 64px; 
+            display: flex; 
+            align-items: center; 
+            padding: 0 16px;
+            justify-content: space-between; 
+            font-weight: 400; 
+            font-size: 22px;
+            z-index: 10;
+        }
+        
+        .header-actions { display: flex; gap: 8px; }
+
+        .icon-btn {
+            width: 40px; height: 40px; 
+            border-radius: 20px; 
+            border: none; 
+            background: transparent;
+            color: var(--md-sys-color-on-surface-variant); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            cursor: pointer; 
+            position: relative; 
+            overflow: hidden;
+            transition: background 0.2s var(--md-sys-motion-easing-emphasized);
+        }
+        .icon-btn:active { background: rgba(var(--md-sys-color-on-surface), 0.12); transform: scale(0.95); }
+        .icon-btn.active { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
+        
+        .material-symbols-outlined {
+            font-size: 24px;
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        #game-container {
+            flex: 1; 
+            position: relative; 
+            background: #000; 
+            margin: 0 16px 16px;
+            border-radius: 16px; 
+            overflow: hidden; 
+            box-shadow: var(--md-sys-elevation-2);
+            touch-action: none; 
+            cursor: crosshair;
+        }
+        
+        #grid-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; 
+            display: none;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 4px 4px; 
+            z-index: 5;
+        }
+        #grid-overlay.active { display: block; }
+
+        canvas { 
+            width: 100%; height: 100%; 
+            image-rendering: pixelated; 
+            display: block; 
+            transform-origin: 0 0;
+            transition: none; 
+        }
+
+        .controls-area {
+            background-color: var(--md-sys-color-surface-container); 
+            padding: 16px 16px 24px;
+            border-radius: 28px 28px 0 0; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 16px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05); 
+            z-index: 20;
+            transition: transform 0.3s var(--md-sys-motion-easing-emphasized);
+        }
+
+        .tool-row {
+            display: flex; gap: 12px; align-items: center;
+        }
+
+        .chip-scroll { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 4px; scrollbar-width: none; flex: 1; }
+        .chip-scroll::-webkit-scrollbar { display: none; }
+        
+        .chip {
+            height: 32px; 
+            padding: 0 16px; 
+            border-radius: 8px; 
+            border: 1px solid var(--md-sys-color-outline);
+            background: transparent; 
+            color: var(--md-sys-color-on-surface-variant); 
+            font-size: 14px; 
+            font-weight: 500;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            white-space: nowrap; 
+            cursor: pointer; 
+            transition: all 0.2s var(--md-sys-motion-easing-emphasized);
+            gap: 8px;
+        }
+        
+        .chip:active { transform: scale(0.95); }
+        .chip.active {
+            background: var(--md-sys-color-secondary-container); 
+            color: var(--md-sys-color-on-secondary-container); 
+            border-color: transparent;
+        }
+        
+        .tool-toggle {
+            height: 40px; width: 40px; border-radius: 12px;
+            border: 1px solid var(--md-sys-color-outline);
+            background: transparent;
+            color: var(--md-sys-color-on-surface);
+            display: none;
+            align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tool-toggle.visible { display: flex; }
+        .tool-toggle.active {
+            background: var(--md-sys-color-tertiary-container);
+            color: var(--md-sys-color-on-tertiary-container);
+            border-color: transparent;
+        }
+
+        .btn-filled {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border: none;
+            height: 40px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 14px;
+            width: 100%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: transform 0.2s var(--md-sys-motion-easing-emphasized);
+        }
+        .btn-filled:active { transform: scale(0.97); opacity: 0.9; }
+
+        .btn-text {
+            background: transparent;
+            color: var(--md-sys-color-primary);
+            border: none;
+            height: 40px;
+            padding: 0 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        #more-sheet {
+            position: fixed; bottom: -100%; left: 0; right: 0; 
+            background: var(--md-sys-color-surface-container);
+            border-radius: 28px 28px 0 0; 
+            padding: 24px; 
+            transition: bottom var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-emphasized);
+            z-index: 100; 
+            max-height: 75vh; 
+            overflow-y: auto;
+            box-shadow: var(--md-sys-elevation-3);
+        }
+        #more-sheet.open { bottom: 0; }
+        
+        .grid-elements {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 12px;
+        }
+        .element-card {
+            display: flex; flex-direction: column; align-items: center; padding: 12px 8px;
+            background: var(--md-sys-color-surface); 
+            border-radius: 12px; gap: 8px; cursor: pointer;
+            font-size: 12px; text-align: center;
+            color: var(--md-sys-color-on-surface);
+            transition: transform 0.2s var(--md-sys-motion-easing-emphasized), background 0.2s;
+        }
+        .element-card:active { background: var(--md-sys-color-surface-variant); transform: scale(0.95); }
+        .element-dot { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(128,128,128,0.2); }
+
+        .backdrop {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4);
+            z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .backdrop.open { opacity: 1; pointer-events: auto; }
+
+        .slider-container { display: flex; align-items: center; gap: 16px; font-size: 14px; color: var(--md-sys-color-on-surface-variant); }
+        input[type=range] { flex: 1; accent-color: var(--md-sys-color-primary); height: 4px; }
+        
+        .shape-btn {
+            width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--md-sys-color-outline);
+            background: transparent; display: flex; align-items: center; justify-content: center;
+            color: var(--md-sys-color-on-surface-variant); cursor: pointer;
+        }
+        .shape-btn.active { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); border:none;}
+
+        .dialog-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 200; display: none;
+            align-items: center; justify-content: center; opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .dialog-overlay.show { display: flex; opacity: 1; }
+        
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .dialog {
+            background: var(--md-dialog-bg); 
+            width: 92%; 
+            max-width: 300px; 
+            border-radius: 28px; 
+            padding: 24px; 
+            box-shadow: var(--md-sys-elevation-3);
+            display: flex; 
+            flex-direction: column;
+            transform-origin: center;
+            max-height: 85vh;
+        }
+        .dialog.large { max-width: 600px; height: 75vh; width: 95%; }
+        .dialog-overlay.show .dialog { 
+            animation: popIn 0.4s var(--md-sys-motion-easing-spring) forwards;
+        }
+        
+        .dialog-title { font-size: 20px; margin: 0 0 16px 0; font-weight: 400; color: var(--md-sys-color-on-surface); }
+        .dialog-item {
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            padding: 10px 0; 
+            border-bottom: 1px solid var(--md-sys-color-outline-variant);
+            cursor: pointer; 
+            color: var(--md-sys-color-on-surface);
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+        .dialog-item:last-child { border-bottom: none; }
+        .dialog-item-content {
+            display: flex; align-items: center; gap: 12px; flex: 1;
+        }
+        
+        textarea.code-area {
+            flex: 1; background: var(--md-sys-color-surface-variant); 
+            border: none; border-radius: 8px;
+            padding: 16px; font-family: monospace; font-size: 12px; resize: none;
+            color: var(--md-sys-color-on-surface); margin-bottom: 16px; outline: none;
+        }
+        
+        .switch { position: relative; display: inline-block; width: 52px; height: 32px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--md-sys-color-surface-variant); 
+            border: 2px solid var(--md-sys-color-outline);
+            transition: .4s var(--md-sys-motion-easing-emphasized); border-radius: 32px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 16px; width: 16px; left: 6px; bottom: 6px;
+            background-color: var(--md-sys-color-outline); transition: .4s var(--md-sys-motion-easing-emphasized); border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--md-sys-color-primary); border-color: var(--md-sys-color-primary); }
+        input:checked + .slider:before { transform: translateX(20px); background-color: var(--md-sys-color-on-primary); width: 24px; height: 24px; left: 2px; bottom: 2px; }
+
+        .select-input {
+            background: transparent;
+            border: 1px solid var(--md-sys-color-outline);
+            color: var(--md-sys-color-on-surface);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <span>物理沙盒 v3.14</span>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="togglePause()" id="pause-btn" title="暂停/开始">
+                <span class="material-symbols-outlined">pause</span>
+            </button>
+            <button class="icon-btn" onclick="openSettings()" title="设置">
+                <span class="material-symbols-outlined">settings</span>
+            </button>
+            <button class="icon-btn" onclick="clearCanvas()" title="清空画布">
+                <span class="material-symbols-outlined">delete</span>
+            </button>
+        </div>
+    </header>
+
+    <div id="game-container">
+        <div id="grid-overlay"></div>
+        <canvas id="sandbox"></canvas>
+    </div>
+
+    <div class="controls-area">
+        <div class="slider-container">
+            <span class="material-symbols-outlined" style="font-size:20px;">brush</span>
+            <input type="range" min="1" max="10" value="3" id="brushSize">
+            <button class="shape-btn" id="shape-toggle" onclick="toggleBrushShape()" title="切换形状 (圆/方)">
+                <span class="material-symbols-outlined" style="font-size:18px;">circle</span>
+            </button>
+            <span id="fps-counter" style="display:none; width:60px; text-align:right; font-variant-numeric: tabular-nums;">60 FPS</span>
+        </div>
+
+        <div class="tool-row">
+            <button class="tool-toggle" id="view-mode-btn" onclick="toggleViewMode()" title="视图模式 (移动/缩放)">
+                <span class="material-symbols-outlined">pan_tool</span>
+            </button>
+            
+            <div class="chip-scroll" id="quick-bar"></div>
+        </div>
+
+        <button class="btn-filled" onclick="toggleSheet(true)">
+            <span class="material-symbols-outlined">grid_view</span>
+            更多元素
+        </button>
+    </div>
+
+    <div class="backdrop" id="backdrop" onclick="closeAllOverlays()"></div>
+
+    <div id="more-sheet">
+        <div style="width:32px; height:4px; background:var(--md-sys-color-outline); opacity:0.4; margin:-10px auto 20px; border-radius:2px;"></div>
+        <h3 style="margin:0 0 16px; font-size:22px; font-weight:400;">元素库</h3>
+        <div class="grid-elements" id="all-elements-grid"></div>
+        <div id="element-counter" style="text-align:center; margin-top:20px; font-size:14px; color:var(--md-sys-color-on-surface-variant); opacity:0.8;"></div>
+    </div>
+
+    <div class="dialog-overlay" id="settings-overlay" onclick="closeSettings(event)">
+        <div class="dialog">
+            <h2 class="dialog-title">设置</h2>
+            
+            <div class="dialog-item">
+                <div class="dialog-item-content">
+                    <span class="material-symbols-outlined">speed</span>
+                    <span>显示 FPS</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="fps-toggle" onchange="toggleFPS()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="dialog-item">
+                <div class="dialog-item-content">
+                    <span class="material-symbols-outlined">grid_on</span>
+                    <span>显示网格</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="grid-toggle" onchange="toggleGrid()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="dialog-item">
+                <div class="dialog-item-content">
+                    <span class="material-symbols-outlined">south</span>
+                    <span>反转重力</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="gravity-invert-toggle" onchange="toggleInvertGravity()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="dialog-item">
+                <div class="dialog-item-content">
+                    <span class="material-symbols-outlined">zoom_in</span>
+                    <span>启用缩放</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="zoom-toggle" onchange="toggleZoomFeature()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="dialog-item">
+                <div class="dialog-item-content">
+                    <span class="material-symbols-outlined">public</span>
+                    <span>零重力</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="gravity-toggle" onchange="toggleGravity()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="dialog-item">
+                <div class="dialog-item-content">
+                    <span class="material-symbols-outlined">animation</span>
+                    <span>流畅模式 (实验性)</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="smooth-toggle" onchange="toggleSmoothMode()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="dialog-item">
+                <div class="dialog-item-content">
+                    <span class="material-symbols-outlined">aspect_ratio</span>
+                    <span>画质 / 分辨率</span>
+                </div>
+                <select class="select-input" id="res-select" onchange="changeResolution(this.value)">
+                    <option value="8">低 (大颗粒)</option>
+                    <option value="4" selected>中 (默认)</option>
+                    <option value="2">高 (精细)</option>
+                </select>
+            </div>
+
+            <div class="dialog-item" onclick="saveScreenshot()">
+                <div class="dialog-item-content">
+                    <span class="material-symbols-outlined">camera_alt</span>
+                    <span>保存截图</span>
+                </div>
+                <span class="material-symbols-outlined" style="font-size:20px; opacity:0.5;">download</span>
+            </div>
+
+            <div class="dialog-item" onclick="openSourceView()">
+                <div class="dialog-item-content">
+                    <span class="material-symbols-outlined">html</span>
+                    <span>查看源代码</span>
+                </div>
+                <span class="material-symbols-outlined" style="font-size:20px; opacity:0.5;">chevron_right</span>
+            </div>
+            <div class="dialog-item" onclick="openAbout()">
+                <div class="dialog-item-content">
+                    <span class="material-symbols-outlined">info</span>
+                    <span>关于</span>
+                </div>
+                <span class="material-symbols-outlined" style="font-size:20px; opacity:0.5;">chevron_right</span>
+            </div>
+            <div style="text-align:right; margin-top:24px;">
+                <button class="btn-text" onclick="document.getElementById('settings-overlay').classList.remove('show'); toggleBackdrop(false);">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="dialog-overlay" id="source-overlay" onclick="closeSource(event)">
+        <div class="dialog large">
+            <h2 class="dialog-title">源代码</h2>
+            <textarea class="code-area" id="source-code-view" readonly></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button class="btn-filled" onclick="copySource()" style="width:auto; padding:0 24px;">
+                    <span class="material-symbols-outlined">content_copy</span>
+                    <span id="copy-btn-text">复制</span>
+                </button>
+                <button class="btn-text" onclick="document.getElementById('source-overlay').classList.remove('show')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="dialog-overlay" id="about-overlay" onclick="closeAbout(event)">
+        <div class="dialog">
+            <h2 class="dialog-title">关于</h2>
+            <p style="font-size:14px; line-height:1.6; opacity:0.8; margin-top:0;">
+                <strong>高级沙盒模拟器 v3.14</strong><br><br>
+                - <strong>新增</strong>：电线（静态导体）、水泥（遇水变石）、焦油（极粘稠流体）<br>
+                - <strong>新增</strong>：二氧化碳（重气体，灭火）、真菌（生长感染有机物）<br>
+                - <strong>保留</strong>：所有 v3.13 功能（铁锈、氯气、冰弹等）
+            </p>
+            <div style="text-align:right; margin-top:24px;">
+                <button class="btn-text" onclick="document.getElementById('about-overlay').classList.remove('show')">返回</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================= 配置与元素定义 =================
+        let canvasScale = 4; 
+        let isPaused = false;
+        let zoomFeatureEnabled = false;
+        let isViewMode = false;
+        let brushShape = 'circle'; 
+        let zeroGravity = false;
+        let showGrid = false;
+        let invertGravity = false;
+        let isSmoothMode = false; 
+        
+        let scale = 1;
+        let pPanning = false;
+        let pointX = 0, pointY = 0, startX = 0, startY = 0;
+        let lastPinchDist = 0;
+        
+        const TYPES = { EMPTY: 0, SOLID: 1, POWDER: 2, LIQUID: 3, GAS: 4 };
+
+        const ELEMENTS = {
+            AIR:   { id: 0, name: '空气', type: TYPES.EMPTY, color: [0,0,0,0] },
+            
+            // --- 固体 ---
+            STONE: { id: 1, name: '石头', type: TYPES.SOLID, color: [120, 120, 120], variance: 20 },
+            WOOD:  { id: 2, name: '木头', type: TYPES.SOLID, color: [139, 69, 19], flammable: true, burnRate: 0.03 },
+            ICE:   { id: 3, name: '冰块', type: TYPES.SOLID, color: [173, 216, 230], meltRate: 0.01 },
+            C4:    { id: 4, name: 'C-4',  type: TYPES.SOLID, color: [180, 200, 100], explosive: true, radius: 25 },
+            FUSE:  { id: 5, name: '导火索', type: TYPES.SOLID, color: [100, 50, 50], flammable: true, burnRate: 0.2 },
+            PLANT: { id: 6, name: '植物', type: TYPES.SOLID, color: [34, 139, 34], flammable: true, burnRate: 0.08 },
+            VINE:  { id: 7, name: '藤蔓', type: TYPES.SOLID, color: [60, 180, 60], flammable: true, burnRate: 0.05, vine: true },
+            WAX:   { id: 8, name: '蜡',   type: TYPES.SOLID, color: [240, 240, 220], meltRate: 0.05, flammable: true, burnRate: 0.02 },
+            ELEC:  { id: 9, name: '雷电', type: TYPES.SOLID, color: [255, 255, 0], life: 3, hot: true, variance: 0 },
+            GLASS: { id: 14, name: '玻璃', type: TYPES.SOLID, color: [200, 255, 255, 100], variance: 0, isGlass: true },
+            URAN:  { id: 15, name: '铀',   type: TYPES.SOLID, color: [0, 255, 100], hot: true, variance: 50 },
+            TNT:   { id: 17, name: 'TNT',  type: TYPES.SOLID, color: [200, 50, 50], explosive: true, radius: 45 },
+            DRYICE:{ id: 18, name: '干冰', type: TYPES.SOLID, color: [240, 240, 255], sublimate: true },
+            FIREW: { id: 40, name: '烟花', type: TYPES.SOLID, color: [255, 200, 200], gravity: -1, life: 60, isFirework: true },
+            BACT:  { id: 41, name: '细菌', type: TYPES.SOLID, color: [0, 255, 50], isBacteria: true },
+            CLONE: { id: 80, name: '克隆', type: TYPES.SOLID, color: [255, 0, 255], clone: true },
+            TERM:  { id: 81, name: '白蚁', type: TYPES.SOLID, color: [180, 150, 100], isBug: true },
+            NA:    { id: 82, name: '钠',   type: TYPES.SOLID, color: [200, 200, 220], reactive: true },
+            WALL:   { id: 55, name: '墙壁', type: TYPES.SOLID, color: [90, 90, 95], isStatic: true, variance: 10 },
+            BATTERY:{ id: 56, name: '电池', type: TYPES.SOLID, color: [50, 50, 100], isBattery: true, variance: 5 },
+            VOID:   { id: 57, name: '虚空', type: TYPES.SOLID, color: [20, 0, 20], isVoid: true, glow: true },
+            COAL:   { id: 90, name: '煤炭', type: TYPES.SOLID, color: [40, 40, 40], variance: 10, flammable: true, burnRate: 0.005, isCoal: true },
+            OBSIDIAN:{ id: 96, name: '黑曜石', type: TYPES.SOLID, color: [30, 30, 50], variance: 10, isStatic: true },
+            GEYSER:  { id: 98, name: '间歇泉', type: TYPES.SOLID, color: [100, 150, 200], variance: 5, isGeyser: true },
+            COPPER: { id: 105, name: '铜', type: TYPES.SOLID, color: [184, 115, 51], variance: 10, isConductor: true },
+            MIRROR:{ id: 110, name: '镜子', type: TYPES.SOLID, color: [220, 255, 255], variance: 20, isMirror: true },
+            BEDROCK:{ id: 125, name: '基岩', type: TYPES.SOLID, color: [10, 10, 10], variance: 5, isStatic: true, isIndestructible: true },
+            TIMEBOMB:{ id: 126, name: '定时炸弹', type: TYPES.SOLID, color: [180, 50, 50], variance: 10, explosive: true, radius: 50, isTimeBomb: true, life: 100 },
+            GUNPOWKEG:{ id: 140, name: '火药桶', type: TYPES.SOLID, color: [120, 80, 50], variance: 15, explosive: true, radius: 100 },
+            BLACKHOLE:{ id: 145, name: '黑洞', type: TYPES.SOLID, color: [10, 0, 10], variance: 0, isStatic: true, isBlackHole: true, glow: true },
+            
+            AMBER:{ id: 150, name: '琥珀', type: TYPES.SOLID, color: [255, 200, 50], variance: 10, isAmber: true },
+            BRICK:{ id: 151, name: '砖', type: TYPES.SOLID, color: [100, 60, 60], variance: 5, isStatic: true },
+            
+            LAMP:  { id: 160, name: '灯泡', type: TYPES.SOLID, color: [60, 60, 60], variance: 10, isLamp: true },
+            LAMP_ON:{id: 161, name: '亮灯泡', type: TYPES.SOLID, color: [255, 255, 220], variance: 5, isLampOn: true, glow: true },
+            MAGMA_N:{id: 162, name: '岩浆块', type: TYPES.SOLID, color: [120, 20, 0], variance: 15, hot: true, isMagmaBlock: true },
+            GEN:    { id: 170, name: '发电机', type: TYPES.SOLID, color: [100, 0, 150], variance: 10, isGenerator: true, glow: true },
+            NUKE:   { id: 171, name: '核弹', type: TYPES.SOLID, color: [50, 100, 50], variance: 20, explosive: true, radius: 120, isNuke: true },
+            SNOWMAN:{ id: 172, name: '雪人', type: TYPES.SOLID, color: [250, 250, 255], variance: 5, isSnowman: true },
+            CACTUS: { id: 190, name: '仙人掌', type: TYPES.SOLID, color: [50, 180, 50], variance: 20, isCactus: true, flammable: true },
+
+            // v3.11/v3.12/v3.13 SOLIDS
+            PORTAL: { id: 200, name: '传送门', type: TYPES.SOLID, color: [100, 0, 255], variance: 20, isPortal: true, glow: true },
+            GUNPOWDER_BOX: { id: 206, name: '炸药箱', type: TYPES.SOLID, color: [100, 40, 40], variance: 10, isGunpowderBox: true, explosive: true, radius: 30 },
+            
+            // v3.13 SOLIDS
+            ICEBOMB:{ id: 210, name: '冰弹', type: TYPES.SOLID, color: [100, 200, 255], variance: 10, isIceBomb: true, explosive: true, radius: 25 },
+            R_GLASS:{ id: 211, name: '钢化玻', type: TYPES.SOLID, color: [200, 255, 255, 150], variance: 0, isReinforcedGlass: true },
+            IRON:  { id: 212, name: '铁',   type: TYPES.SOLID, color: [100, 100, 110], variance: 10, isIron: true, isConductor: true },
+
+            // v3.14 NEW SOLIDS
+            WIRE:  { id: 216, name: '电线', type: TYPES.SOLID, color: [184, 115, 51], variance: 0, isConductor: true, isStatic: true },
+            FUNGUS:{ id: 220, name: '真菌', type: TYPES.SOLID, color: [120, 60, 140], variance: 15, isFungus: true, flammable: true, burnRate: 0.05, vine: true },
+
+            // --- 粉末 ---
+            SAND:  { id: 10, name: '沙子', type: TYPES.POWDER, color: [226, 197, 139], variance: 20, density: 1.5 },
+            GUNP:  { id: 11, name: '火药', type: TYPES.POWDER, color: [60, 60, 60], explosive: true, radius: 10 },
+            SALT:  { id: 12, name: '盐',   type: TYPES.POWDER, color: [240, 240, 240], density: 1.2 },
+            SEED:  { id: 13, name: '种子', type: TYPES.POWDER, color: [100, 255, 100], density: 1.1, grow: true },
+            ASH:   { id: 16, name: '灰烬', type: TYPES.POWDER, color: [100, 100, 100], density: 1.3 },
+            SPARK: { id: 39, name: '火花', type: TYPES.POWDER, color: [255, 215, 0], life: 15, gravity: 0.5 },
+            ANTIG: { id: 83, name: '反重力', type: TYPES.POWDER, color: [100, 200, 255], gravity: -1 }, 
+            BLEACH:{ id: 84, name: '漂白剂', type: TYPES.POWDER, color: [255, 250, 240], bleach: true },
+            GOLD:    { id: 50, name: '金子', type: TYPES.POWDER, color: [255, 215, 0], density: 5.0, variance: 10 },
+            THERMITE:{id: 58, name: '铝热剂', type: TYPES.POWDER, color: [80, 40, 20], density: 2.0, flammable: true, burnRate: 0.05, isThermite: true },
+            SNOW:   { id: 91, name: '雪',   type: TYPES.POWDER, color: [250, 250, 255], density: 0.8, variance: 10, cold: true, isSnow: true },
+            EMBER:  { id: 92, name: '余烬', type: TYPES.POWDER, color: [255, 100, 0], density: 1.2, variance: 40, hot: true, life: 200 },
+            SULPHUR:{ id: 97, name: '硫磺', type: TYPES.POWDER, color: [220, 210, 50], variance: 15, flammable: true, burnRate: 0.08, isSulphur: true },
+            BIRD:   { id: 100, name: '鸟',   type: TYPES.POWDER, color: [60, 60, 60], variance: 20, gravity: -1, isBird: true, life: 600 },
+            CLAY:   { id: 106, name: '粘土', type: TYPES.POWDER, color: [180, 120, 80], density: 1.4, variance: 15, isClay: true },
+            FISH:   { id: 107, name: '鱼',   type: TYPES.POWDER, color: [100, 150, 200], density: 1.1, variance: 10, isFish: true, life: 500 },
+            ETHANOL:{id: 111, name: '乙醇', type: TYPES.POWDER, color: [220, 220, 240], density: 0.9, variance: 5, flammable: true, burnRate: 0.4, isEthanol: true },
+            EXPLO:{ id: 112, name: '高爆炸药', type: TYPES.POWDER, color: [180, 50, 180], density: 1.8, variance: 20, explosive: true, radius: 60 },
+            DRAGON:{ id: 113, name: '龙',   type: TYPES.POWDER, color: [180, 20, 20], variance: 20, gravity: -1, isDragon: true, life: 800, hot: true },
+            METEOR:{ id: 127, name: '陨石', type: TYPES.POWDER, color: [80, 70, 70], density: 4.5, variance: 20, isMeteor: true },
+            MAGICS:{ id: 141, name: '魔法沙', type: TYPES.POWDER, color: [200, 100, 200], density: 2.5, variance: 10, glow: true, isMagic: true },
+            FIREBALL:{ id: 142, name: '火球', type: TYPES.POWDER, color: [255, 100, 0], variance: 40, gravity: -1, life: 50, hot: true, isFireball: true },
+            MUD:{ id: 143, name: '泥', type: TYPES.POWDER, color: [150, 100, 50], density: 1.3, variance: 10, viscous: true, isMud: true },
+            GHOST:{ id: 144, name: '鬼', type: TYPES.POWDER, color: [220, 220, 255, 150], density: 0.1, gravity: -1, life: 1000, isGhost: true },
+            CONDUCT:{ id: 146, name: '导电沙', type: TYPES.POWDER, color: [255, 140, 0], density: 2.0, variance: 10, isConductor: true },
+            MAGMABALL:{ id: 147, name: '岩浆球', type: TYPES.POWDER, color: [255, 60, 0], density: 3.0, variance: 20, hot: true, isMagmaBall: true },
+            KAPPA:{ id: 148, name: '水鬼', type: TYPES.POWDER, color: [50, 100, 120], density: 1.0, variance: 15, isFish: true, isKappa: true, life: 700 },
+            DRYPOW:{ id: 152, name: '干粉', type: TYPES.POWDER, color: [240, 240, 240], density: 1.1, variance: 10, isDryPowder: true },
+            BUBBLE:{ id: 153, name: '泡泡', type: TYPES.POWDER, color: [200, 255, 255, 150], density: 0.05, life: 300, fastRise: true, isBubble: true },
+            ANTI:   { id: 191, name: '反物质', type: TYPES.POWDER, color: [50, 0, 100], density: 0.5, variance: 20, isAntimatter: true },
+            MECHA:  { id: 192, name: '机甲', type: TYPES.POWDER, color: [150, 150, 150], density: 2.0, variance: 10, isMecha: true, life: 1000 },
+            SHRAP:  { id: 193, name: '弹片', type: TYPES.POWDER, color: [180, 180, 190], density: 4.0, variance: 10, isShrapnel: true },
+
+            // v3.11/v3.12/v3.13 POWDERS
+            EGG:    { id: 201, name: '鸡蛋', type: TYPES.POWDER, color: [255, 255, 200], density: 1.1, variance: 10, isEgg: true },
+            RUST:   { id: 213, name: '铁锈', type: TYPES.POWDER, color: [160, 100, 50], density: 1.8, variance: 20, isRust: true },
+
+            // v3.14 NEW POWDERS
+            CEMENT: { id: 217, name: '水泥', type: TYPES.POWDER, color: [180, 180, 180], density: 1.5, variance: 10, isCement: true },
+
+            // --- 液体 ---
+            WATER: { id: 20, name: '水',   type: TYPES.LIQUID, color: [64, 164, 223], density: 1.0, variance: 10 },
+            OIL:   { id: 21, name: '石油', type: TYPES.LIQUID, color: [50, 40, 20], density: 0.8, flammable: true, burnRate: 0.15 },
+            ACID:  { id: 22, name: '酸液', type: TYPES.LIQUID, color: [124, 252, 0], density: 1.0, acid: true },
+            LAVA:  { id: 23, name: '岩浆', type: TYPES.LIQUID, color: [255, 69, 0], density: 2.0, hot: true },
+            MERC:  { id: 24, name: '水银', type: TYPES.LIQUID, color: [192, 192, 192], density: 4.0 },
+            SLIME: { id: 25, name: '粘液', type: TYPES.LIQUID, color: [0, 200, 50], density: 1.1, viscous: true },
+            NITRO: { id: 85, name: '液氮', type: TYPES.LIQUID, color: [160, 220, 255], density: 0.9, cold: true },
+            NAPALM:{ id: 93, name: '凝固汽油', type: TYPES.LIQUID, color: [200, 80, 0], density: 1.0, variance: 20, flammable: true, burnRate: 0.3, hot: true, viscous: true, isNapalm: true },
+            MOLTEN:{ id: 108, name: '熔融金属', type: TYPES.LIQUID, color: [255, 160, 0], density: 3.0, variance: 30, hot: true, isMolten: true },
+            MANA:{ id: 128, name: '魔法药水', type: TYPES.LIQUID, color: [150, 50, 255], density: 1.2, variance: 20, glow: true, viscous: true, isMana: true },
+            BLOOD:{ id: 154, name: '血', type: TYPES.LIQUID, color: [180, 0, 0], density: 1.05, viscous: true, variance: 10 },
+            HONEY: { id: 163, name: '蜂蜜', type: TYPES.LIQUID, color: [255, 200, 0], density: 1.4, viscous: true, flammable: true, burnRate: 0.02, variance: 5 },
+
+            // v3.11/v3.12/v3.13 LIQUIDS
+            S_ACID:{ id: 202, name: '浓硫酸', type: TYPES.LIQUID, color: [255, 255, 0], density: 1.2, variance: 0, isSuperAcid: true },
+            GLUE:{   id: 203, name: '强力胶', type: TYPES.LIQUID, color: [255, 255, 255], density: 1.1, variance: 10, isGlue: true, viscous: true },
+            ACID_RAIN:{ id: 207, name: '酸雨', type: TYPES.LIQUID, color: [180, 255, 100], density: 0.9, variance: 20, acid: true },
+            NEON:{    id: 214, name: '霓虹',   type: TYPES.LIQUID, color: [255, 0, 255], density: 0.8, variance: 100, glow: true },
+
+            // v3.14 NEW LIQUIDS
+            TAR:{    id: 218, name: '焦油', type: TYPES.LIQUID, color: [40, 20, 0], density: 1.5, variance: 5, viscous: true, flammable: true, burnRate: 0.08, superViscous: true, isTar: true },
+
+            // --- 气体/特效 ---
+            FIRE:  { id: 30, name: '火焰', type: TYPES.GAS, color: [255, 100, 0], variance: 80, hot: true, life: 25 },
+            STEAM: { id: 31, name: '蒸汽', type: TYPES.GAS, color: [200, 220, 255, 120], life: 350, condense: true },
+            ACIDG: { id: 36, name: '酸气', type: TYPES.GAS, color: [100, 255, 50, 150], density: 0.5, acid: true, life: 200 },
+            SMOKE: { id: 32, name: '烟雾', type: TYPES.GAS, color: [80, 80, 80, 100], life: 50 },
+            GAS:   { id: 33, name: '甲烷', type: TYPES.GAS, color: [150, 255, 150, 100], flammable: true, burnRate: 0.8, density: 0.1 },
+            NEON_G:{id: 42, name: '氖气', type: TYPES.GAS, color: [255, 0, 128], glow: true, density: 0.05, fastRise: true },
+            FOG:   { id: 35, name: '白雾', type: TYPES.GAS, color: [240, 240, 255, 180], density: 1.2, life: 120, heavyGas: true },
+            VIRUS: { id: 34, name: '病毒', type: TYPES.SOLID, color: [128, 0, 128], infect: true },
+            PLASMA:{ id: 60, name: '等离子', type: TYPES.GAS, color: [255, 0, 255], life: 8, hot: true, isPlasma: true, fastRise: true },
+            HYDROG:{ id: 94, name: '氢气', type: TYPES.GAS, color: [220, 220, 220, 80], density: 0.01, life: 400, explosive: true, radius: 35, fastRise: true },
+            NITROG:{ id: 95, name: '氮气', type: TYPES.GAS, color: [200, 210, 240, 80], density: 0.2, life: 600, cold: true, heavyGas: true },
+            FROST:{ id: 109, name: '霜气', type: TYPES.GAS, color: [200, 240, 255, 100], density: 0.8, life: 200, cold: true, isFrost: true },
+            POISONG:{ id: 114, name: '毒气', type: TYPES.GAS, color: [100, 255, 50, 120], density: 0.3, life: 400, isPoison: true },
+            CLOUD:{ id: 129, name: '云', type: TYPES.GAS, color: [255, 255, 255, 200], density: 1.5, life: 600, heavyGas: true, isCloud: true },
+            ICECRY:{ id: 149, name: '冰晶', type: TYPES.GAS, color: [200, 250, 255, 120], density: 0.2, life: 400, cold: true, isIceCrystal: true },
+            TORNADO:{ id: 164, name: '龙卷风', type: TYPES.GAS, color: [100, 100, 120], variance: 10, life: 800, isTornado: true },
+            SPORE:  { id: 165, name: '孢子', type: TYPES.GAS, color: [180, 100, 180], life: 500, variance: 20, isSpore: true },
+            RAD:   { id: 180, name: '辐射', type: TYPES.GAS, color: [100, 255, 100], variance: 50, glow: true, life: 600, isRadiation: true },
+
+            ERASER:{ id: 99, name: '橡皮', type: TYPES.SOLID, color: [255,255,255,50], isEraser: true },
+            
+            // v3.12/v3.13 GASES/SPECIALS
+            BALLOON:{ id: 204, name: '气球', type: TYPES.GAS, color: [255, 80, 80], density: 0.01, life: 2000, gravity: -1, isBalloon: true },
+            GLOW_VINE:{ id: 205, name: '发光藤', type: TYPES.SOLID, color: [150, 255, 150], glow: true, flammable: true, burnRate: 0.05, vine: true },
+            CHLORINE:{ id: 215, name: '氯气', type: TYPES.GAS, color: [100, 255, 100], density: 0.3, life: 600, isChlorine: true, glow: true },
+
+            // v3.14 NEW GASES
+            CO2:{ id: 219, name: '二氧化', type: TYPES.GAS, color: [200, 200, 200, 100], density: 1.8, life: 800, heavyGas: true, isCO2: true }
+        };
+
+        let currentEl = ELEMENTS.SAND;
+        const canvas = document.getElementById('sandbox');
+        const ctx = canvas.getContext('2d', { alpha: false });
+        
+        let width, height;
+        let grid, imageData, buffer32;
+
+        function initGrid() {
+            const container = document.getElementById('game-container');
+            width = Math.floor(container.clientWidth / canvasScale);
+            height = Math.floor(container.clientHeight / canvasScale);
+            canvas.width = width;
+            canvas.height = height;
+            grid = new Int32Array(width * height).fill(0);
+            imageData = ctx.createImageData(width, height);
+            buffer32 = new Uint32Array(imageData.data.buffer);
+            
+            const gridOverlay = document.getElementById('grid-overlay');
+            gridOverlay.style.backgroundSize = `${canvasScale}px ${canvasScale}px`;
+
+            resetZoom();
+        }
+        
+        const idx = (x, y) => x + y * width;
+        const inB = (x, y) => x >= 0 && x < width && y >= 0 && y < height;
+
+        const getDir = () => invertGravity ? -1 :1;
+        const getDown = (y) => y + getDir();
+        const getUp = (y) => y - getDir();
+        const isDownValid = (y) => invertGravity ? y >= 0 : y < height;
+        const isUpValid = (y) => invertGravity ? y < height : y >= 0;
+        
+        function update() {
+            if (!isPaused) {
+                const startRow = invertGravity ?0 : height - 1;
+                const endRow = invertGravity ? height : -1;
+                const stepRow = invertGravity ?1 : -1;
+
+                for (let y = startRow; y !== endRow; y += stepRow) {
+                    updateRow(y);
+                }
+            }
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        function updateRow(y) {
+            const scanLeft = Math.random() > 0.5;
+            const startX = scanLeft ? 0 : width - 1;
+            const endX = scanLeft ? width : -1;
+            const stepX = scanLeft ?1 : -1;
+
+            for (let x = startX; x !== endX; x += stepX) {
+                const i = idx(x, y);
+                const id = grid[i];
+                if (id === 0) continue;
+
+                const el = getElById(id);
+                if (!el) continue;
+
+                if (processInteractions(x, y, i, el)) continue;
+
+                if (zeroGravity && el.type !== TYPES.SOLID && !el.isFirework) continue;
+
+                if (el.gravity === -1) moveAntiGravity(x, y, i, el);
+                else if (el.type === TYPES.POWDER) movePowder(x, y, i, el);
+                else if (el.type === TYPES.LIQUID) moveLiquid(x, y, i, el);
+                else if (el.type === TYPES.GAS) moveGas(x, y, i, el);
+                else if (el.isBug || el.isFish || el.isKappa || el.isMecha) {
+                    const dir = Math.random() < 0.25 ? -1 : (Math.random() > 0.75 ? 1 : 0);
+                    const dy = Math.random() < 0.25 ? -1 : (Math.random() > 0.75 ? 1 : 0);
+                    if (inB(x+dir, y+dy) && grid[idx(x+dir, y+dy)] === 0) swap(i, idx(x+dir, y+dy));
+                }
+            }
+        }
+
+        function processInteractions(x, y, i, el) {
+            if (Math.random() > 0.4) return false; 
+            const neighbors = [{x:x, y:y-1}, {x:x, y:y+1}, {x:x-1, y:y}, {x:x+1, y:y}];
+
+            // --- v3.14 NEW INTERACTIONS ---
+
+            // Fungus: Grows and infects
+            if (el.isFungus) {
+                // Grow
+                if (Math.random() < 0.05) { 
+                    const growDirs = [{x:x, y:y+1}, {x:x-1, y:y}, {x:x+1, y:y}, {x:x-1, y:y-1}, {x:x+1, y:y-1}];
+                    const target = growDirs[Math.floor(Math.random() * growDirs.length)];
+                    if(inB(target.x, target.y) && grid[idx(target.x, target.y)] === 0) {
+                        grid[idx(target.x, target.y)] = ELEMENTS.FUNGUS.id;
+                    }
+                }
+                // Infect organic matter
+                for(let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if (nid === ELEMENTS.PLANT.id || nid === ELEMENTS.WOOD.id || nid === ELEMENTS.SEED.id || nid === ELEMENTS.VINE.id || nid === ELEMENTS.GLOW_VINE.id) {
+                            grid[idx(n.x, n.y)] = ELEMENTS.FUNGUS.id;
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            // CO2: Extinguishes fire
+            if (el.isCO2) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if (nid === ELEMENTS.FIRE.id || nid === ELEMENTS.SPARK.id) {
+                            grid[idx(n.x, n.y)] = 0; // Put out fire
+                            // CO2 is not consumed in this simplified model to allow it to flow over fire
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            // Cement: Hardens with water
+            if (el.isCement) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if (nid === ELEMENTS.WATER.id) {
+                            grid[i] = ELEMENTS.STONE.id;
+                            grid[idx(n.x, n.y)] = 0; // Consume water
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            // --- v3.13 & EARLIER INTERACTIONS ---
+
+            // Ice Bomb: Freezes area
+            if (el.isIceBomb) {
+                let ignited = false;
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.hot || nel.id === ELEMENTS.FIRE.id || nel.id === ELEMENTS.LAVA.id)) {
+                            ignited = true; break;
+                        }
+                    }
+                }
+                if (ignited) {
+                    explodeIce(x, y, el.radius); 
+                    return true;
+                }
+            }
+
+            // Reinforced Glass: Explodes into Shrapnel
+            if (el.isReinforcedGlass) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.explosive || nel.id === ELEMENTS.LAVA.id)) {
+                             // It breaks hard
+                             if (Math.random() < 0.5) {
+                                 grid[i] = ELEMENTS.SHRAP.id;
+                                 return true;
+                             }
+                        }
+                    }
+                }
+            }
+
+            // Iron: Rusts with water
+            if (el.isIron) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if (nid === ELEMENTS.WATER.id) {
+                            if (Math.random() < 0.05) {
+                                grid[i] = ELEMENTS.RUST.id;
+                                grid[idx(n.x, n.y)] = 0; // Water consumed
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Rust: Washed away by water (slowly turns back to dust/sand) or breaks
+            if (el.isRust) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if (nid === ELEMENTS.WATER.id) {
+                            if (Math.random() < 0.02) {
+                                grid[i] = ELEMENTS.SAND.id; // Becomes sand
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Chlorine: Reacts with water to make acid
+            if (el.isChlorine) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if (nid === ELEMENTS.WATER.id) {
+                            if (Math.random() < 0.1) {
+                                grid[idx(n.x, n.y)] = ELEMENTS.ACIDG.id;
+                                grid[i] = 0; // Chlorine consumed
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Neon: Color cycling (purely visual logic in draw, but could react to elec)
+            if (el.id === ELEMENTS.NEON.id) {
+                // No special physics interaction
+            }
+
+            // Balloon: Pops on sharp objects
+            if (el.isBalloon) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.isCactus || nel.isGlass || nel.isShrapnel)) {
+                            grid[i] = 0; // Pop
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            // Gunpowder Box: Explodes violently
+            if (el.isGunpowderBox) {
+                let ignited = false;
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.hot || nel.id === ELEMENTS.FIRE.id || nel.id === ELEMENTS.SPARK.id || nel.id === ELEMENTS.LAVA.id || nel.id === ELEMENTS.ELEC.id)) {
+                            ignited = true; break;
+                        }
+                    }
+                }
+                if (ignited) {
+                    explode(x, y, el.radius); 
+                    for (let ny = -3; ny <= 3; ny++) {
+                        for (let nx = -3; nx <= 3; nx++) {
+                            if (Math.random() < 0.4) {
+                                const px = x+nx; const py = y+ny;
+                                if (inB(px, py) && grid[idx(px, py)] === 0) {
+                                    grid[idx(px, py)] = ELEMENTS.GUNP.id;
+                                }
+                            }
+                        }
+                    }
+                    return true;
+                }
+            }
+
+            // Portal: Teleport to opposite side
+            if (el.isPortal) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if (nid !== 0 && nid !== ELEMENTS.PORTAL.id) {
+                            const targetX = width - 1 - n.x;
+                            if (grid[idx(targetX, n.y)] === 0) {
+                                grid[idx(targetX, n.y)] = nid;
+                                grid[idx(n.x, n.y)] = 0; 
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Super Acid: Eats everything except specific immunities
+            if (el.isSuperAcid) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if (nid !== 0 && nid !== ELEMENTS.S_ACID.id) {
+                            const nel = getElById(nid);
+                            if (nel && !nel.isIndestructible && !nel.isVoid && !nel.isAntimatter && !nel.isPortal) {
+                                if (Math.random() < 0.2) {
+                                    grid[idx(n.x, n.y)] = 0;
+                                    if (Math.random() < 0.2) grid[i] = 0; 
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Glue: Sticks things
+            if (el.isGlue) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if (nid !== 0 && nid !== ELEMENTS.GLUE.id) {
+                             const nel = getElById(nid);
+                             if (nel && !nel.isStatic && !nel.isIndestructible) {
+                                 if (Math.random() < 0.1) {
+                                     grid[idx(n.x, n.y)] = ELEMENTS.WALL.id;
+                                     return true;
+                                 }
+                             }
+                        }
+                    }
+                }
+            }
+
+            // Egg: Hatches
+            if (el.isEgg) {
+                if (Math.random() < 0.005) {
+                    grid[i] = ELEMENTS.BIRD.id;
+                    return true;
+                }
+            }
+
+            if (el.isAntimatter) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if (nid !== 0 && nid !== el.id) {
+                            const nel = getElById(nid);
+                            if (nel && !nel.isIndestructible && !nel.isVoid && !nel.isAntimatter) {
+                                if (Math.random() < 0.5) {
+                                    grid[idx(n.x, n.y)] = 0; 
+                                    grid[i] = 0; 
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (el.isCactus) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.isBird || nel.isFish || nel.isBug)) {
+                             if (Math.random() < 0.2) {
+                                 grid[idx(n.x, n.y)] = ELEMENTS.BLOOD.id; 
+                                 if (Math.random() < 0.1) grid[idx(n.x, n.y)] = 0; 
+                             }
+                        }
+                    }
+                }
+            }
+
+            if (el.isMecha) {
+                let inLiquid = false;
+                let acidOrRad = false;
+                
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nid === ELEMENTS.WATER.id || nid === ELEMENTS.ACID.id || nid === ELEMENTS.OIL.id || nid === ELEMENTS.GLUE.id) inLiquid = true;
+                        if (nel && (nel.hot || nid === ELEMENTS.LAVA.id)) {
+                            if (Math.random() < 0.1) {
+                                grid[i] = ELEMENTS.MOLTEN.id;
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                if (inLiquid) {
+                    const dir = Math.random() > 0.5 ? 1 : -1;
+                    const side = idx(x+dir, y);
+                    if (inB(x+dir, y) && (grid[side] === 0 || grid[side] === ELEMENTS.WATER.id)) {
+                         if (grid[side] === 0) swap(i, side);
+                         else if (grid[side] === ELEMENTS.WATER.id) swap(i, side);
+                    }
+                }
+            }
+
+            if (el.isShrapnel) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.isBird || nel.isFish || nel.isBug)) {
+                             if (Math.random() < 0.1) {
+                                 grid[idx(n.x, n.y)] = ELEMENTS.BLOOD.id;
+                             }
+                        }
+                    }
+                }
+            }
+
+            if (el.isNuke) {
+                let ignite = false;
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.hot || nel.id === ELEMENTS.FIRE.id || nel.id === ELEMENTS.ELEC.id || nel.id === ELEMENTS.LAVA.id)) {
+                            ignite = true; break;
+                        }
+                    }
+                }
+                if (ignite) {
+                    explode(x, y, el.radius); 
+                    for (let ny = -el.radius; ny <= el.radius; ny++) {
+                        for (let nx = -el.radius; nx <= el.radius; nx++) {
+                            if (nx*nx + ny*ny <= el.radius*el.radius) {
+                                const px = x+nx; const py = y+ny;
+                                if (inB(px, py) && grid[idx(px, py)] === 0) {
+                                    if (Math.random() < 0.3) grid[idx(px, py)] = ELEMENTS.RAD.id;
+                                }
+                            }
+                        }
+                    }
+                    return true;
+                }
+            }
+
+            if (el.isRadiation) {
+                for (let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.isBird || nel.isFish || nel.isBacteria || nel.isBug || nel.id === ELEMENTS.PLANT.id || nel.id === ELEMENTS.WOOD.id)) {
+                             if (Math.random() < 0.1) {
+                                 grid[idx(n.x, n.y)] = ELEMENTS.ASH.id; 
+                             }
+                        }
+                    }
+                }
+                if (Math.random() < 0.01) { grid[i] = 0; return true; }
+            }
+
+            if (el.isGenerator) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y) && grid[idx(n.x, n.y)] === 0) {
+                        if (Math.random() < 0.25) {
+                            grid[idx(n.x, n.y)] = ELEMENTS.ELEC.id;
+                        }
+                    }
+                }
+            }
+
+            if (el.isSnowman) {
+                let tooHot = false;
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.hot || nid === ELEMENTS.LAVA.id)) {
+                            tooHot = true; break;
+                        }
+                        if (nid === ELEMENTS.WATER.id) {
+                            if (Math.random() < 0.1) grid[idx(n.x, n.y)] = ELEMENTS.SNOW.id;
+                        }
+                    }
+                }
+                if (tooHot) {
+                    if (Math.random() < 0.1) {
+                        grid[i] = ELEMENTS.WATER.id; 
+                        return true;
+                    }
+                }
+            }
+
+            if (el.isTornado) {
+                const radius = 3;
+                for (let ny = -radius; ny <= radius; ny++) {
+                    for (let nx = -radius; nx <= radius; nx++) {
+                        if (nx===0 && ny===0) continue;
+                        const px = x + nx; 
+                        const py = y + ny;
+                        if (inB(px, py)) {
+                            const nid = grid[idx(px, py)];
+                            if (nid !== 0) {
+                                const nel = getElById(nid);
+                                if (nel && !nel.isStatic && (nel.type === TYPES.GAS || nel.type === TYPES.POWDER)) {
+                                    if (Math.random() < 0.15) {
+                                        const upIdx = idx(px, getUp(py));
+                                        if (isUpValid(getUp(py)) && grid[upIdx] === 0) {
+                                            swap(idx(px, py), upIdx);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (el.isLamp) {
+                let powered = false;
+                for (let n of neighbors) {
+                    if(inB(n.x, n.y) && grid[idx(n.x, n.y)] === ELEMENTS.ELEC.id) {
+                        powered = true; break;
+                    }
+                }
+                if (powered) grid[i] = ELEMENTS.LAMP_ON.id;
+            }
+            if (el.isLampOn) {
+                let powered = false;
+                for (let n of neighbors) {
+                    if(inB(n.x, n.y) && grid[idx(n.x, n.y)] === ELEMENTS.ELEC.id) {
+                        powered = true; break;
+                    }
+                }
+                if (!powered) grid[i] = ELEMENTS.LAMP.id;
+            }
+
+            if (el.isSpore) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nid === ELEMENTS.WATER.id || nid === ELEMENTS.ACID.id)) {
+                             if (Math.random() < 0.1) {
+                                 grid[i] = ELEMENTS.PLANT.id; 
+                                 return true;
+                             }
+                        }
+                    }
+                }
+            }
+
+            if (el.isMagmaBlock) {
+                 for (let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nid === ELEMENTS.WATER.id) {
+                            grid[idx(n.x, n.y)] = ELEMENTS.STEAM.id;
+                            if (Math.random() < 0.5) grid[i] = ELEMENTS.OBSIDIAN.id;
+                            return true;
+                        }
+                        if (nel && !nel.isStatic && !nel.hot && nid !== ELEMENTS.LAVA.id) {
+                            if (Math.random() < 0.05) {
+                                grid[idx(n.x, n.y)] = ELEMENTS.FIRE.id;
+                            }
+                        }
+                    }
+                 }
+            }
+
+            if (el.isDryPowder) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.hot || nel.id === ELEMENTS.FIRE.id || nel.id === ELEMENTS.LAVA.id || nel.id === ELEMENTS.MAGMABALL.id)) {
+                            if (Math.random() < 0.8) {
+                                grid[idx(n.x, n.y)] = 0; 
+                                if (Math.random() < 0.3) { grid[i] = 0; return true; } 
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (el.isBubble) {
+                if (Math.random() < 0.02) { grid[i] = 0; return true; }
+            }
+
+            if (el.isAmber) {
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.isBug || nel.isKappa || nel.isBird || nel.isFish)) {
+                             if (Math.random() < 0.1) {
+                                 grid[idx(n.x, n.y)] = 0; 
+                             }
+                        }
+                    }
+                }
+            }
+
+            if (el.isBlackHole) {
+                // v3.12 FIX: Black holes are permanent
+                for(let ny = -3; ny <= 3; ny++) {
+                    for(let nx = -3; nx <= 3; nx++) {
+                        if (nx === 0 && ny === 0) continue;
+                        if (nx*nx + ny*ny <= 9) { 
+                            const px = x + nx; const py = y + ny; 
+                            if (inB(px, py)) {
+                                const pid = grid[idx(px, py)];
+                                const pel = getElById(pid);
+                                if (pel && (pel.isIndestructible || pel.isStatic || pel.isAmber || pel.isAntimatter || pel.isPortal)) continue;
+                                if (pid !== 0) {
+                                    if (Math.random() < 0.2) {
+                                        grid[idx(px, py)] = 0;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (el.isMagmaBall) {
+                for (let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && !nel.hot) {
+                             if (Math.random() < 0.2) {
+                                 grid[idx(n.x, n.y)] = ELEMENTS.FIRE.id;
+                             }
+                        }
+                    }
+                }
+                if (Math.random() < 0.1) {
+                    grid[i] = ELEMENTS.SMOKE.id; return true;
+                }
+            }
+
+            if (el.isKappa) {
+                const here = getElById(grid[i]);
+                if (!here) return false;
+                
+                let inWater = false;
+                let enemyNear = false;
+                for (let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nid === ELEMENTS.WATER.id) {
+                            inWater = true; break;
+                        }
+                        if (nel && nel.isFish && nid !== ELEMENTS.KAPPA.id) {
+                            enemyNear = true;
+                            if (Math.random() < 0.1) {
+                                grid[idx(n.x, n.y)] = ELEMENTS.ASH.id; 
+                            }
+                        }
+                    }
+                }
+                
+                if (inWater) {
+                    const dir = Math.random() > 0.5 ? 1 : -1;
+                    const side = idx(x+dir, y);
+                    if (inB(x+dir, y) && (grid[side] === 0 || grid[side] === ELEMENTS.WATER.id)) {
+                        if (grid[side] === 0) swap(i, side);
+                        else if (grid[side] === ELEMENTS.WATER.id) swap(i, side);
+                    }
+                } else {
+                    if (Math.random() < 0.05) {
+                        grid[i] = ELEMENTS.ASH.id; return true;
+                    }
+                }
+            }
+
+            if (el.isIceCrystal) {
+                for (let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if (nid === ELEMENTS.WATER.id) {
+                            if (Math.random() < 0.1) {
+                                grid[idx(n.x, n.y)] = ELEMENTS.ICE.id;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                if (Math.random() < 0.02) {
+                    grid[i] = 0; return true;
+                }
+            }
+
+            if (el.isPoison) {
+                for(let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.isBird || nel.isFish || nel.isBacteria || nel.isBug)) {
+                             if (Math.random() < 0.2) {
+                                 grid[idx(n.x, n.y)] = 0;
+                             }
+                        }
+                    }
+                }
+            }
+
+            if (el.isDragon) {
+                if (Math.random() < 0.1) {
+                     const fireX = x + (Math.random() > 0.5 ? 1 : -1);
+                     if (inB(fireX, y) && grid[idx(fireX, y)] === 0) {
+                         grid[idx(fireX, y)] = ELEMENTS.FIRE.id;
+                     }
+                }
+                if (Math.random() < 0.005) {
+                    grid[i] = ELEMENTS.ASH.id; return true;
+                }
+                if (inB(x+1, y) && inB(x-1, y)) {
+                    const left = grid[idx(x-1, y)];
+                    const right = grid[idx(x+1, y)];
+                    if (left !== 0 && right === 0) {
+                        swap(i, idx(x+1, y)); return true;
+                    }
+                    else if (right !== 0 && left === 0) {
+                        swap(i, idx(x-1, y)); return true;
+                    }
+                }
+            }
+
+            if (el.isEthanol) {
+                if (Math.random() < 0.01) {
+                    grid[i] = ELEMENTS.GAS.id;
+                    return true;
+                }
+            }
+
+            if (el.clone) {
+                for(let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if (nid !== 0 && nid !== el.id) { grid[i] = nid; return true; }
+                    }
+                }
+            }
+
+            if (el.isFirework) {
+                let hit = false;
+                const up = idx(x, getUp(y));
+                if (!isUpValid(getUp(y)) || (grid[up] !== 0 && grid[up] !== ELEMENTS.SMOKE.id)) hit = true;
+                if (Math.random() < 0.02) hit = true; 
+                if (hit || el.life <= 1) { explodeFirework(x, y); return true; }
+            }
+
+            if (el.vine) {
+                if (Math.random() < 0.05) { 
+                    const growDirs = [{x:x, y:y+1}, {x:x-1, y:y}, {x:x+1, y:y}, {x:x-1, y:y+1}, {x:x+1, y:y+1}];
+                    const target = growDirs[Math.floor(Math.random() * growDirs.length)];
+                    if(inB(target.x, target.y) && grid[idx(target.x, target.y)] === 0) {
+                        grid[idx(target.x, target.y)] = ELEMENTS.VINE.id;
+                    }
+                }
+            }
+
+            if (el.isBacteria) {
+                for(let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if (nid === ELEMENTS.PLANT.id || nid === ELEMENTS.WOOD.id || nid === ELEMENTS.WAX.id || nid === ELEMENTS.SEED.id || nid === ELEMENTS.VINE.id) {
+                            grid[idx(n.x, n.y)] = ELEMENTS.BACT.id;
+                            return true;
+                        }
+                    }
+                }
+                if(Math.random() < 0.02) { grid[i] = 0; return true; }
+            }
+            
+            if (el.bleach) {
+                for(let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nid !== 0 && nid !== el.id && nel.type !== TYPES.GAS) {
+                             if(Math.random() < 0.1) {
+                                grid[idx(n.x, n.y)] = ELEMENTS.SALT.id;
+                                if(Math.random() < 0.2) grid[i] = 0; 
+                                return true;
+                             }
+                        }
+                    }
+                }
+            }
+
+            if (el.cold) {
+                for(let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                         const nid = grid[idx(n.x, n.y)];
+                         if (nid === ELEMENTS.WATER.id) {
+                            grid[idx(n.x, n.y)] = ELEMENTS.ICE.id;
+                            grid[i] = ELEMENTS.NITROG.id; 
+                            return true;
+                         } else if (nid === ELEMENTS.SLIME.id) { 
+                            grid[idx(n.x, n.y)] = ELEMENTS.STONE.id;
+                         }
+                    }
+                }
+                if (Math.random() < 0.05) { grid[i] = ELEMENTS.NITROG.id; return true; }
+            }
+
+            if (el.reactive) {
+                 for(let n of neighbors) {
+                    if(inB(n.x, n.y) && grid[idx(n.x, n.y)] === ELEMENTS.WATER.id) {
+                        explode(x, y, 15); return true;
+                    }
+                }
+            }
+
+            if (el.isBug) {
+                for(let n of neighbors) {
+                    if(inB(n.x, n.y) && (grid[idx(n.x, n.y)] === ELEMENTS.WOOD.id || grid[idx(n.x, n.y)] === ELEMENTS.VINE.id)) {
+                        grid[idx(n.x, n.y)] = 0; return true;
+                    }
+                }
+            }
+
+            if (el.sublimate) {
+                if(Math.random() < 0.05) { grid[i] = ELEMENTS.FOG.id; return true; }
+            }
+
+            if (el.condense) {
+                if ((invertGravity ? y > height * 0.85 : y < height * 0.15) && Math.random() < 0.01) {
+                    grid[i] = ELEMENTS.WATER.id; return true;
+                }
+                const up = idx(x, getUp(y));
+                if (isUpValid(getUp(y)) && grid[up] !== 0) {
+                    const upEl = getElById(grid[up]);
+                    if (upEl && upEl.type === TYPES.SOLID && Math.random() < 0.05) {
+                        grid[i] = ELEMENTS.WATER.id; return true;
+                    }
+                }
+            }
+
+            if (el.isVoid) {
+                for(let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.isAmber || nel.isBlackHole || nel.isAntimatter)) continue;
+                        if (nid !== 0 && !nel.isStatic && !nel.isVoid) {
+                            if (Math.random() < 0.2) {
+                                grid[idx(n.x, n.y)] = 0;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (el.isBattery) {
+                 for(let n of neighbors) {
+                    if(inB(n.x, n.y) && grid[idx(n.x, n.y)] === 0) {
+                        if (Math.random() < 0.25) {
+                            grid[idx(n.x, n.y)] = ELEMENTS.ELEC.id;
+                        }
+                    }
+                 }
+            }
+
+            if (el.isThermite) {
+                let ignited = false;
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.hot || nel.id === ELEMENTS.FIRE.id || nel.id === ELEMENTS.LAVA.id)) {
+                            ignited = true; break;
+                        }
+                    }
+                }
+                if (ignited) {
+                    grid[i] = ELEMENTS.LAVA.id;
+                    if(Math.random() < 0.3) {
+                         const rX = x + (Math.random()>0.5?1:-1);
+                         const rY = y + (Math.random()>0.5?1:-1);
+                         if(inB(rX, rY) && grid[idx(rX,rY)] === ELEMENTS.THERMITE.id) {
+                             grid[idx(rX, rY)] = ELEMENTS.LAVA.id;
+                         }
+                    }
+                    return true;
+                }
+            }
+
+            if (el.isCoal) {
+                if(Math.random() < 0.01) { grid[i] = ELEMENTS.ASH.id; return true; }
+            }
+
+            if (el.isSnow) {
+                 for (let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if(nel && (nel.hot || nel.id === ELEMENTS.LAVA.id || nel.id === ELEMENTS.FIRE.id)) {
+                             grid[i] = ELEMENTS.WATER.id; 
+                             if(Math.random() < 0.2) grid[i] = ELEMENTS.STEAM.id;
+                             return true;
+                        }
+                    }
+                 }
+            }
+
+            if (el.isNapalm) {
+                 if (el.life && Math.random() < 0.05) {
+                    grid[i] = ELEMENTS.OIL.id; 
+                    return true;
+                 }
+            }
+
+            if (el.id === ELEMENTS.HYDROG.id) {
+                 for(let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if(nel && (nel.hot || nel.id === ELEMENTS.SPARK.id || nel.id === ELEMENTS.ELEC.id)) {
+                            explode(x, y, 35); return true;
+                        }
+                    }
+                 }
+            }
+
+            if (el.id === ELEMENTS.EMBER.id) {
+                if (Math.random() < 0.05) { grid[i] = ELEMENTS.ASH.id; return true; }
+            }
+
+            if (el.id === ELEMENTS.LAVA.id) {
+                const up = idx(x, getUp(y));
+                if (isUpValid(getUp(y)) && grid[up] === ELEMENTS.WATER.id) {
+                    grid[up] = ELEMENTS.STEAM.id; 
+                    grid[i] = ELEMENTS.OBSIDIAN.id; 
+                    return true;
+                }
+            }
+
+            if (el.isSulphur) {
+                if (Math.random() < 0.05) {
+                    const randDir = neighbors[Math.floor(Math.random()*4)];
+                    if(inB(randDir.x, randDir.y) && grid[idx(randDir.x, randDir.y)] === 0) {
+                        grid[idx(randDir.x, randDir.y)] = ELEMENTS.SMOKE.id;
+                    }
+                }
+            }
+
+            if (el.isGeyser) {
+                if (Math.random() < 0.15) { 
+                    const up = idx(x, getUp(y));
+                    if (isUpValid(getUp(y)) && grid[up] === 0) {
+                        grid[up] = ELEMENTS.WATER.id;
+                    }
+                }
+            }
+
+            if (el.isBird) {
+                if (inB(x+1, y) && inB(x-1, y)) {
+                    const left = grid[idx(x-1, y)];
+                    const right = grid[idx(x+1, y)];
+                    if (left !== 0 && right === 0) {
+                        swap(i, idx(x+1, y)); return true;
+                    }
+                    else if (right !== 0 && left === 0) {
+                        swap(i, idx(x-1, y)); return true;
+                    }
+                }
+                if (Math.random() < 0.005) {
+                    grid[i] = ELEMENTS.ASH.id; return true;
+                }
+            }
+
+            if (el.isFrost) {
+                for (let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if (nid === ELEMENTS.WATER.id) {
+                            grid[idx(n.x, n.y)] = ELEMENTS.ICE.id;
+                            return true;
+                        }
+                    }
+                }
+                if (Math.random() < 0.05) { grid[i] = 0; return true; }
+            }
+
+            if (el.isClay) {
+                for (let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if (nid === ELEMENTS.WATER.id) {
+                            grid[i] = ELEMENTS.SLIME.id; 
+                            grid[idx(n.x, n.y)] = 0; 
+                            return true;
+                        }
+                    }
+                }
+                for (let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.hot || nid === ELEMENTS.LAVA.id)) {
+                            grid[i] = ELEMENTS.STONE.id; return true;
+                        }
+                    }
+                }
+            }
+
+            if (el.isFish) {
+                const here = getElById(grid[i]);
+                if (!here) return false;
+                
+                let inWater = false;
+                for (let n of neighbors) {
+                    if(inB(n.x, n.y) && grid[idx(n.x, n.y)] === ELEMENTS.WATER.id) {
+                        inWater = true; break;
+                    }
+                }
+                
+                if (inWater) {
+                    const dir = Math.random() > 0.5 ? 1 : -1;
+                    const side = idx(x+dir, y);
+                    if (inB(x+dir, y) && (grid[side] === 0 || grid[side] === ELEMENTS.WATER.id)) {
+                        if (grid[side] === 0) swap(i, side);
+                        else if (grid[side] === ELEMENTS.WATER.id) swap(i, side);
+                    }
+                } else {
+                    if (Math.random() < 0.05) {
+                        grid[i] = ELEMENTS.ASH.id; return true;
+                    }
+                }
+            }
+
+            if (el.isConductor) {
+                for (let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.hot || nid === ELEMENTS.LAVA.id)) {
+                            grid[i] = ELEMENTS.MOLTEN.id; return true;
+                        }
+                    }
+                }
+                let elecNeighbor = -1;
+                let emptyNeighbor = -1;
+                let dirs = [0,1,2,3];
+                for(let k=0; k<4; k++) {
+                     const n = neighbors[k];
+                     if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if(nid === ELEMENTS.ELEC.id) elecNeighbor = k;
+                        else if(nid === 0) emptyNeighbor = k;
+                     }
+                }
+                if(elecNeighbor !== -1 && emptyNeighbor !== -1) {
+                    const n1 = neighbors[elecNeighbor];
+                    const n2 = neighbors[emptyNeighbor];
+                    grid[idx(n1.x, n1.y)] = 0;
+                    grid[idx(n2.x, n2.y)] = ELEMENTS.ELEC.id;
+                }
+            }
+
+            if (el.isMolten) {
+                if (Math.random() < 0.01) {
+                    grid[i] = ELEMENTS.STONE.id; return true;
+                }
+            }
+
+            if (el.isGlass) {
+                for (let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.hot || nid === ELEMENTS.LAVA.id)) {
+                            grid[i] = ELEMENTS.LAVA.id; return true;
+                        }
+                    }
+                }
+            }
+
+            if (el.isMagic) {
+                for (let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        if (nid === ELEMENTS.ELEC.id || nid === ELEMENTS.LAVA.id) {
+                            grid[i] = ELEMENTS.OBSIDIAN.id; return true;
+                        }
+                    }
+                }
+            }
+
+            if (el.isMud) {
+                if (Math.random() < 0.001) {
+                    grid[i] = ELEMENTS.STONE.id; return true;
+                }
+                for (let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.hot || nid === ELEMENTS.LAVA.id)) {
+                            grid[i] = ELEMENTS.STONE.id; return true;
+                        }
+                    }
+                }
+            }
+
+            if (el.isFireball) {
+                if (Math.random() < 0.05) {
+                    grid[i] = ELEMENTS.SMOKE.id; return true;
+                }
+            }
+
+            if (el.isGhost) {
+                 if (Math.random() < 0.002) {
+                    grid[i] = 0; return true;
+                 }
+            }
+
+            if (el.life) {
+                if (Math.random() < 0.1) { 
+                    if (el.isFirework) el.life--;
+                    if (el.id === ELEMENTS.FIRE.id) grid[i] = ELEMENTS.SMOKE.id; 
+                    else if (el.id === ELEMENTS.ELEC.id) grid[i] = 0;
+                    else if (el.id === ELEMENTS.SMOKE.id || el.id === ELEMENTS.FOG.id || el.id === ELEMENTS.STEAM.id || el.id === ELEMENTS.ACIDG.id || el.id === ELEMENTS.CLOUD.id || el.id === ELEMENTS.BUBBLE.id) grid[i] = 0; 
+                    else if (el.id === ELEMENTS.SPARK.id) grid[i] = 0;
+                    else if (el.id === ELEMENTS.PLASMA.id) { 
+                        grid[i] = Math.random() > 0.5 ? ELEMENTS.FIRE.id : 0; 
+                    }
+                    else grid[i] = 0;
+                    return true;
+                }
+            }
+
+            if (el.flammable || el.explosive) {
+                let touchedFire = false;
+                for (let n of neighbors) {
+                    if (inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.hot || nel.id === ELEMENTS.LAVA.id || nel.id === ELEMENTS.ELEC.id || nel.id === ELEMENTS.URAN.id || nel.id === ELEMENTS.SPARK.id || nel.id === ELEMENTS.PLASMA.id)) {
+                            touchedFire = true;
+                            break;
+                        }
+                    }
+                }
+                if (touchedFire) {
+                    if (el.explosive) { explode(x, y, el.radius); return true; }
+                    else if (el.flammable && Math.random() < el.burnRate) {
+                        grid[i] = ELEMENTS.FIRE.id; 
+                        if (Math.random() < 0.05) grid[i] = ELEMENTS.ASH.id;
+                        return true;
+                    }
+                }
+            }
+
+            if (el.id === ELEMENTS.WAX.id) {
+                 for (let n of neighbors) {
+                    if(inB(n.x, n.y)) {
+                        const nid = grid[idx(n.x, n.y)];
+                        const nel = getElById(nid);
+                        if(nel && nel.hot) {
+                            if(Math.random() < el.meltRate) { grid[i] = ELEMENTS.OIL.id; return true; }
+                        }
+                    }
+                 }
+            }
+
+            if (el.grow) {
+                const down = idx(x, getDown(y));
+                if (isDownValid(getDown(y)) && (grid[down] === ELEMENTS.SAND.id || grid[down] === ELEMENTS.WATER.id)) {
+                    if(Math.random() < 0.05) { grid[i] = ELEMENTS.PLANT.id; return true; }
+                }
+            }
+
+            if (el.acid) {
+                const dirCheck = el.type === TYPES.GAS ? getUp(y) : getDown(y);
+                const checkIdx = idx(x, dirCheck);
+                if ((invertGravity ? dirCheck >= 0 : dirCheck < height) && grid[checkIdx] !== 0 && grid[checkIdx] !== el.id && grid[checkIdx] !== ELEMENTS.ACID.id && grid[checkIdx] !== ELEMENTS.GLASS.id && grid[checkIdx] !== ELEMENTS.ACIDG.id && grid[checkIdx] !== ELEMENTS.BEDROCK.id) {
+                    if (Math.random() < 0.1) {
+                        grid[checkIdx] = 0; 
+                        if(Math.random() < 0.2) grid[i] = 0; 
+                        return true;
+                    }
+                }
+            }
+
+            if (el.id === ELEMENTS.ICE.id) {
+                 if (Math.random() < 0.005) { grid[i] = ELEMENTS.WATER.id; return true; } 
+            }
+
+            if (el.id === ELEMENTS.ELEC.id) {
+                for(let n of neighbors) {
+                    if(inB(n.x,n.y) && grid[idx(n.x,n.y)] !== 0) {
+                        const nid = grid[idx(n.x,n.y)];
+                        const nel = getElById(nid);
+                        if (nel && (nel.isLamp || nel.isLampOn)) continue;
+                        if(Math.random() < 0.5) grid[idx(n.x,n.y)] = ELEMENTS.FIRE.id;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        function explode(cx, cy, r) {
+            grid[idx(cx, cy)] = ELEMENTS.FIRE.id;
+            for (let y = -r; y <= r; y++) {
+                for (let x = -r; x <= r; x++) {
+                    if (x*x + y*y <= r*r) {
+                        const px = cx + x; const py = cy + y;
+                        if (inB(px, py)) {
+                            const pid = grid[idx(px, py)];
+                            const pel = getElById(pid);
+                            if (pel && (pel.isIndestructible || pel.isStatic || pel.isDryPowder || pel.isAmber || pel.isBlackHole || pel.isAntimatter || pel.isPortal)) continue;
+
+                            const rand = Math.random();
+                            if (rand > 0.7) grid[idx(px, py)] = ELEMENTS.FIRE.id;
+                            else if (rand > 0.5) grid[idx(px, py)] = ELEMENTS.SMOKE.id;
+                            else if (rand > 0.45) grid[idx(px, py)] = ELEMENTS.SHRAP.id;
+                            else grid[idx(px, py)] = 0;
+                        }
+                    }
+                }
+            }
+        }
+
+        // v3.13: Explosion that freezes
+        function explodeIce(cx, cy, r) {
+            grid[idx(cx, cy)] = ELEMENTS.FROST.id;
+            for (let y = -r; y <= r; y++) {
+                for (let x = -r; x <= r; x++) {
+                    if (x*x + y*y <= r*r) {
+                        const px = cx + x; const py = cy + y;
+                        if (inB(px, py)) {
+                            const pid = grid[idx(px, py)];
+                            const pel = getElById(pid);
+                            if (pel && (pel.isIndestructible || pel.isStatic || pel.isAmber || pel.isBlackHole || pel.isAntimatter || pel.isPortal)) continue;
+                            
+                            const rand = Math.random();
+                            if (rand > 0.6) grid[idx(px, py)] = ELEMENTS.ICE.id;
+                            else if (rand > 0.4) grid[idx(px, py)] = ELEMENTS.FROST.id;
+                            else if (rand > 0.3) grid[idx(px, py)] = ELEMENTS.SNOW.id;
+                            else grid[idx(px, py)] = 0;
+                        }
+                    }
+                }
+            }
+        }
+
+        function explodeFirework(cx, cy) {
+            grid[idx(cx, cy)] = 0;
+            const r = 10;
+            for (let i = 0; i < 60; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * r;
+                const fx = Math.round(cx + Math.cos(angle) * dist);
+                const fy = Math.round(cy + Math.sin(angle) * dist);
+                if (inB(fx, fy) && grid[idx(fx, fy)] === 0) {
+                     grid[idx(fx, fy)] = ELEMENTS.SPARK.id;
+                }
+            }
+        }
+
+        function moveAntiGravity(x, y, i, el) {
+            if (el.isGhost) {
+                const up = idx(x, getUp(y));
+                if (isUpValid(getUp(y))) {
+                    const upId = grid[up];
+                    const upEl = getElById(upId);
+                    if (upId !== 0) {
+                         if (upEl.type === TYPES.SOLID && !upEl.isStatic && !upEl.isGhost) {
+                             grid[up] = 0; 
+                         }
+                    }
+                }
+                swap(i, up); 
+                return true;
+            }
+
+            if (el.isFireball) {
+                const up = idx(x, getUp(y));
+                if (isUpValid(getUp(y))) {
+                    if (grid[up] !== 0) {
+                        explode(x, y, 20); 
+                        grid[i] = 0; 
+                        return true;
+                    }
+                }
+                if (Math.random() < 0.2) {
+                    const dir = Math.random() > 0.5 ? 1 : -1;
+                    const side = idx(x+dir, y);
+                    if (inB(x+dir, y) && grid[side] === 0) swap(i, side);
+                }
+                swap(i, up); 
+                return true;
+            }
+            
+            if (el.isBubble || el.isBalloon) {
+                const up = idx(x, getUp(y));
+                if (isUpValid(getUp(y))) {
+                    if (grid[up] === 0) { swap(i, up); }
+                    else if (grid[up] !== 0 && getElById(grid[up]).type !== TYPES.SOLID) {
+                         swap(i, up); 
+                    } else {
+                        const dir = Math.random() > 0.5 ? 1 : -1;
+                        const side = idx(x+dir, y);
+                        if (inB(x+dir, y) && grid[side] === 0) swap(i, side);
+                    }
+                }
+                return true;
+            }
+
+            if (el.isTornado) {
+                 const up = idx(x, getUp(y));
+                 if (isUpValid(getUp(y))) {
+                     if (Math.random() < 0.1 && (grid[up] === 0)) swap(i, up);
+                     const dir = Math.random() > 0.5 ? 1 : -1;
+                     const side = idx(x+dir, y);
+                     if (inB(x+dir, y) && grid[side] === 0 && Math.random() < 0.3) swap(i, side);
+                 }
+                 return true;
+            }
+
+            const up = idx(x, getUp(y));
+            if (isUpValid(getUp(y))) {
+                if (grid[up] === 0) { swap(i, up); }
+                else if (grid[up] !== 0 && getElById(grid[up]).type !== TYPES.SOLID) {
+                     swap(i, up); 
+                }
+                else {
+                    const dir = Math.random() > 0.5 ? 1 : -1;
+                    if(inB(x+dir, getUp(y)) && grid[idx(x+dir, getUp(y))] === 0) swap(i, idx(x+dir, getUp(y)));
+                }
+            }
+        }
+
+        function movePowder(x, y, i, el) {
+            const dy = getDown(y);
+            const down = idx(x, dy);
+            if (isDownValid(dy)) {
+                const targetId = grid[down]; const targetEl = getElById(targetId);
+                if (targetId === 0 || (targetEl && targetEl.type === TYPES.LIQUID && targetEl.density < el.density)) {
+                    swap(i, down);
+                } else {
+                    const dir = Math.random() > 0.5 ? 1 : -1;
+                    const sideDown = idx(x+dir, dy);
+                    if (inB(x+dir, dy)) {
+                         const sideId = grid[sideDown]; const sideEl = getElById(sideId);
+                         if (sideId === 0 || (sideEl && sideEl.type === TYPES.LIQUID && sideEl.density < el.density)) {
+                             swap(i, sideDown);
+                         }
+                    }
+                }
+            }
+        }
+
+        function moveLiquid(x, y, i, el) {
+            if (el.superViscous && Math.random() < 0.95) return;
+            if (el.viscous && Math.random() < 0.7) return;
+            const dy = getDown(y);
+            const down = idx(x, dy);
+            if (isDownValid(dy)) {
+                const targetId = grid[down]; const targetEl = getElById(targetId);
+                if (targetId === 0) { swap(i, down); return; } 
+                else if (targetEl && targetEl.type === TYPES.LIQUID && el.density > targetEl.density) {
+                    swap(i, down); return;
+                }
+            }
+            const dir = Math.random() > 0.5 ? 1 : -1;
+            const side = idx(x+dir, y);
+            if (inB(x+dir, y) && grid[side] === 0) swap(i, side);
+        }
+
+        function moveGas(x, y, i, el) {
+            if (el.isBubble || el.isBalloon) {
+                return;
+            }
+            if (Math.random() < 0.5) return;
+
+            const dirY = el.heavyGas ? getDir() : -getDir();
+            const nextY = y + dirY;
+            
+            if (nextY >= 0 && nextY < height) {
+                const targetId = grid[idx(x, nextY)];
+                const targetEl = getElById(targetId);
+                
+                if (targetId === 0 || (targetEl && targetEl.type === TYPES.LIQUID && !el.heavyGas)) {
+                     swap(i, idx(x, nextY));
+                     return;
+                }
+                
+                if (el.fastRise) {
+                     const dir = Math.random() > 0.5 ? 1 : -1;
+                     if (inB(x+dir, nextY) && grid[idx(x+dir, nextY)] === 0) {
+                         swap(i, idx(x+dir, nextY)); return;
+                     }
+                } 
+            }
+
+            const dir = Math.random() > 0.5 ? 1 : -1;
+            if (nextY >= 0 && nextY < height && !el.heavyGas) {
+                const sideY = idx(x+dir, nextY);
+                if (inB(x+dir, nextY) && grid[sideY] === 0) {
+                    swap(i, sideY);
+                    return;
+                }
+            }
+
+            const side = idx(x+dir, y);
+            if (inB(x+dir, y) && grid[side] === 0) swap(i, side);
+        }
+
+        function swap(i, j) { const temp = grid[i]; grid[i] = grid[j]; grid[j] = temp; }
+        function getElById(id) { return Object.values(ELEMENTS).find(e => e.id === id); }
+
+        function draw() {
+            buffer32.fill(0xFF000000); 
+            for (let i = 0; i < grid.length; i++) {
+                const id = grid[i];
+                if (id !== 0) {
+                    const el = getElById(id);
+                    if (el) {
+                        const [r, g, b, a=255] = el.color;
+                        let R=r, G=g, B=b;
+                        let v = 0;
+                        
+                        if (!isSmoothMode) {
+                            if(el.variance) v = (Math.random() - 0.5) * el.variance;
+                            else if (el.type === TYPES.LIQUID) v = (Math.random() - 0.5) * 10;
+                            
+                            if (el.id === ELEMENTS.FIRE.id) {
+                                if (Math.random() > 0.5) { R=255; G=200; } 
+                                else { R=200; G=50; } 
+                                v = (Math.random()-0.5) * 40;
+                            }
+                        }
+                        
+                        if (el.glow) { 
+                            v = (Math.random() * 40);
+                            R = Math.min(255, R+v);
+                            G = Math.min(255, G+v);
+                            B = Math.min(255, B+v);
+                        }
+                        if (el.id === ELEMENTS.VOID.id) {
+                            if(Math.random() > 0.8) v = 50;
+                            else v = -20;
+                        }
+                        if (el.id === ELEMENTS.EMBER.id) {
+                             if(Math.random() > 0.5) { R=255; G=150; v=50; }
+                             else { R=200; G=50; }
+                        }
+                        if (el.id === ELEMENTS.BIRD.id) {
+                            if (Math.random() > 0.95) v = 50; 
+                        }
+                        if (el.id === ELEMENTS.FISH.id || el.id === ELEMENTS.KAPPA.id) {
+                            if (Math.random() > 0.8) v = 20; 
+                        }
+                        if (el.isMirror) {
+                            if (Math.random() > 0.8) v = 50;
+                        }
+                        if (el.id === ELEMENTS.DRAGON.id) {
+                             if (Math.random() > 0.5) { R=255; G=50; }
+                             else { R=150; G=0; }
+                             v = (Math.random()-0.5) * 30;
+                        }
+                        if (el.id === ELEMENTS.METEOR.id) {
+                            if (Math.random() > 0.5) v = 30; 
+                        }
+                        if (el.isFireball) {
+                             if (Math.random() > 0.5) { R=255; G=50; }
+                             else { R=200; G=0; }
+                             v = (Math.random()-0.5) * 30;
+                        }
+                        if (el.isGhost) {
+                             if (Math.random() > 0.8) { R=200; G=200; B=255; v=80; }
+                        }
+                        if (el.isMagic) {
+                            if (Math.random() > 0.8) { v = 80; }
+                        }
+                        if (el.isBlackHole) {
+                             if (Math.random() > 0.5) { v = -20; }
+                             else { v = 20; }
+                             R = 0; G = 0; B = 0;
+                        }
+                        if (el.isAmber) {
+                             if (Math.random() > 0.95) { R=255; G=220; v=40; }
+                        }
+                        if (el.isBubble) {
+                             if (Math.random() > 0.8) v = 50;
+                        }
+                        if (el.isTornado) {
+                             if (Math.random() > 0.8) { R=150; G=150; B=180; v=50; }
+                        }
+                        if (el.isSpore) {
+                             if (Math.random() > 0.8) { R=200; G=120; B=200; v=40; }
+                        }
+                        if (el.isRadiation) {
+                             if (Math.random() > 0.7) { 
+                                 R=100; G=255; B=100; v=50; 
+                             } else {
+                                 R=0; G=100; B=0;
+                             }
+                        }
+                        if (el.isAntimatter) {
+                             if (Math.random() > 0.7) { R=150; G=0; B=200; v=50; }
+                        }
+                        if (el.isMecha) {
+                             if (Math.random() > 0.9) { R=200; G=200; B=200; v=20; }
+                        }
+                        if (el.isPortal) {
+                             if (Math.random() > 0.8) { R=150; G=0; B=255; v=50; }
+                        }
+                        if (el.isSuperAcid) {
+                             if (Math.random() > 0.8) { R=255; G=255; v=50; }
+                        }
+                        if (el.isBalloon) {
+                            if (Math.random() > 0.8) v = 40;
+                        }
+                        if (el.isGunpowderBox) {
+                             if (Math.random() > 0.9) { v = 20; }
+                        }
+                        if (el.isIron) {
+                            if (Math.random() > 0.95) { v = 20; }
+                        }
+                        if (el.isRust) {
+                            if (Math.random() > 0.8) v = 30;
+                        }
+                        if (el.isIceBomb) {
+                            if (Math.random() > 0.8) v = 40;
+                        }
+                        if (el.isReinforcedGlass) {
+                            if (Math.random() > 0.95) v = 20;
+                        }
+                        if (el.isChlorine) {
+                            if (Math.random() > 0.7) { R=150; G=255; B=150; v=50; }
+                        }
+                        if (el.id === ELEMENTS.NEON.id) {
+                            const hue = (Math.random() * 100);
+                            if (hue < 20) { R=255; G=0; B=0; }
+                            else if (hue < 40) { R=255; G=255; B=0; }
+                            else if (hue < 60) { R=0; G=255; B=0; }
+                            else if (hue < 80) { R=0; G=255; B=255; }
+                            else { R=255; G=0; B=255; }
+                        }
+                        // v3.14 Visuals
+                        if (el.isFungus) {
+                            if (Math.random() > 0.8) { R=150; G=50; B=180; v=40; }
+                        }
+                        if (el.isCement) {
+                            if (Math.random() > 0.9) v = 20;
+                        }
+                        if (el.isTar) {
+                            if (Math.random() > 0.9) v = 20;
+                        }
+                        if (el.isCO2) {
+                            if (Math.random() > 0.9) v = 20;
+                        }
+                        if (el.id === ELEMENTS.WIRE.id) {
+                            // copper color static mostly
+                        }
+
+                        buffer32[i] = (a << 24) | (clamp(B+v) << 16) | (clamp(G+v) << 8) | clamp(R+v);
+                    }
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+            frameCount++;
+        }
+        
+        let frameCount = 0;
+        setInterval(() => {
+            if(showFps) document.getElementById('fps-counter').innerText = `${frameCount} FPS`;
+            frameCount = 0;
+        }, 1000);
+
+        const clamp = v => Math.max(0, Math.min(255, v | 0));
+
+        let isDrawing = false;
+        let showFps = false;
+        
+        // Update Quick Bar for v3.14
+        const QUICK_KEYS = ['SAND', 'WATER', 'CEMENT', 'FIRE', 'CO2', 'WIRE', 'ACID', 'TAR', 'ERASER'];
+
+        function initUI() {
+            initGrid();
+            
+            const quickBar = document.getElementById('quick-bar');
+            const allGrid = document.getElementById('all-elements-grid');
+
+            QUICK_KEYS.forEach(k => quickBar.appendChild(createChip(ELEMENTS[k], k)));
+
+            Object.keys(ELEMENTS).forEach(k => {
+                if (k === 'AIR' || k === 'SPARK' || k === 'LAMP_ON') return; 
+                const el = ELEMENTS[k];
+                const card = document.createElement('div');
+                card.className = 'element-card';
+                card.innerHTML = `
+                    <div class="element-dot" style="background:rgba(${el.color[0]},${el.color[1]},${el.color[2]},1)"></div>
+                    <span>${el.name}</span>
+                `;
+                card.onclick = () => selectElement(k);
+                allGrid.appendChild(card);
+            });
+            
+            const counter = document.getElementById('element-counter');
+            const totalElements = Object.keys(ELEMENTS).length;
+            counter.innerText = `当前共有 ${totalElements} 种元素`;
+
+            updateActiveState();
+        }
+
+        function createChip(el, key) {
+            const btn = document.createElement('button');
+            btn.className = 'chip'; btn.dataset.key = key; 
+            btn.innerHTML = `${el.name}`;
+            btn.onclick = () => selectElement(key);
+            return btn;
+        }
+
+        function selectElement(key) {
+            currentEl = ELEMENTS[key];
+            updateActiveState();
+            toggleSheet(false);
+        }
+
+        function updateActiveState() {
+            const currentKey = Object.keys(ELEMENTS).find(k => ELEMENTS[k] === currentEl);
+            document.querySelectorAll('.chip').forEach(c => {
+                if(c.dataset.key === currentKey) {
+                    c.classList.add('active');
+                    if(!c.querySelector('.material-symbols-outlined')) {
+                        const check = document.createElement('span');
+                        check.className = 'material-symbols-outlined';
+                        check.style.fontSize = '18px';
+                        check.innerText = 'check';
+                        c.prepend(check);
+                    }
+                } else {
+                    c.classList.remove('active');
+                    const check = c.querySelector('.material-symbols-outlined');
+                    if(check) check.remove();
+                }
+            });
+        }
+
+        function changeResolution(val) {
+            canvasScale = parseInt(val);
+            initGrid();
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            const btn = document.getElementById('pause-btn');
+            btn.innerHTML = isPaused ? 
+                '<span class="material-symbols-outlined">play_arrow</span>' : 
+                '<span class="material-symbols-outlined">pause</span>';
+        }
+
+        function toggleBrushShape() {
+            brushShape = brushShape === 'circle' ? 'square' : 'circle';
+            const btn = document.getElementById('shape-toggle');
+            if(brushShape === 'square') {
+                btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">square</span>';
+                btn.title = "形状: 方形";
+            } else {
+                btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">circle</span>';
+                btn.title = "形状: 圆形";
+            }
+        }
+
+        function toggleGravity() {
+            zeroGravity = document.getElementById('gravity-toggle').checked;
+        }
+
+        function toggleInvertGravity() {
+            invertGravity = document.getElementById('gravity-invert-toggle').checked;
+        }
+
+        function toggleGrid() {
+            showGrid = document.getElementById('grid-toggle').checked;
+            const overlay = document.getElementById('grid-overlay');
+            if (showGrid) overlay.classList.add('active');
+            else overlay.classList.remove('active');
+        }
+
+        function toggleSmoothMode() {
+            isSmoothMode = document.getElementById('smooth-toggle').checked;
+        }
+
+        function saveScreenshot() {
+            const link = document.createElement('a');
+            link.download = `sandbox_v3.14_${Date.now()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        function toggleZoomFeature() {
+            zoomFeatureEnabled = document.getElementById('zoom-toggle').checked;
+            const btn = document.getElementById('view-mode-btn');
+            if (zoomFeatureEnabled) {
+                btn.classList.add('visible');
+            } else {
+                btn.classList.remove('visible');
+                isViewMode = false;
+                btn.classList.remove('active');
+                resetZoom();
+            }
+        }
+
+        function toggleViewMode() {
+            isViewMode = !isViewMode;
+            const btn = document.getElementById('view-mode-btn');
+            if (isViewMode) btn.classList.add('active');
+            else btn.classList.remove('active');
+        }
+
+        function resetZoom() {
+            scale = 1; pointX = 0; pointY = 0;
+            updateTransform();
+        }
+
+        function updateTransform() {
+            canvas.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+        }
+
+        function handleInput(e) {
+            e.preventDefault();
+
+            if (isViewMode && zoomFeatureEnabled) {
+                if(e.touches && e.touches.length === 2) {
+                    const dx = e.touches[0].clientX - e.touches[1].clientX;
+                    const dy = e.touches[0].clientY - e.touches[1].clientY;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+
+                    if (e.type === 'touchstart') {
+                        lastPinchDist = dist;
+                    } else if (e.type === 'touchmove') {
+                        if (lastPinchDist > 0) {
+                            const delta = dist / lastPinchDist;
+                            scale *= delta;
+                            scale = Math.max(1, Math.min(10, scale)); 
+                            lastPinchDist = dist;
+                            updateTransform();
+                        }
+                    }
+                    return;
+                }
+
+                if (e.type === 'mousedown' || e.type === 'touchstart') {
+                    pPanning = true;
+                    startX = (e.touches ? e.touches[0].clientX : e.clientX) - pointX;
+                    startY = (e.touches ? e.touches[0].clientY : e.clientY) - pointY;
+                } else if (e.type === 'mousemove' || e.type === 'touchmove') {
+                    if (!pPanning) return;
+                    pointX = (e.touches ? e.touches[0].clientX : e.clientX) - startX;
+                    pointY = (e.touches ? e.touches[0].clientY : e.clientY) - startY;
+                    updateTransform();
+                } else if (e.type === 'mouseup' || e.type === 'touchend') {
+                    pPanning = false;
+                }
+                return; 
+            }
+
+            if (!isDrawing && e.type !== 'mousemove' && e.type !== 'touchmove') return;
+            if (!isDrawing && (e.type === 'mousemove' || e.type === 'touchmove')) return;
+
+            const rect = canvas.getBoundingClientRect(); 
+            
+            let cx = e.touches ? e.touches[0].clientX : e.clientX;
+            let cy = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            const x = Math.floor((cx - rect.left) / (rect.width / width));
+            const y = Math.floor((cy - rect.top) / (rect.height / height));
+            const r = parseInt(document.getElementById('brushSize').value);
+
+            if (brushShape === 'square') {
+                for (let dy = -r; dy <= r; dy++) {
+                    for (let dx = -r; dx <= r; dx++) {
+                        const px = x + dx; const py = y + dy;
+                        drawPixel(px, py);
+                    }
+                }
+            } else {
+                for (let dy = -r; dy <= r; dy++) {
+                    for (let dx = -r; dx <= r; dx++) {
+                        if (dx*dx + dy*dy <= r*r) {
+                            const px = x + dx; const py = y + dy;
+                            drawPixel(px, py);
+                        }
+                    }
+                }
+            }
+        }
+
+        function drawPixel(px, py) {
+             if (inB(px, py)) {
+                if (currentEl.isEraser) grid[idx(px, py)] = 0;
+                else if (grid[idx(px, py)] === 0 || currentEl.type === TYPES.SOLID) { 
+                    if (Math.random() > 0.05) grid[idx(px, py)] = currentEl.id;
+                }
+            }
+        }
+
+        canvas.addEventListener('wheel', (e) => {
+            if (!zoomFeatureEnabled || !isViewMode) return;
+            e.preventDefault();
+            const xs = (e.clientX - pointX) / scale;
+            const ys = (e.clientY - pointY) / scale;
+            const delta = -e.deltaY;
+            
+            (delta > 0) ? (scale *= 1.1) : (scale /= 1.1);
+            if(scale < 1) scale = 1; 
+            if(scale > 10) scale = 10; 
+            
+            pointX = e.clientX - xs * scale;
+            pointY = e.clientY - ys * scale;
+            updateTransform();
+        }, {passive: false});
+
+        canvas.addEventListener('mousedown', e => { 
+            if(!isViewMode) isDrawing=true; 
+            handleInput(e); 
+        });
+        canvas.addEventListener('mousemove', handleInput);
+        window.addEventListener('mouseup', () => { isDrawing=false; pPanning=false; });
+        
+        canvas.addEventListener('touchstart', e => { 
+            if(!isViewMode) isDrawing=true; 
+            handleInput(e); 
+        }, {passive:false});
+        canvas.addEventListener('touchmove', handleInput, {passive:false});
+        window.addEventListener('touchend', () => { isDrawing=false; pPanning=false; lastPinchDist=0; });
+
+        function toggleSheet(open) {
+            const sheet = document.getElementById('more-sheet');
+            toggleBackdrop(open);
+            if(open) sheet.classList.add('open'); else sheet.classList.remove('open');
+        }
+        function toggleBackdrop(show) {
+            const bd = document.getElementById('backdrop');
+            if(show) bd.classList.add('open'); else bd.classList.remove('open');
+        }
+        function openSettings() {
+            document.getElementById('settings-overlay').classList.add('show');
+            toggleBackdrop(true);
+        }
+        function closeSettings(e) {
+            if (e.target.id === 'settings-overlay') {
+                document.getElementById('settings-overlay').classList.remove('show');
+                toggleBackdrop(false);
+            }
+        }
+        function openSourceView() {
+            const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+            document.getElementById('source-code-view').value = htmlContent;
+            document.getElementById('settings-overlay').classList.remove('show');
+            document.getElementById('source-overlay').classList.add('show');
+            toggleBackdrop(true);
+        }
+        function copySource() {
+            const textArea = document.getElementById('source-code-view');
+            textArea.select();
+            document.execCommand('copy'); 
+            const btnText = document.getElementById('copy-btn-text');
+            const original = btnText.innerText;
+            btnText.innerText = "已复制";
+            setTimeout(() => btnText.innerText = original, 2000);
+        }
+        function closeSource(e) {
+            if (e.target.id === 'source-overlay') {
+                document.getElementById('source-overlay').classList.remove('show');
+                toggleBackdrop(false);
+            }
+        }
+        function openAbout() { document.getElementById('about-overlay').classList.add('show'); }
+        function closeAbout(e) { if(e.target.id==='about-overlay') document.getElementById('about-overlay').classList.remove('show'); }
+        function closeAllOverlays() {
+            toggleSheet(false);
+            document.getElementById('settings-overlay').classList.remove('show');
+            document.getElementById('about-overlay').classList.remove('show');
+            document.getElementById('source-overlay').classList.remove('show');
+        }
+        function toggleFPS() {
+            showFps = document.getElementById('fps-toggle').checked;
+            document.getElementById('fps-counter').style.display = showFps ? 'block' : 'none';
+        }
+        function clearCanvas() { grid.fill(0); resetZoom(); }
+
+        initUI();
+        requestAnimationFrame(update);
+    </script>
+</body>
+</html>

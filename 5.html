@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>槐木 - 悬疑解谜游戏</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* 背景特效层 */
+        #effects-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #rain-canvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 2s;
+        }
+
+        .blood-splatter {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(139, 0, 0, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(100, 0, 0, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(80, 0, 0, 0.1) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 1s;
+            mix-blend-mode: multiply;
+        }
+
+        .glitch-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(255, 255, 255, 0.03) 2px,
+                rgba(255, 255, 255, 0.03) 4px
+            );
+            opacity: 0;
+            pointer-events: none;
+            animation: scanlines 0.1s infinite;
+        }
+
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(4px); }
+        }
+
+        /* 故障滤镜 */
+        .glitch-active {
+            animation: glitch-anim 0.3s infinite;
+            filter: hue-rotate(90deg) contrast(1.2) brightness(1.1);
+        }
+
+        @keyframes glitch-anim {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        .static-noise {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.4'/%3E%3C/svg%3E");
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+
+        .static-active {
+            opacity: 0.3;
+            animation: static-flicker 0.1s infinite;
+        }
+
+        @keyframes static-flicker {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.1; }
+        }
+
+        /* 主界面 */
+        #main-menu {
+            position: relative;
+            z-index: 20;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+        }
+
+        .game-title {
+            font-size: 4rem;
+            margin-bottom: 3rem;
+            letter-spacing: 1rem;
+            color: #e0e0e0;
+            transition: all 0.5s;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .game-title.red {
+            color: #8b0000;
+            text-shadow: 
+                0 0 10px rgba(139, 0, 0, 0.8),
+                0 0 20px rgba(139, 0, 0, 0.4),
+                2px 2px 4px rgba(0,0,0,0.8);
+            animation: title-flicker 2s infinite;
+        }
+
+        @keyframes title-flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+            75% { opacity: 0.95; }
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            width: 300px;
+        }
+
+        .menu-btn {
+            padding: 1rem 2rem;
+            background: transparent;
+            border: 1px solid #444;
+            color: #e0e0e0;
+            font-family: inherit;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-btn:hover {
+            border-color: #666;
+            background: rgba(255,255,255,0.05);
+            letter-spacing: 0.2rem;
+        }
+
+        .menu-btn.red-mode {
+            border-color: #8b0000;
+            color: #ffcccc;
+        }
+
+        .menu-btn.red-mode:hover {
+            background: rgba(139, 0, 0, 0.2);
+            box-shadow: 0 0 15px rgba(139, 0, 0, 0.3);
+        }
+
+        .menu-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* 游戏场景 */
+        #game-scene {
+            display: none;
+            position: relative;
+            z-index: 20;
+            height: 100vh;
+            padding: 2rem;
+            flex-direction: column;
+            justify-content: flex-end;
+            background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 100%);
+        }
+
+        .dialogue-box {
+            background: rgba(10, 10, 10, 0.95);
+            border: 1px solid #333;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+            min-height: 200px;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        .speaker-name {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2rem;
+        }
+
+        .dialogue-text {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            color: #e0e0e0;
+            min-height: 3rem;
+        }
+
+        .dialogue-text .red-text {
+            color: #cc0000;
+            text-shadow: 0 0 5px rgba(204, 0, 0, 0.5);
+        }
+
+        .dialogue-text .blurred {
+            filter: blur(3px);
+            opacity: 0.7;
+        }
+
+        .choices-container {
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .choice-btn {
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #444;
+            color: #ccc;
+            font-family: inherit;
+            font-size: 1.1rem;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s;
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .choice-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #666;
+            padding-left: 2.5rem;
+        }
+
+        .choice-btn::before {
+            content: "▸";
+            position: absolute;
+            left: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .choice-btn:hover::before {
+            opacity: 1;
+        }
+
+        .dialogue-controls {
+            position: absolute;
+            bottom: 1rem;
+            right: 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .click-hint {
+            color: #444;
+            font-size: 0.8rem;
+            animation: pulse 2s infinite;
+        }
+
+        .auto-btn {
+            padding: 0.3rem 0.8rem;
+            background: transparent;
+            border: 1px solid #444;
+            color: #666;
+            font-family: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .auto-btn:hover {
+            border-color: #666;
+            color: #888;
+        }
+
+        .auto-btn.active {
+            border-color: #c00;
+            color: #c00;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+
+        /* 物品栏 */
+        #inventory-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 30;
+            padding: 3rem;
+            overflow-y: auto;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 2rem auto;
+        }
+
+        .item-card {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid #333;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .item-card:hover {
+            border-color: #666;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+
+        .item-card.important {
+            border-color: #5a0000;
+        }
+
+        .item-card.important:hover {
+            box-shadow: 0 0 20px rgba(139, 0, 0, 0.3);
+        }
+
+        .item-name {
+            font-size: 1.2rem;
+            color: #ccc;
+            margin-bottom: 0.5rem;
+        }
+
+        .item-desc {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .back-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 2rem;
+            background: transparent;
+            border: 1px solid #444;
+            color: #888;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .back-btn:hover {
+            border-color: #666;
+            color: #ccc;
+        }
+
+        /* 人物背景 */
+        #backstory-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 5, 5, 0.98);
+            z-index: 30;
+            padding: 3rem;
+            overflow-y: auto;
+        }
+
+        .backstory-content {
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 2;
+            color: #aaa;
+        }
+
+        .backstory-content h2 {
+            color: #ccc;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 1rem;
+        }
+
+        .backstory-content p {
+            margin-bottom: 1.5rem;
+            text-indent: 2rem;
+        }
+
+        /* 黑屏过渡 */
+        #black-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+
+        #black-screen.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* 雪花屏全屏特效 */
+        .full-static {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(255,255,255,0.1) 1px, rgba(255,255,255,0.1) 2px),
+                linear-gradient(to bottom, #222, #111);
+            z-index: 40;
+            display: none;
+            animation: static-noise 0.2s infinite;
+        }
+
+        @keyframes static-noise {
+            0% { background-position: 0 0, 0 0; }
+            100% { background-position: 0 4px, 0 0; }
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <!-- 特效层 -->
+    <div id="effects-layer">
+        <canvas id="rain-canvas"></canvas>
+        <div class="blood-splatter" id="blood-layer"></div>
+        <div class="glitch-overlay" id="glitch-layer"></div>
+        <div class="static-noise" id="static-layer"></div>
+    </div>
+
+    <!-- 全屏雪花屏 -->
+    <div class="full-static" id="full-static"></div>
+
+    <!-- 黑屏过渡 -->
+    <div id="black-screen"></div>
+
+    <!-- 主菜单 -->
+    <div id="main-menu">
+        <h1 class="game-title" id="main-title">槐木</h1>
+        <div class="menu-buttons">
+            <button class="menu-btn" id="start-btn" onclick="game.startChapter1()">进入</button>
+            <button class="menu-btn" id="inventory-btn" onclick="game.showInventory()">记忆物品</button>
+            <button class="menu-btn hidden" id="backstory-btn" onclick="game.showBackstory()">人物故事背景</button>
+        </div>
+    </div>
+
+    <!-- 游戏场景 -->
+    <div id="game-scene">
+        <div class="dialogue-box" id="dialogue-box">
+            <div class="speaker-name" id="speaker"></div>
+            <div class="dialogue-text" id="dialogue-text"></div>
+            <div class="choices-container hidden" id="choices"></div>
+            <div class="dialogue-controls">
+                <span class="click-hint" id="click-hint">点击继续</span>
+                <button class="auto-btn" id="auto-btn" onclick="game.toggleAutoMode()">自动播放</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 物品栏 -->
+    <div id="inventory-screen">
+        <h2 style="text-align: center; color: #666; margin-bottom: 2rem;">记忆物品</h2>
+        <div class="inventory-grid" id="inventory-grid"></div>
+        <button class="back-btn" onclick="game.returnToMenu()">返回</button>
+    </div>
+
+    <!-- 人物背景 -->
+    <div id="backstory-screen">
+        <div class="backstory-content">
+            <h2>人物故事背景</h2>
+            <div id="backstory-text"></div>
+        </div>
+        <button class="back-btn" onclick="game.returnToMenu()">返回</button>
+    </div>
+
+    <script>
+        /* 游戏状态管理 */
+        const gameState = {
+            currentScene: 'menu',
+            inventory: [],
+            flags: {
+                titleRed: false,
+                glitchMode: false,
+                rainMode: false,
+                backstoryUnlocked: false,
+                chapter1Complete: false,
+                chapter2Complete: false,
+                chapter3Complete: false,
+                specialEndingTriggered: false,
+                urnClickCount: 0
+            },
+            endingsSeen: new Set(),
+            currentDialogues: [],
+            currentIndex: 0,
+            isTyping: false,
+            autoMode: false,
+            onCompleteCallback: null
+        };
+
+        /* 记忆物品数据 */
+        const itemsData = {
+            'paper-blood': {
+                name: '符纸碎泡黑狗血',
+                desc: '第一章获得的诡异物品。红色的液体在玻璃罐中微微晃动，符纸碎片像是有生命般缓慢旋转。据说能解"那个"东西...',
+                important: false
+            },
+            'hair-oil': {
+                name: '发油',
+                desc: '殡仪馆常用的黑色发油，用于给逝者整理仪容。阿槐和小木每天都要使用，以保持那头黑色长发的"好看"。',
+                important: false
+            },
+            'urn': {
+                name: '小木的骨灰盒',
+                desc: '白色的瓷质骨灰盒，触感冰凉。里面装着去火化的小木。点击三次似乎能听到什么...（已点击：0次）',
+                important: true,
+                special: true
+            },
+            'red-robe': {
+                name: '破旧的红袍',
+                desc: '母亲一直不舍得扔掉的红色长袍，上面已经破洞。颜色暗红如干涸的血迹，散发着陈年樟脑和腐朽的气味。',
+                important: false
+            },
+            'money': {
+                name: '皱巴的两万现金',
+                desc: '阿槐留下的钱，已经很久没有人动过，上面落满了灰尘。钞票边缘卷曲发黄，像是被泪水浸透过又干涸。',
+                important: false
+            }
+        };
+
+        /* 人物背景文本 */
+        const backstoryText = `
+            <p>这是一个关于"遗忘"与"记得"的故事。</p>
+            
+            <p><strong>阿槐（姐姐）：</strong>长女，在殡仪馆工作，负责为逝者整理仪容。性格内敛，总是把头发梳得一丝不苟，每天用大量的黑色发油。她是家中最早察觉到"异常"的人，也是最早选择"离开"的人。</p>
+            
+            <p><strong>小木（弟弟）：</strong>比阿槐小三岁，同在殡仪馆工作，死因不明。生前最是孝顺，总是担心母亲一个人在家。他的死是这个故事的转折点，也是母亲精神崩溃的开始。</p>
+            
+            <p><strong>母亲：</strong>年迈的老人，住在老宅子里。丈夫早年因"缺血"离世，独自抚养两个孩子长大。她似乎总是记不住事情，或是...选择性遗忘那些太痛苦的真相。那件红袍子是她的嫁妆，也是她对过去美好时光唯一的执念。</p>
+            
+            <p>故事发生在一座阴雨连绵的南方小城，这里的人相信入土为安，相信符纸能驱邪，也相信...有些记忆，最好永远不要被记起。</p>
+        `;
+
+        /* 游戏主逻辑 */
+        const game = {
+            init() {
+                this.updateMenuState();
+                document.addEventListener('click', (e) => {
+                    if (gameState.currentScene === 'game' && e.target.closest('#dialogue-box') && !e.target.closest('.choice-btn') && !e.target.closest('.auto-btn')) {
+                        this.advanceDialogue();
+                    }
+                });
+                this.initRain();
+            },
+
+            initRain() {
+                const canvas = document.getElementById('rain-canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                const drops = [];
+                for (let i = 0; i < 100; i++) {
+                    drops.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        length: Math.random() * 20 + 10,
+                        speed: Math.random() * 5 + 2
+                    });
+                }
+
+                function draw() {
+                    if (!gameState.flags.rainMode) return;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.strokeStyle = 'rgba(174, 194, 224, 0.2)';
+                    ctx.lineWidth = 1;
+                    
+                    drops.forEach(drop => {
+                        ctx.beginPath();
+                        ctx.moveTo(drop.x, drop.y);
+                        ctx.lineTo(drop.x - 1, drop.y + drop.length);
+                        ctx.stroke();
+                        
+                        drop.y += drop.speed;
+                        drop.x -= 0.5;
+                        
+                        if (drop.y > canvas.height) {
+                            drop.y = -20;
+                            drop.x = Math.random() * canvas.width;
+                        }
+                    });
+                    
+                    requestAnimationFrame(draw);
+                }
+                
+                this.drawRain = draw;
+            },
+
+            updateMenuState() {
+                const title = document.getElementById('main-title');
+                const startBtn = document.getElementById('start-btn');
+                const backstoryBtn = document.getElementById('backstory-btn');
+                const blood = document.getElementById('blood-layer');
+                const glitch = document.getElementById('glitch-layer');
+
+                if (gameState.flags.titleRed) {
+                    title.classList.add('red');
+                    startBtn.classList.add('red-mode');
+                    document.getElementById('inventory-btn').classList.add('red-mode');
+                    blood.style.opacity = '1';
+                }
+
+                if (gameState.flags.glitchMode) {
+                    glitch.style.opacity = '1';
+                    document.body.classList.add('glitch-active');
+                }
+
+                if (gameState.flags.backstoryUnlocked) {
+                    backstoryBtn.classList.remove('hidden');
+                }
+
+                if (gameState.flags.rainMode) {
+                    document.getElementById('rain-canvas').style.opacity = '1';
+                    this.drawRain();
+                }
+            },
+
+            /* 自动播放控制 */
+            toggleAutoMode() {
+                gameState.autoMode = !gameState.autoMode;
+                const btn = document.getElementById('auto-btn');
+                if (gameState.autoMode) {
+                    btn.classList.add('active');
+                    btn.textContent = '停止自动';
+                    // 如果当前不在打字状态，立即尝试推进
+                    if (!gameState.isTyping && gameState.currentScene === 'game') {
+                        this.advanceDialogue();
+                    }
+                } else {
+                    btn.classList.remove('active');
+                    btn.textContent = '自动播放';
+                }
+            },
+
+            /* 第一章 */
+            startChapter1() {
+                gameState.currentScene = 'game';
+                gameState.currentChapter = 1;
+                document.getElementById('main-menu').style.display = 'none';
+                document.getElementById('game-scene').style.display = 'flex';
+                
+                const dialogues = [
+                    { speaker: '母亲', text: '阿槐，你弟呢？这小子又不知道去哪个地方了' },
+                    { speaker: '阿槐', text: '妈，我弟……<span class="blurred">[听不清楚]</span>，您是怎么了？昨天的<span class="red-text">符纸碎泡黑狗血</span>喝了吗？' },
+                    { speaker: '母亲', text: '阿……阿槐？！你，让我喝……那东西？' },
+                    { speaker: '阿槐', text: '妈，您就喝了吧，这玩意能解<span class="blurred">[听不清楚]</span>呢，这样您就不会再<span class="blurred">[听不清楚]</span>了' }
+                ];
+                
+                this.loadDialogues(dialogues, this.showChapter1Choices.bind(this));
+            },
+
+            showChapter1Choices() {
+                const choices = [
+                    {
+                        text: '硬喝下去',
+                        action: () => {
+                            this.showDialogue('母亲', '妈，妈？！', () => {
+                                this.fadeToBlack(() => {
+                                    gameState.flags.titleRed = true;
+                                    this.returnToMenu();
+                                });
+                            });
+                        }
+                    },
+                    {
+                        text: '拒绝喝下去',
+                        action: () => {
+                            this.showDialogue('阿槐', '哎，妈，您不喝就不喝了吧……', () => {
+                                this.addItem('paper-blood');
+                                gameState.flags.chapter1Complete = true;
+                                gameState.flags.backstoryUnlocked = true;
+                                setTimeout(() => this.startChapter2(), 1500);
+                            });
+                        }
+                    },
+                    {
+                        text: '……（沉默）',
+                        action: () => {
+                            this.showDialogue('阿槐', '妈，您今天很累了吧？先休息吧。', () => {
+                                gameState.flags.titleRed = true;
+                                this.returnToMenu();
+                            });
+                        }
+                    }
+                ];
+                this.showChoices(choices);
+            },
+
+            /* 第二章 */
+            startChapter2() {
+                gameState.currentChapter = 2;
+                const dialogues = [
+                    { 
+                        speaker: '母亲', 
+                        text: '阿槐……你怎么没有五官了呢？你弟小木呢？',
+                        effect: 'glitch-start'
+                    },
+                    { 
+                        speaker: '阿槐', 
+                        text: '妈……妈……妈……妈……妈……小木……<span class="blurred">[电视雪花屏声音]</span>',
+                        effect: 'static'
+                    }
+                ];
+                
+                this.loadDialogues(dialogues, () => {
+                    this.triggerFullStatic(() => {
+                        const nextDialogues = [
+                            { speaker: '母亲', text: '阿槐？你今天又没抹发油啊，你这头黑色长发不抹发油，就不好看了，你和你弟也要抹发油啊，每天去殡仪馆工作也怪累的是不' },
+                            { speaker: '阿槐', text: '妈……您不用管我们了，我们俩挺好的，工作也不累，您不用为我们操心了，我和小木也会按时抹发油的' },
+                            { speaker: '母亲', text: '阿槐，你和小木都要听话' }
+                        ];
+                        this.loadDialogues(nextDialogues, () => {
+                            this.addItem('hair-oil');
+                            setTimeout(() => this.startChapter2Part2(), 1000);
+                        });
+                    });
+                });
+            },
+
+            startChapter2Part2() {
+                const dialogues = [
+                    { speaker: '阿槐', text: '妈……<span style="font-style:italic">（阿槐的哭声）</span>' },
+                    { speaker: '母亲', text: '哎呦，阿槐怎么了？咋哭嘞，遇到什么事情了吗？跟妈说说' },
+                    { speaker: '阿槐', text: '<span style="font-style:italic">（阿槐哭声戛然而止）</span>妈……小木……小木死了……' },
+                    { 
+                        speaker: '母亲', 
+                        text: '啊？！阿槐，告诉妈妈，小木……',
+                        effect: 'glitch-start'
+                    },
+                    { 
+                        speaker: '阿槐', 
+                        text: '小木？？？？他……是谁，我为什么哭泣了？？？？？？？？我好像，记不清',
+                        effect: 'glitch-heavy'
+                    },
+                    { speaker: '阿槐', text: '为什么要哭呢？' },
+                    { speaker: '阿槐', text: '为什么哭？', effect: 'glitch-end' },
+                    { speaker: '母亲', text: '阿槐，没事的，小木你不是去火化了吗？那骨灰能留着，做个念想吧' },
+                    { 
+                        speaker: '阿槐', 
+                        text: '妈……我真的，',
+                        effect: 'glitch-start'
+                    }
+                ];
+                
+                this.loadDialogues(dialogues, () => {
+                    this.showGlitchTextSequence(['受', '够', '了'], () => {
+                        this.showChapter2Choices();
+                    });
+                });
+            },
+
+            showChapter2Choices() {
+                const choices = [
+                    {
+                        text: '阿槐槐……槐阿……槐木……',
+                        action: () => {
+                            gameState.flags.glitchMode = true;
+                            gameState.flags.titleRed = true;
+                            this.addItem('urn');
+                            this.returnToMenu();
+                        }
+                    },
+                    {
+                        text: '[尖叫]',
+                        action: () => {
+                            gameState.flags.glitchMode = true;
+                            gameState.flags.titleRed = true;
+                            this.addItem('urn');
+                            this.triggerScream(() => this.returnToMenu());
+                        }
+                    }
+                ];
+                this.showChoices(choices);
+            },
+
+            /* 第三章 */
+            startChapter3() {
+                if (!gameState.flags.glitchMode) return;
+                
+                gameState.currentScene = 'game';
+                gameState.currentChapter = 3;
+                document.getElementById('main-menu').style.display = 'none';
+                document.getElementById('game-scene').style.display = 'flex';
+                
+                const dialogues = [
+                    { speaker: '阿槐', text: '妈，我去外地了，不回来了，我会按时往家里寄粮食和两万块钱，您拿着这钱好好吃一顿，给自己买些新衣服穿，您一直穿着那件红袍子，都破洞了，也不舍得扔' },
+                    { speaker: '母亲', text: '阿槐，我……' },
+                    { speaker: '阿槐', text: '妈，我走了<span style="font-style:italic">（阿槐从这里走了）</span>' },
+                    { speaker: '母亲', text: '哎，又是一个人，老头子缺血死的，小木也不知道怎么死的……阿槐也回去了，我怎么办呢？' },
+                    { speaker: '母亲', text: '<span style="font-style:italic">（又是母亲的哭泣）</span>' }
+                ];
+                
+                this.loadDialogues(dialogues, () => {
+                    this.startHorrorSequence();
+                });
+            },
+
+            startHorrorSequence() {
+                // 恐怖对话和选项，三个结局分支
+                const choices = [
+                    {
+                        text: '喝下那碗黑狗血',
+                        ending: 'ending1',
+                        desc: '血色团圆'
+                    },
+                    {
+                        text: '烧毁那件红袍',
+                        ending: 'ending2',
+                        desc: '灰烬记忆'
+                    },
+                    {
+                        text: '抱着骨灰盒入睡',
+                        ending: 'ending3',
+                        desc: '永世同眠'
+                    }
+                ];
+                
+                this.showDialogue('？？？', '妈……选择吧……选择我们的结局……', () => {
+                    this.showChoices(choices.map(c => ({
+                        text: c.text,
+                        action: () => this.triggerEnding(c.ending, c.desc)
+                    })));
+                });
+            },
+
+            triggerEnding(endingId, endingName) {
+                gameState.endingsSeen.add(endingId);
+                gameState.flags.chapter3Complete = true;
+                
+                // 添加第三章物品
+                this.addItem('red-robe');
+                this.addItem('money');
+                gameState.flags.rainMode = true;
+                
+                // 结局演出
+                const endings = {
+                    ending1: '你喝下了那碗泡着符纸碎片的黑狗血，世界恢复了"正常"。你终于看清了，阿槐和小木一直站在你身后，他们的头发上涂满了黑色的发油，闪闪发光。他们笑着，扶着你，一起走进了那张全家福里。',
+                    ending2: '火吞噬了红袍，冒出诡异的黑烟。烟中你看见了老头子，看见了小木，看见了阿槐，他们向你招手。醒来后，宅子空无一人，只有两件新寿衣静静地躺在堂屋，一件黑色，一件……也是黑色。',
+                    ending3: '你抱着冰凉的骨灰盒入眠，梦里小木很暖和，阿槐在给你梳头，用的是最好的发油。你们永远在一起了，在这个不会醒来的梦里，在每次过年的鞭炮声中，在老宅的檀木香里。'
+                };
+                
+                this.showDialogue('结局：' + endingName, endings[endingId], () => {
+                    if (gameState.endingsSeen.size >= 3) {
+                        setTimeout(() => this.showTrueEnding(), 2000);
+                    } else {
+                        this.returnToMenu();
+                    }
+                });
+            },
+
+            showTrueEnding() {
+                gameState.flags.rainMode = false;
+                document.getElementById('rain-canvas').style.opacity = '0';
+                
+                const trueEndDialogues = [
+                    { speaker: '彩蛋：昙花一现', text: '你终于记起来了，也想起来了。所有的遗忘都是为了保护，所有的记得都是为了团聚。' },
+                    { speaker: '年夜饭', text: '老头子夹给你最爱吃的红烧肉，小木在给你倒酒，阿槐换上了新的红袍子，不是那件破旧的。外面下着雪，屋里暖烘烘的。' },
+                    { speaker: '母亲', text: '过年了，一家人，总要团聚的。' },
+                    { speaker: '？？？', text: '每逢过年，都会有这些人。这句话刻在了家谱的最后一页，墨迹鲜红，像是刚写上去的，又像是……一直没干过。' }
+                ];
+                
+                this.loadDialogues(trueEndDialogues, () => {
+                    alert('恭喜解锁真结局：昙花一现の团圆\n游戏结束。刷新页面可重新开始。');
+                    location.reload();
+                });
+            },
+
+            /* 工具函数 */
+            loadDialogues(dialogues, onComplete) {
+                gameState.currentDialogues = dialogues;
+                gameState.currentIndex = 0;
+                gameState.onCompleteCallback = onComplete; // 保存回调
+                this.showNextDialogue();
+            },
+
+            showNextDialogue() {
+                if (gameState.currentIndex >= gameState.currentDialogues.length) {
+                    // 对话结束，调用完成回调
+                    if (gameState.onCompleteCallback) {
+                        const callback = gameState.onCompleteCallback;
+                        gameState.onCompleteCallback = null; // 清除避免重复调用
+                        callback();
+                    }
+                    return;
+                }
+                
+                const dialogue = gameState.currentDialogues[gameState.currentIndex];
+                
+                if (dialogue.effect === 'glitch-start') {
+                    document.body.classList.add('glitch-active');
+                } else if (dialogue.effect === 'glitch-heavy') {
+                    document.body.style.filter = 'hue-rotate(90deg) contrast(1.5) brightness(1.2)';
+                } else if (dialogue.effect === 'glitch-end') {
+                    document.body.classList.remove('glitch-active');
+                    document.body.style.filter = '';
+                } else if (dialogue.effect === 'static') {
+                    document.getElementById('static-layer').classList.add('static-active');
+                    setTimeout(() => {
+                        document.getElementById('static-layer').classList.remove('static-active');
+                    }, 2000);
+                }
+                
+                this.typeText(dialogue.speaker, dialogue.text, () => {
+                    gameState.currentIndex++;
+                });
+            },
+
+            advanceDialogue() {
+                if (gameState.isTyping) {
+                    // 跳过打字，显示完整文本
+                    const textEl = document.getElementById('dialogue-text');
+                    // 找到当前应该显示的内容
+                    const currentDialogue = gameState.currentDialogues[gameState.currentIndex];
+                    if (currentDialogue) {
+                        textEl.innerHTML = currentDialogue.text;
+                        gameState.isTyping = false;
+                        gameState.currentIndex++; // 增加索引，因为打字完成了
+                        
+                        // 如果是自动模式，延迟后继续
+                        if (gameState.autoMode) {
+                            setTimeout(() => {
+                                if (gameState.currentScene === 'game' && !gameState.isTyping) {
+                                    this.showNextDialogue();
+                                }
+                            }, 1000);
+                        }
+                    }
+                } else {
+                    this.showNextDialogue();
+                }
+            },
+
+            typeText(speaker, text, onComplete) {
+                gameState.isTyping = true;
+                document.getElementById('speaker').textContent = speaker;
+                const textEl = document.getElementById('dialogue-text');
+                textEl.innerHTML = '';
+                document.getElementById('click-hint').style.display = 'none';
+                document.getElementById('auto-btn').style.display = 'inline-block';
+                document.getElementById('choices').classList.add('hidden');
+                
+                // 解析HTML标签
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = text;
+                const fullText = tempDiv.textContent;
+                const htmlContent = text;
+                
+                let i = 0;
+                const type = () => {
+                    if (i < fullText.length) {
+                        // 简单处理：直接逐步显示HTML（可能有风险，但对于简单标签有效）
+                        const progress = htmlContent.slice(0, Math.floor((i / fullText.length) * htmlContent.length));
+                        textEl.innerHTML = progress;
+                        i++;
+                        setTimeout(type, 50);
+                    } else {
+                        textEl.innerHTML = htmlContent;
+                        gameState.isTyping = false;
+                        document.getElementById('click-hint').style.display = 'block';
+                        if (onComplete) onComplete();
+                        
+                        // 自动模式：延迟后自动推进（如果是对话中，不是最后一句话）
+                        if (gameState.autoMode && gameState.currentIndex < gameState.currentDialogues.length - 1) {
+                            setTimeout(() => {
+                                if (gameState.currentScene === 'game' && gameState.autoMode && !gameState.isTyping) {
+                                    this.showNextDialogue();
+                                }
+                            }, 1500); // 1.5秒后自动下一句
+                        } else if (gameState.autoMode && gameState.currentIndex >= gameState.currentDialogues.length - 1) {
+                            // 如果是最后一句，等待更长时间后触发完成
+                            setTimeout(() => {
+                                if (gameState.currentScene === 'game' && gameState.autoMode && !gameState.isTyping) {
+                                    this.showNextDialogue(); // 这会触发onCompleteCallback
+                                }
+                            }, 2000);
+                        }
+                    }
+                };
+                type();
+            },
+
+            showChoices(choices) {
+                // 显示选项时停止自动模式
+                if (gameState.autoMode) {
+                    this.toggleAutoMode();
+                }
+                
+                const container = document.getElementById('choices');
+                container.innerHTML = '';
+                container.classList.remove('hidden');
+                document.getElementById('click-hint').style.display = 'none';
+                document.getElementById('auto-btn').style.display = 'none';
+                
+                choices.forEach(choice => {
+                    const btn = document.createElement('button');
+                    btn.className = 'choice-btn';
+                    btn.textContent = choice.text;
+                    btn.onclick = () => {
+                        container.classList.add('hidden');
+                        choice.action();
+                    };
+                    container.appendChild(btn);
+                });
+            },
+
+            showDialogue(speaker, text, callback) {
+                document.getElementById('speaker').textContent = speaker;
+                const textEl = document.getElementById('dialogue-text');
+                textEl.textContent = text;
+                if (callback) {
+                    setTimeout(callback, 3000);
+                }
+            },
+
+            triggerFullStatic(callback) {
+                const static = document.getElementById('full-static');
+                static.style.display = 'block';
+                setTimeout(() => {
+                    static.style.display = 'none';
+                    if (callback) callback();
+                }, 3000);
+            },
+
+            showGlitchTextSequence(words, callback) {
+                let index = 0;
+                const textEl = document.getElementById('dialogue-text');
+                document.getElementById('speaker').textContent = '阿槐';
+                
+                const showNext = () => {
+                    if (index < words.length) {
+                        textEl.innerHTML = `<span class="red-text" style="font-size:2rem;text-shadow:0 0 20px red">${words[index]}</span>`;
+                        document.body.style.filter = `contrast(${1 + index * 0.5}) brightness(${1 + index * 0.2})`;
+                        index++;
+                        setTimeout(showNext, 1000);
+                    } else {
+                        document.body.style.filter = '';
+                        if (callback) callback();
+                    }
+                };
+                showNext();
+            },
+
+            triggerScream(callback) {
+                document.body.style.background = '#300';
+                setTimeout(() => {
+                    document.body.style.background = '#0a0a0a';
+                    if (callback) callback();
+                }, 500);
+            },
+
+            fadeToBlack(callback) {
+                const black = document.getElementById('black-screen');
+                black.classList.add('active');
+                setTimeout(() => {
+                    if (callback) callback();
+                    setTimeout(() => black.classList.remove('active'), 500);
+                }, 1000);
+            },
+
+            addItem(itemId) {
+                if (!gameState.inventory.includes(itemId)) {
+                    gameState.inventory.push(itemId);
+                }
+            },
+
+            showInventory() {
+                const grid = document.getElementById('inventory-grid');
+                grid.innerHTML = '';
+                
+                if (gameState.inventory.length === 0) {
+                    grid.innerHTML = '<p style="color:#444;text-align:center;width:100%">暂无记忆物品</p>';
+                } else {
+                    gameState.inventory.forEach(itemId => {
+                        const item = itemsData[itemId];
+                        const card = document.createElement('div');
+                        card.className = `item-card ${item.important ? 'important' : ''}`;
+                        card.innerHTML = `
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-desc">${item.desc}</div>
+                        `;
+                        
+                        // 特殊处理：骨灰盒三击
+                        if (itemId === 'urn' && item.special) {
+                            card.onclick = () => {
+                                gameState.flags.urnClickCount++;
+                                const count = gameState.flags.urnClickCount;
+                                card.querySelector('.item-desc').textContent = 
+                                    item.desc.replace('0次', count + '次');
+                                
+                                if (count === 3 && !gameState.flags.specialEndingTriggered) {
+                                    gameState.flags.specialEndingTriggered = true;
+                                    this.triggerSpecialUrnScene();
+                                }
+                            };
+                        }
+                        
+                        grid.appendChild(card);
+                    });
+                }
+                
+                document.getElementById('main-menu').style.display = 'none';
+                document.getElementById('inventory-screen').style.display = 'block';
+                gameState.currentScene = 'inventory';
+            },
+
+            triggerSpecialUrnScene() {
+                const grid = document.getElementById('inventory-grid');
+                grid.innerHTML += `
+                    <div style="grid-column:1/-1; background:rgba(50,0,0,0.3); padding:2rem; border:1px solid #500; margin-top:1rem;">
+                        <p style="color:#c00; margin-bottom:1rem;"><strong>特殊剧情触发：</strong></p>
+                        <p style="color:#aaa; line-height:2; margin-bottom:1rem;">
+                            阿妈，我没有事的，你不用这三天不吃不喝的来找我，我在下面过的很好，让我姐也不用担心了
+                        </p>
+                        <p style="color:#666; font-style:italic;">
+                            阿木……<span style="color:#444">（母亲的无声哭泣）</span>
+                        </p>
+                    </div>
+                `;
+                
+                // 添加雨景
+                gameState.flags.rainMode = true;
+                document.getElementById('rain-canvas').style.opacity = '1';
+                this.drawRain();
+                
+                // 解锁第三章入口（通过修改进入按钮）
+                document.getElementById('start-btn').onclick = () => {
+                    if (gameState.flags.chapter3Complete) {
+                        alert('所有章节已完成。');
+                    } else {
+                        this.startChapter3();
+                    }
+                };
+            },
+
+            showBackstory() {
+                document.getElementById('backstory-text').innerHTML = backstoryText;
+                document.getElementById('main-menu').style.display = 'none';
+                document.getElementById('backstory-screen').style.display = 'block';
+                gameState.currentScene = 'backstory';
+            },
+
+            returnToMenu() {
+                // 返回主菜单时重置自动模式
+                if (gameState.autoMode) {
+                    this.toggleAutoMode();
+                }
+                
+                document.getElementById('game-scene').style.display = 'none';
+                document.getElementById('inventory-screen').style.display = 'none';
+                document.getElementById('backstory-screen').style.display = 'none';
+                document.getElementById('main-menu').style.display = 'flex';
+                gameState.currentScene = 'menu';
+                this.updateMenuState();
+                
+                // 检查是否可以进入第三章
+                if (gameState.flags.glitchMode && gameState.inventory.includes('urn')) {
+                    document.getElementById('start-btn').textContent = '进入第三章';
+                }
+            }
+        };
+
+        // 启动游戏
+        window.onload = () => game.init();
+    </script>
+</body>
+</html>
