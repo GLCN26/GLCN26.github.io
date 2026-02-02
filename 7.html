@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>深空探索者</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Noto+Sans+SC:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            overscroll-behavior: none;
+        }
+
+        :root {
+            --cyan: #00f0ff;
+            --cyan-dim: rgba(0, 240, 255, 0.3);
+            --orange: #ffaa00;
+            --red: #ff3366;
+            --green: #00ff88;
+            --bg: #050a10;
+            --panel-bg: rgba(5, 15, 25, 0.85);
+        }
+
+        body {
+            overflow: hidden;
+            background: var(--bg);
+            font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
+            color: var(--cyan);
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            image-rendering: crisp-edges;
+        }
+
+        /* HUD 容器 */
+        .hud-container {
+            position: absolute;
+            pointer-events: none;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* 顶部中央目标信息 */
+        .hud-top {
+            align-self: center;
+            background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.1), transparent);
+            padding: 15px 40px;
+            border-bottom: 2px solid var(--cyan);
+            text-align: center;
+            position: relative;
+        }
+
+        .hud-top::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 2px;
+            background: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan);
+        }
+
+        .target-name {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: var(--orange);
+            text-shadow: 0 0 20px var(--orange);
+        }
+
+        .target-distance {
+            font-size: 14px;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
+        .target-distance.near { color: var(--green); text-shadow: 0 0 10px var(--green); }
+        .target-distance.mid { color: var(--orange); text-shadow: 0 0 10px var(--orange); }
+        .target-distance.far { color: var(--red); text-shadow: 0 0 10px var(--red); }
+
+        /* 左下角仪表盘 */
+        .hud-bottom-left {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        .gauge {
+            background: var(--panel-bg);
+            border: 1px solid var(--cyan-dim);
+            border-radius: 8px;
+            padding: 12px;
+            backdrop-filter: blur(10px);
+            min-width: 120px;
+        }
+
+        .gauge-label {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.1s;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .fuel-bar { background: linear-gradient(90deg, var(--red), var(--orange)); width: 100%; }
+        .speed-bar { background: linear-gradient(90deg, var(--cyan), var(--green)); width: 0%; }
+
+        .gauge-value {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 5px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* 右下角任务面板 */
+        .hud-bottom-right {
+            align-self: flex-end;
+            background: var(--panel-bg);
+            border: 1px solid var(--cyan-dim);
+            border-radius: 8px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            min-width: 180px;
+        }
+
+        .mission-title {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--cyan-dim);
+            padding-bottom: 5px;
+        }
+
+        .mission-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .mission-item {
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .mission-item::before {
+            content: '○';
+            color: var(--cyan-dim);
+        }
+
+        .mission-item.completed {
+            opacity: 0.4;
+            text-decoration: line-through;
+        }
+
+        .mission-item.completed::before {
+            content: '✓';
+            color: var(--green);
+        }
+
+        .mission-item.active {
+            color: var(--orange);
+            text-shadow: 0 0 10px var(--orange);
+            transform: translateX(5px);
+        }
+
+        .mission-item.active::before {
+            content: '▶';
+            color: var(--orange);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* 中央到达弹窗 */
+        .arrival-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, transparent 0%, rgba(0, 240, 255, 0.1) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+            z-index: 50;
+        }
+
+        .arrival-modal.show {
+            opacity: 1;
+        }
+
+        .arrival-scan-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: var(--cyan);
+            box-shadow: 0 0 20px var(--cyan);
+            animation: scan 2s ease-in-out infinite;
+            opacity: 0;
+        }
+
+        .arrival-modal.show .arrival-scan-line {
+            opacity: 1;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .arrival-content {
+            background: rgba(5, 15, 25, 0.95);
+            border: 2px solid var(--cyan);
+            padding: 40px 60px;
+            border-radius: 4px;
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.3s;
+            box-shadow: 0 0 60px rgba(0, 240, 255, 0.3), inset 0 0 40px rgba(0, 240, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .arrival-modal.show .arrival-content {
+            transform: scale(1);
+        }
+
+        .arrival-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 240, 255, 0.03) 2px,
+                rgba(0, 240, 255, 0.03) 4px
+            );
+            pointer-events: none;
+        }
+
+        .arrival-title {
+            font-size: 14px;
+            opacity: 0.7;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+
+        .arrival-planet {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--orange);
+            text-shadow: 0 0 30px var(--orange);
+            margin-bottom: 20px;
+        }
+
+        .arrival-next {
+            font-size: 13px;
+            color: var(--cyan);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s 0.5s;
+        }
+
+        .arrival-modal.show .arrival-next {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 任务完成覆盖层 */
+        .completion-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s;
+        }
+
+        .completion-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .completion-content {
+            text-align: center;
+            transform: translateY(50px);
+            transition: transform 0.8s;
+        }
+
+        .completion-overlay.show .completion-content {
+            transform: translateY(0);
+        }
+
+        .completion-title {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--green);
+            text-shadow: 0 0 40px var(--green);
+            margin-bottom: 20px;
+            letter-spacing: 4px;
+        }
+
+        .completion-stats {
+            font-size: 16px;
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+
+        /* 控制提示 */
+        .control-hint {
+            position: absolute;
+            bottom: 140px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--cyan);
+            border: 1px solid var(--cyan-dim);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .control-hint.show { opacity: 1; }
+
+        /* 按钮 */
+        .btn-hud {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: var(--panel-bg);
+            border: 1px solid var(--cyan);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: all 0.2s;
+            color: var(--cyan);
+            font-size: 20px;
+        }
+
+        .btn-hud:hover {
+            background: var(--cyan);
+            color: black;
+            transform: scale(1.1);
+        }
+
+        .btn-hud:active { transform: scale(0.95); }
+
+        #settings-btn { top: 20px; right: 20px; }
+        
+        #brake-btn {
+            bottom: 20px;
+            right: 20px;
+            border-color: var(--red);
+            color: var(--red);
+        }
+        
+        #brake-btn:hover { background: var(--red); color: white; }
+        
+        #scan-btn {
+            bottom: 20px;
+            right: 80px;
+            border-color: var(--orange);
+            color: var(--orange);
+        }
+        
+        #scan-btn:hover { background: var(--orange); color: black; }
+        
+        #scan-btn.active {
+            background: var(--orange);
+            color: black;
+            animation: pulse 0.5s infinite;
+        }
+
+        /* 主菜单 */
+        .menu-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #0a1a2a 0%, #000 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.8s;
+        }
+
+        .menu-screen.hidden { opacity: 0; pointer-events: none; }
+
+        .menu-title {
+            font-size: 56px;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 0 40px var(--cyan);
+            margin-bottom: 10px;
+            letter-spacing: 8px;
+        }
+
+        .menu-subtitle {
+            font-size: 16px;
+            color: var(--cyan);
+            margin-bottom: 60px;
+            opacity: 0.8;
+        }
+
+        .btn-primary {
+            background: transparent;
+            color: var(--cyan);
+            border: 2px solid var(--cyan);
+            padding: 18px 60px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            background: var(--cyan);
+            color: black;
+            box-shadow: 0 0 30px var(--cyan);
+        }
+
+        /* 设置面板 */
+        .settings-modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 90%;
+            max-width: 400px;
+            background: rgba(5, 15, 25, 0.98);
+            border: 1px solid var(--cyan);
+            border-radius: 4px;
+            padding: 30px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 2000;
+            backdrop-filter: blur(20px);
+        }
+
+        .settings-modal.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--cyan-dim);
+        }
+
+        .settings-title { font-size: 20px; font-weight: 700; }
+
+        .close-btn {
+            width: 32px;
+            height: 32px;
+            background: transparent;
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover { background: var(--cyan); color: black; }
+
+        .setting-item {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .setting-label { font-size: 14px; opacity: 0.9; }
+
+        .toggle {
+            width: 50px;
+            height: 26px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle.active { background: var(--cyan); }
+        
+        .toggle-slider {
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+        
+        .toggle.active .toggle-slider { transform: translateX(24px); }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 1500;
+            backdrop-filter: blur(5px);
+        }
+
+        .overlay.active { opacity: 1; visibility: visible; }
+
+        /* 警告文字 */
+        .warning-text {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--red);
+            font-size: 14px;
+            font-weight: 700;
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-shadow: 0 0 10px var(--red);
+            pointer-events: none;
+        }
+        
+        .warning-text.show { opacity: 1; }
+
+        @media (max-width: 600px) {
+            .menu-title { font-size: 36px; }
+            .hud-top { padding: 10px 20px; }
+            .target-name { font-size: 18px; }
+            .gauge { min-width: 100px; padding: 10px; }
+            .hud-bottom-right { min-width: 150px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HUD -->
+    <div class="hud-container" id="hud" style="display: none;">
+        <!-- 顶部目标 -->
+        <div class="hud-top">
+            <div class="target-name" id="target-name">等待指令...</div>
+            <div class="target-distance far" id="target-distance">--</div>
+        </div>
+
+        <!-- 左下角仪表盘 -->
+        <div class="hud-bottom-left">
+            <div class="gauge">
+                <div class="gauge-label">燃料系统</div>
+                <div class="bar-container">
+                    <div class="bar-fill fuel-bar" id="fuel-bar"></div>
+                </div>
+                <div class="gauge-value" id="fuel-text">100%</div>
+            </div>
+            
+            <div class="gauge">
+                <div class="gauge-label">推进速度</div>
+                <div class="bar-container">
+                    <div class="bar-fill speed-bar" id="speed-bar"></div>
+                </div>
+                <div class="gauge-value" id="speed-text">0 km/s</div>
+            </div>
+        </div>
+
+        <!-- 右下角任务 -->
+        <div class="hud-bottom-right">
+            <div class="mission-title">探索任务</div>
+            <div class="mission-list" id="mission-list">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 到达弹窗 -->
+    <div class="arrival-modal" id="arrival-modal">
+        <div class="arrival-scan-line"></div>
+        <div class="arrival-content">
+            <div class="arrival-title">目标达成</div>
+            <div class="arrival-planet" id="arrival-planet">--</div>
+            <div class="arrival-next">自动导航至下一目标...</div>
+        </div>
+    </div>
+
+    <!-- 任务完成 -->
+    <div class="completion-overlay" id="completion-overlay">
+        <div class="completion-content">
+            <div class="completion-title">任务完成</div>
+            <div class="completion-stats" id="completion-stats">探索 6/6 行星</div>
+            <button class="btn-primary" onclick="game.restart()">再次探索</button>
+        </div>
+    </div>
+
+    <!-- 燃料警告 -->
+    <div class="warning-text" id="fuel-warning">燃料不足 - 建议惯性滑行</div>
+
+    <!-- 控制提示 -->
+    <div class="control-hint show" id="control-hint">拖动推进 · 双击刹车 · 长按扫描</div>
+
+    <!-- 按钮 -->
+    <button class="btn-hud" id="settings-btn" onclick="game.toggleSettings()" style="display: none;">
+        ⚙
+    </button>
+    
+    <button class="btn-hud" id="brake-btn" onclick="game.emergencyBrake()" style="display: none;">
+        █
+    </button>
+    
+    <button class="btn-hud" id="scan-btn" onmousedown="game.startScan()" onmouseup="game.endScan()" ontouchstart="game.startScan()" ontouchend="game.endScan()" style="display: none;">
+        ⌖
+    </button>
+
+    <!-- 设置 -->
+    <div class="overlay" id="overlay" onclick="game.closeSettings()"></div>
+    
+    <div class="settings-modal" id="settings-modal">
+        <div class="settings-header">
+            <div class="settings-title">系统设置</div>
+            <button class="close-btn" onclick="game.closeSettings()">×</button>
+        </div>
+        
+        <div class="setting-item">
+            <span class="setting-label">显示帧率</span>
+            <div class="toggle" id="toggle-fps" onclick="game.toggleSetting('showFps')">
+                <div class="toggle-slider"></div>
+            </div>
+        </div>
+        
+        <div class="setting-item">
+            <span class="setting-label">航行尾迹</span>
+            <div class="toggle active" id="toggle-trail" onclick="game.toggleSetting('showTrail')">
+                <div class="toggle-slider"></div>
+            </div>
+        </div>
+        
+        <div class="setting-item">
+            <span class="setting-label">扫描线效果</span>
+            <div class="toggle active" id="toggle-scanline" onclick="game.toggleSetting('scanLine')">
+                <div class="toggle-slider"></div>
+            </div>
+        </div>
+        
+        <div style="font-size: 12px; opacity: 0.6; margin-top: 20px; text-align: center;">
+            深空探索者 v2.0<br>
+            燃料有限 · 谨慎航行
+        </div>
+    </div>
+
+    <!-- 开始菜单 -->
+    <div class="menu-screen" id="menu-screen">
+        <div class="menu-title">深空探索</div>
+        <div class="menu-subtitle">燃料有限 · 规划航线 · 探索6大行星</div>
+        <button class="btn-primary" onclick="game.start()">启动引擎</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        class SpaceExplorer {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d', { alpha: false });
+                this.ctx.imageSmoothingEnabled = false;
+                
+                this.setupSize();
+                window.addEventListener('resize', () => this.setupSize());
+                
+                // 物理参数
+                this.maxSpeed = 5;
+                this.thrustPower = 0.04;
+                this.cameraLag = 0.08;
+                
+                // 游戏状态
+                this.state = 'menu'; // menu, playing, paused, completed
+                this.tick = 0;
+                this.lastTime = performance.now();
+                this.accumulator = 0;
+                this.timeStep = 1000 / 60;
+                
+                // 玩家
+                this.player = {
+                    x: -6000, y: -4000,
+                    vx: 0, vy: 0,
+                    angle: 0,
+                    fuel: 100, maxFuel: 100,
+                    fuelConsumption: 0.08, // 燃料消耗率
+                    trail: [],
+                    lastTrailX: 0, lastTrailY: 0
+                };
+                
+                this.camera = { x: 0, y: 0, zoom: 1 };
+                
+                // 输入
+                this.input = {
+                    active: false,
+                    sx: 0, sy: 0, cx: 0, cy: 0,
+                    vx: 0, vy: 0, intensity: 0,
+                    doubleTapTime: 0,
+                    scanActive: false
+                };
+                
+                // 世界
+                this.bodies = [];
+                this.stars = [];
+                this.particles = [];
+                this.gridSize = 4000;
+                this.grid = new Map();
+                
+                // 任务
+                this.mission = {
+                    targets: [],
+                    current: 0,
+                    completed: new Set(),
+                    threshold: 400 // 到达判定距离
+                };
+                
+                // 设置
+                this.settings = {
+                    showFps: false,
+                    showTrail: true,
+                    scanLine: true
+                };
+                
+                this.fps = 60;
+                this.frameCount = 0;
+                this.lastFpsTime = 0;
+                
+                this.init();
+            }
+            
+            setupSize() {
+                this.width = window.innerWidth;
+                this.height = window.innerHeight;
+                this.canvas.width = this.width;
+                this.canvas.height = this.height;
+            }
+            
+            init() {
+                this.generateWorld();
+                this.setupInput();
+                this.render();
+                requestAnimationFrame(t => this.loop(t));
+            }
+            
+            generateWorld() {
+                // 恒星（非目标）
+                this.bodies = [{
+                    x: 0, y: 0, r: 120,
+                    color: '#00ccff',
+                    glow: 'rgba(0,200,255,0.4)',
+                    name: '天狼星',
+                    type: 'star'
+                }];
+                
+                // 6个行星目标
+                const names = ['普罗米修斯', '阿特拉斯特', '赫利俄斯', '伊卡洛斯', '欧西里斯', '奥伯龙'];
+                const colors = ['#00f0ff', '#00ffcc', '#66e5ff', '#00ccff', '#40c4ff', '#00aaff'];
+                
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i / 6) * Math.PI * 2 + Math.random() * 0.5;
+                    const dist = 5000 + i * 3500 + Math.random() * 1000;
+                    const planet = {
+                        x: Math.cos(angle) * dist,
+                        y: Math.sin(angle) * dist,
+                        r: 70 + Math.random() * 50,
+                        color: colors[i],
+                        name: names[i],
+                        type: 'planet',
+                        angle: angle,
+                        orbit: dist,
+                        speed: 0.00008 / (i + 1)
+                    };
+                    this.bodies.push(planet);
+                    this.mission.targets.push(planet);
+                }
+                
+                this.buildGrid();
+                
+                // 生成星星
+                this.stars = [];
+                for (let i = 0; i < 300; i++) {
+                    this.stars.push({
+                        x: (Math.random() - 0.5) * 80000,
+                        y: (Math.random() - 0.5) * 80000,
+                        size: Math.random() > 0.7 ? 2 : 1,
+                        opacity: Math.random() * 0.6 + 0.2
+                    });
+                }
+            }
+            
+            buildGrid() {
+                this.grid.clear();
+                this.bodies.forEach(b => {
+                    const gx = Math.floor(b.x / this.gridSize);
+                    const gy = Math.floor(b.y / this.gridSize);
+                    const key = `${gx},${gy}`;
+                    if (!this.grid.has(key)) this.grid.set(key, []);
+                    this.grid.get(key).push(b);
+                });
+            }
+            
+            setupInput() {
+                const canvas = this.canvas;
+                
+                const handleStart = (e) => {
+                    if (this.state !== 'playing') return;
+                    e.preventDefault();
+                    
+                    const now = Date.now();
+                    const p = e.touches ? e.touches[0] : e;
+                    
+                    // 双击检测（300ms内）
+                    if (now - this.input.doubleTapTime < 300) {
+                        this.emergencyBrake();
+                        this.input.doubleTapTime = 0;
+                        return;
+                    }
+                    this.input.doubleTapTime = now;
+                    
+                    this.input.active = true;
+                    this.input.sx = this.input.cx = p.clientX;
+                    this.input.sy = this.input.cy = p.clientY;
+                    
+                    // 长按扫描检测
+                    this.scanTimer = setTimeout(() => {
+                        if (this.input.active) this.startScan();
+                    }, 500);
+                };
+                
+                const handleMove = (e) => {
+                    if (!this.input.active) return;
+                    e.preventDefault();
+                    
+                    const p = e.touches ? e.touches[0] : e;
+                    this.input.cx = p.clientX;
+                    this.input.cy = p.clientY;
+                    
+                    const dx = this.input.cx - this.input.sx;
+                    const dy = this.input.cy - this.input.sy;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    const max = 120;
+                    
+                    this.input.intensity = Math.min(dist / max, 1);
+                    if (dist > 0) {
+                        this.input.vx = (dx / dist) * this.input.intensity;
+                        this.input.vy = (dy / dist) * this.input.intensity;
+                    }
+                    
+                    // 如果移动了，取消长按
+                    if (dist > 10) {
+                        clearTimeout(this.scanTimer);
+                    }
+                };
+                
+                const handleEnd = (e) => {
+                    e.preventDefault();
+                    this.input.active = false;
+                    this.input.intensity = 0;
+                    clearTimeout(this.scanTimer);
+                    this.endScan();
+                };
+                
+                canvas.addEventListener('mousedown', handleStart);
+                canvas.addEventListener('mousemove', handleMove);
+                canvas.addEventListener('mouseup', handleEnd);
+                canvas.addEventListener('touchstart', handleStart, {passive: false});
+                canvas.addEventListener('touchmove', handleMove, {passive: false});
+                canvas.addEventListener('touchend', handleEnd);
+            }
+            
+            start() {
+                this.state = 'playing';
+                this.player.x = -5000;
+                this.player.y = -3000;
+                this.player.vx = 0;
+                this.player.vy = 0;
+                this.player.fuel = 100;
+                this.player.trail = [];
+                this.player.lastTrailX = this.player.x;
+                this.player.lastTrailY = this.player.y;
+                
+                this.mission.current = 0;
+                this.mission.completed.clear();
+                
+                document.getElementById('menu-screen').classList.add('hidden');
+                document.getElementById('hud').style.display = 'flex';
+                document.getElementById('settings-btn').style.display = 'flex';
+                document.getElementById('brake-btn').style.display = 'flex';
+                document.getElementById('scan-btn').style.display = 'flex';
+                document.getElementById('control-hint').classList.add('show');
+                
+                setTimeout(() => {
+                    document.getElementById('control-hint').classList.remove('show');
+                }, 6000);
+                
+                this.updateMissionList();
+            }
+            
+            restart() {
+                document.getElementById('completion-overlay').classList.remove('show');
+                this.start();
+            }
+            
+            emergencyBrake() {
+                if (this.state !== 'playing') return;
+                // 消耗少量燃料急停
+                if (this.player.fuel > 5) {
+                    this.player.vx *= 0.3;
+                    this.player.vy *= 0.3;
+                    this.player.fuel = Math.max(0, this.player.fuel - 5);
+                    
+                    // 视觉反馈
+                    const brakeBtn = document.getElementById('brake-btn');
+                    brakeBtn.style.transform = 'scale(0.9)';
+                    setTimeout(() => brakeBtn.style.transform = '', 100);
+                }
+            }
+            
+            startScan() {
+                if (this.state !== 'playing') return;
+                this.input.scanActive = true;
+                document.getElementById('scan-btn').classList.add('active');
+            }
+            
+            endScan() {
+                this.input.scanActive = false;
+                document.getElementById('scan-btn').classList.remove('active');
+            }
+            
+            update() {
+                if (this.state !== 'playing') return;
+                this.tick++;
+                
+                // 物理计算
+                let thrusting = false;
+                
+                if (this.input.active && this.input.intensity > 0 && this.player.fuel > 0) {
+                    this.player.vx += this.input.vx * this.thrustPower;
+                    this.player.vy += this.input.vy * this.thrustPower;
+                    this.player.fuel -= this.player.fuelConsumption * this.input.intensity;
+                    thrusting = true;
+                    
+                    // 生成尾迹粒子
+                    if (this.tick % 3 === 0) {
+                        const bx = this.player.x - Math.cos(this.player.angle) * 10;
+                        const by = this.player.y - Math.sin(this.player.angle) * 10;
+                        this.particles.push({
+                            x: bx, y: by,
+                            vx: (Math.random() - 0.5) * 0.1,
+                            vy: (Math.random() - 0.5) * 0.1,
+                            life: 180,
+                            size: 2 + Math.random() * 3,
+                            type: 'exhaust'
+                        });
+                    }
+                    
+                    // 记录轨迹
+                    if (this.settings.showTrail && this.tick % 5 === 0) {
+                        const dist = Math.hypot(this.player.x - this.player.lastTrailX, this.player.y - this.player.lastTrailY);
+                        if (dist > 8) {
+                            this.player.trail.push({x: this.player.x, y: this.player.y});
+                            if (this.player.trail.length > 1500) this.player.trail.shift();
+                            this.player.lastTrailX = this.player.x;
+                            this.player.lastTrailY = this.player.y;
+                        }
+                    }
+                }
+                
+                // 速度限制
+                const speed = Math.sqrt(this.player.vx**2 + this.player.vy**2);
+                if (speed > this.maxSpeed) {
+                    const k = this.maxSpeed / speed;
+                    this.player.vx *= k;
+                    this.player.vy *= k;
+                }
+                
+                // 位置更新
+                this.player.x += this.player.vx;
+                this.player.y += this.player.vy;
+                
+                if (speed > 0.1) {
+                    this.player.angle = Math.atan2(this.player.vy, this.player.vx);
+                }
+                
+                // 燃料检查
+                if (this.player.fuel <= 0) {
+                    this.player.fuel = 0;
+                    document.getElementById('fuel-warning').classList.add('show');
+                    setTimeout(() => document.getElementById('fuel-warning').classList.remove('show'), 2000);
+                }
+                
+                // 相机跟随（平滑）
+                const targetCamX = this.player.x - this.width / 2;
+                const targetCamY = this.player.y - this.height / 2;
+                this.camera.x += (targetCamX - this.camera.x) * this.cameraLag;
+                this.camera.y += (targetCamY - this.camera.y) * this.cameraLag;
+                
+                // 行星轨道更新
+                this.bodies.forEach(b => {
+                    if (b.orbit) {
+                        b.angle += b.speed;
+                        b.x = Math.cos(b.angle) * b.orbit;
+                        b.y = Math.sin(b.angle) * b.orbit;
+                    }
+                });
+                
+                // 更新粒子
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life--;
+                    if (p.life <= 0) this.particles.splice(i, 1);
+                }
+                
+                // 网格重建
+                if (this.tick % 180 === 0) this.buildGrid();
+                
+                // 检查任务
+                this.checkMission();
+                
+                // 更新HUD
+                this.updateHUD(speed, thrusting);
+            }
+            
+            checkMission() {
+                if (this.mission.current >= this.mission.targets.length) return;
+                
+                const target = this.mission.targets[this.mission.current];
+                const dist = Math.hypot(this.player.x - target.x, this.player.y - target.y);
+                
+                if (dist < this.mission.threshold && !this.mission.completed.has(target.name)) {
+                    this.completeMission(target);
+                }
+            }
+            
+            completeMission(target) {
+                this.mission.completed.add(target.name);
+                
+                // 显示到达弹窗
+                const modal = document.getElementById('arrival-modal');
+                document.getElementById('arrival-planet').textContent = target.name;
+                modal.classList.add('show');
+                
+                setTimeout(() => {
+                    modal.classList.remove('show');
+                    this.mission.current++;
+                    
+                    if (this.mission.current >= this.mission.targets.length) {
+                        this.completeAll();
+                    } else {
+                        this.updateMissionList();
+                    }
+                }, 2500);
+            }
+            
+            completeAll() {
+                this.state = 'completed';
+                document.getElementById('completion-stats').textContent = 
+                    `燃料剩余 ${Math.floor(this.player.fuel)}% · 航行距离 ${Math.floor(this.player.x/1000)}k km`;
+                document.getElementById('completion-overlay').classList.add('show');
+            }
+            
+            updateHUD(speed, thrusting) {
+                // 更新当前目标信息
+                if (this.mission.current < this.mission.targets.length) {
+                    const target = this.mission.targets[this.mission.current];
+                    const dist = Math.hypot(this.player.x - target.x, this.player.y - target.y);
+                    
+                    document.getElementById('target-name').textContent = target.name;
+                    const distEl = document.getElementById('target-distance');
+                    distEl.textContent = `距离 ${(dist/1000).toFixed(1)}k km`;
+                    
+                    if (dist < 1000) distEl.className = 'target-distance near';
+                    else if (dist < 5000) distEl.className = 'target-distance mid';
+                    else distEl.className = 'target-distance far';
+                } else {
+                    document.getElementById('target-name').textContent = '任务完成';
+                    document.getElementById('target-distance').textContent = '返回基地';
+                }
+                
+                // 更新仪表盘
+                document.getElementById('fuel-bar').style.width = this.player.fuel + '%';
+                document.getElementById('fuel-text').textContent = Math.floor(this.player.fuel) + '%';
+                
+                const speedPercent = (speed / this.maxSpeed) * 100;
+                document.getElementById('speed-bar').style.width = speedPercent + '%';
+                document.getElementById('speed-text').textContent = (speed * 10).toFixed(1) + ' km/s';
+                
+                // 更新任务列表
+                this.updateMissionList();
+            }
+            
+            updateMissionList() {
+                const list = document.getElementById('mission-list');
+                list.innerHTML = '';
+                
+                this.mission.targets.forEach((target, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'mission-item';
+                    item.textContent = target.name;
+                    
+                    if (this.mission.completed.has(target.name)) {
+                        item.className += ' completed';
+                    } else if (index === this.mission.current) {
+                        item.className += ' active';
+                    }
+                    
+                    list.appendChild(item);
+                });
+            }
+            
+            render() {
+                // 清空
+                this.ctx.fillStyle = '#050a10';
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                
+                this.ctx.save();
+                this.ctx.translate(-Math.floor(this.camera.x), -Math.floor(this.camera.y));
+                
+                // 绘制网格
+                this.drawGrid();
+                
+                // 绘制星星
+                this.drawStars();
+                
+                // 绘制轨迹
+                if (this.settings.showTrail && this.player.trail.length > 1) {
+                    this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.player.trail.forEach((p, i) => {
+                        if (i === 0) this.ctx.moveTo(p.x, p.y);
+                        else this.ctx.lineTo(p.x, p.y);
+                    });
+                    this.ctx.stroke();
+                }
+                
+                // 绘制天体
+                this.drawBodies();
+                
+                // 绘制粒子
+                this.drawParticles();
+                
+                // 绘制玩家
+                this.drawPlayer();
+                
+                // 绘制扫描效果
+                if (this.input.scanActive) {
+                    this.drawScanEffect();
+                }
+                
+                this.ctx.restore();
+                
+                // FPS
+                this.frameCount++;
+                const now = performance.now();
+                if (now - this.lastFpsTime >= 1000) {
+                    this.fps = this.frameCount;
+                    this.frameCount = 0;
+                    this.lastFpsTime = now;
+                }
+            }
+            
+            drawGrid() {
+                this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.05)';
+                this.ctx.lineWidth = 1;
+                const gs = 5000;
+                const ox = Math.floor(this.camera.x / gs) * gs;
+                const oy = Math.floor(this.camera.y / gs) * gs;
+                
+                for (let x = -gs; x < this.width + gs; x += gs) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(ox + x, this.camera.y - 2000);
+                    this.ctx.lineTo(ox + x, this.camera.y + this.height + 2000);
+                    this.ctx.stroke();
+                }
+                for (let y = -gs; y < this.height + gs; y += gs) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(this.camera.x - 2000, oy + y);
+                    this.ctx.lineTo(this.camera.x + this.width + 2000, oy + y);
+                    this.ctx.stroke();
+                }
+            }
+            
+            drawStars() {
+                this.stars.forEach(s => {
+                    const x = Math.floor(s.x - this.camera.x * 0.05);
+                    const y = Math.floor(s.y - this.camera.y * 0.05);
+                    
+                    if (x < this.camera.x || x > this.camera.x + this.width ||
+                        y < this.camera.y || y > this.camera.y + this.height) return;
+                    
+                    this.ctx.fillStyle = `rgba(200, 255, 255, ${s.opacity})`;
+                    this.ctx.fillRect(x, y, s.size, s.size);
+                });
+            }
+            
+            drawBodies() {
+                const cx = this.camera.x + this.width/2;
+                const cy = this.camera.y + this.height/2;
+                const maxDist = Math.max(this.width, this.height) * 1.2;
+                
+                this.bodies.forEach(b => {
+                    const dx = cx - b.x;
+                    const dy = cy - b.y;
+                    if (dx*dx + dy*dy > maxDist*maxDist) return;
+                    
+                    const x = Math.floor(b.x);
+                    const y = Math.floor(b.y);
+                    
+                    // 当前目标高亮
+                    const isTarget = this.mission.targets[this.mission.current] === b;
+                    const isCompleted = this.mission.completed.has(b.name);
+                    
+                    this.ctx.shadowBlur = isTarget ? 50 : 30;
+                    this.ctx.shadowColor = isTarget ? '#ffaa00' : b.color;
+                    
+                    // 大气
+                    const g = this.ctx.createRadialGradient(x, y, b.r * 0.8, x, y, b.r * 1.6);
+                    g.addColorStop(0, (isTarget ? '#ffaa00' : b.color) + '66');
+                    g.addColorStop(1, 'transparent');
+                    this.ctx.fillStyle = g;
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, b.r * 1.6, 0, Math.PI*2);
+                    this.ctx.fill();
+                    
+                    // 本体
+                    const bg = this.ctx.createRadialGradient(x - b.r*0.3, y - b.r*0.3, 0, x, y, b.r);
+                    if (isCompleted) {
+                        bg.addColorStop(0, '#666');
+                        bg.addColorStop(1, '#333');
+                    } else {
+                        bg.addColorStop(0, '#fff');
+                        bg.addColorStop(0.4, b.color);
+                        bg.addColorStop(1, b.color + '88');
+                    }
+                    this.ctx.fillStyle = bg;
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, b.r, 0, Math.PI*2);
+                    this.ctx.fill();
+                    
+                    // 目标标记
+                    if (isTarget) {
+                        this.ctx.strokeStyle = '#ffaa00';
+                        this.ctx.lineWidth = 2;
+                        this.ctx.setLineDash([10, 10]);
+                        this.ctx.beginPath();
+                        this.ctx.arc(x, y, b.r + 20, this.tick * 0.02, this.tick * 0.02 + Math.PI*2);
+                        this.ctx.stroke();
+                        this.ctx.setLineDash([]);
+                        
+                        this.ctx.fillStyle = '#ffaa00';
+                        this.ctx.font = 'bold 14px monospace';
+                        this.ctx.textAlign = 'center';
+                        this.ctx.fillText('TARGET', x, y - b.r - 30);
+                    }
+                    
+                    this.ctx.shadowBlur = 0;
+                });
+            }
+            
+            drawParticles() {
+                this.particles.forEach(p => {
+                    const alpha = p.life / 180;
+                    this.ctx.fillStyle = `rgba(0, 240, 255, ${alpha * 0.6})`;
+                    this.ctx.fillRect(Math.floor(p.x - p.size/2), Math.floor(p.y - p.size/2), p.size, p.size);
+                });
+            }
+            
+            drawPlayer() {
+                const x = Math.floor(this.player.x);
+                const y = Math.floor(this.player.y);
+                
+                this.ctx.save();
+                this.ctx.translate(x, y);
+                this.ctx.rotate(this.player.angle);
+                
+                // 推进器火焰
+                if (this.input.active && this.player.fuel > 0) {
+                    const len = 12 + this.input.intensity * 10;
+                    this.ctx.fillStyle = `rgba(0, 240, 255, ${0.6 + Math.random() * 0.4})`;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(-8, -3);
+                    this.ctx.lineTo(-len, 0);
+                    this.ctx.lineTo(-8, 3);
+                    this.ctx.fill();
+                }
+                
+                // 飞船主体 - 高清晰度设计
+                this.ctx.strokeStyle = '#00f0ff';
+                this.ctx.lineWidth = 2;
+                this.ctx.fillStyle = '#001122';
+                
+                // 主体
+                this.ctx.beginPath();
+                this.ctx.moveTo(10, 0);
+                this.ctx.lineTo(-6, -6);
+                this.ctx.lineTo(-3, 0);
+                this.ctx.lineTo(-6, 6);
+                this.ctx.closePath();
+                this.ctx.fill();
+                this.ctx.stroke();
+                
+                // 驾驶舱
+                this.ctx.fillStyle = '#00f0ff';
+                this.ctx.beginPath();
+                this.ctx.arc(2, 0, 3, 0, Math.PI*2);
+                this.ctx.fill();
+                
+                this.ctx.restore();
+            }
+            
+            drawScanEffect() {
+                // 绘制扫描圈
+                this.ctx.strokeStyle = 'rgba(255, 170, 0, 0.8)';
+                this.ctx.lineWidth = 2;
+                this.ctx.setLineDash([20, 10]);
+                this.ctx.beginPath();
+                this.ctx.arc(this.player.x, this.player.y, 300 + Math.sin(this.tick * 0.1) * 50, 0, Math.PI*2);
+                this.ctx.stroke();
+                this.ctx.setLineDash([]);
+                
+                // 扫描线
+                this.ctx.strokeStyle = 'rgba(255, 170, 0, 0.3)';
+                const angle = this.tick * 0.05;
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.player.x, this.player.y);
+                this.ctx.lineTo(this.player.x + Math.cos(angle) * 2000, this.player.y + Math.sin(angle) * 2000);
+                this.ctx.stroke();
+            }
+            
+            loop() {
+                const now = performance.now();
+                const dt = now - this.lastTime;
+                this.lastTime = now;
+                this.accumulator += dt;
+                
+                while (this.accumulator >= this.timeStep) {
+                    this.update();
+                    this.accumulator -= this.timeStep;
+                }
+                
+                this.render();
+                requestAnimationFrame(() => this.loop());
+            }
+            
+            toggleSettings() {
+                document.getElementById('settings-modal').classList.add('active');
+                document.getElementById('overlay').classList.add('active');
+            }
+            
+            closeSettings() {
+                document.getElementById('settings-modal').classList.remove('active');
+                document.getElementById('overlay').classList.remove('active');
+            }
+            
+            toggleSetting(key) {
+                this.settings[key] = !this.settings[key];
+                document.getElementById(`toggle-${key}`).classList.toggle('active', this.settings[key]);
+            }
+        }
+        
+        const game = new SpaceExplorer();
+    </script>
+</body>
+</html>

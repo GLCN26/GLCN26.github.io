@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飞碟帧率测试 - 绝对同步版</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #050508;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            background: rgba(0,0,0,0.4);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            background: linear-gradient(90deg, #00d9ff, #b829f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            background: rgba(255,255,255,0.02);
+        }
+
+        button, select {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        button.active { background: #3b82f6; border-color: #3b82f6; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 1.25rem;
+            padding: 1.25rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .test-card {
+            background: rgba(20, 20, 25, 0.9);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+
+        .card-header {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.03);
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-weight: 700;
+            border: 1px solid;
+        }
+
+        .badge-30 { color: #ef4444; border-color: rgba(239,68,68,0.3); }
+        .badge-60 { color: #f59e0b; border-color: rgba(245,158,11,0.3); }
+        .badge-120 { color: #10b981; border-color: rgba(16,185,129,0.3); }
+        .badge-max { color: #00d9ff; border-color: rgba(0,217,255,0.3); }
+
+        .track {
+            position: relative;
+            height: 100px;
+            background: 
+                repeating-linear-gradient(90deg, 
+                    rgba(255,255,255,0.05) 0px, 
+                    rgba(255,255,255,0.05) 1px, 
+                    transparent 1px, 
+                    transparent 10%
+                ),
+                linear-gradient(to bottom, rgba(0,0,0,0.2), transparent);
+            overflow: hidden;
+        }
+
+        .ufo {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            left: 0; /* 基准在最左侧 */
+            top: 50%;
+            margin-top: -20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            will-change: transform;
+            transform: translateX(0vw); /* 使用vw单位 */
+            filter: drop-shadow(0 0 8px currentColor);
+            pointer-events: none;
+        }
+
+        .ghost {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            left: 0;
+            top: 50%;
+            margin-top: -20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            opacity: 0.3;
+            filter: blur(2px);
+            transform: translateX(0vw);
+            pointer-events: none;
+        }
+
+        .card-footer {
+            padding: 0.875rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .fps-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .fps-display.stable { color: #10b981; }
+        .fps-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .progress-rail {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #00d9ff);
+            width: 0%;
+        }
+
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; padding: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🛸 飞碟帧率同步测试</h1>
+        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">
+            基于时间的绝对同步：同一时刻，同一位置，不同刷新率
+        </div>
+    </header>
+
+    <div class="controls">
+        <select id="speedSelect" onchange="setSpeed(this.value)">
+            <option value="20">慢速 (20%/秒)</option>
+            <option value="50" selected>标准 (50%/秒)</option>
+            <option value="100">快速 (100%/秒)</option>
+        </select>
+        <button onclick="toggleGhost()" id="ghostBtn">拖影对比: 关</button>
+        <button onclick="resetTime()">重置</button>
+    </div>
+
+    <div class="grid">
+        <!-- 30fps -->
+        <div class="test-card">
+            <div class="progress-rail"><div class="progress-fill" id="prog-30"></div></div>
+            <div class="card-header">
+                <div style="font-weight: 600;">📽️ 电影级 30fps</div>
+                <span class="badge badge-30">30Hz</span>
+            </div>
+            <div class="track">
+                <div class="ufo" id="ufo-30" style="color: #ef4444;">🛸</div>
+                <div class="ghost" id="ghost-30" style="display: none; color: #ef4444;">🛸</div>
+            </div>
+            <div class="card-footer">
+                <span style="color: rgba(255,255,255,0.5);">每33.3ms更新一帧</span>
+                <div class="fps-display stable" id="fps-30">
+                    <div class="fps-dot"></div>
+                    <span id="val-30">30</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 60fps -->
+        <div class="test-card">
+            <div class="progress-rail"><div class="progress-fill" id="prog-60"></div></div>
+            <div class="card-header">
+                <div style="font-weight: 600;">🖥️ 标准 60fps</div>
+                <span class="badge badge-60">60Hz</span>
+            </div>
+            <div class="track">
+                <div class="ufo" id="ufo-60" style="color: #f59e0b;">🛸</div>
+                <div class="ghost" id="ghost-60" style="display: none; color: #f59e0b;">🛸</div>
+            </div>
+            <div class="card-footer">
+                <span style="color: rgba(255,255,255,0.5);">每16.7ms更新一帧</span>
+                <div class="fps-display stable" id="fps-60">
+                    <div class="fps-dot"></div>
+                    <span id="val-60">60</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 120fps -->
+        <div class="test-card">
+            <div class="progress-rail"><div class="progress-fill" id="prog-120"></div></div>
+            <div class="card-header">
+                <div style="font-weight: 600;">🎮 电竞级 120fps</div>
+                <span class="badge badge-120">120Hz</span>
+            </div>
+            <div class="track">
+                <div class="ufo" id="ufo-120" style="color: #10b981;">🛸</div>
+                <div class="ghost" id="ghost-120" style="display: none; color: #10b981;">🛸</div>
+            </div>
+            <div class="card-footer">
+                <span style="color: rgba(255,255,255,0.5);">每8.3ms更新一帧</span>
+                <div class="fps-display stable" id="fps-120">
+                    <div class="fps-dot"></div>
+                    <span id="val-120">120</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAX -->
+        <div class="test-card">
+            <div class="progress-rail"><div class="progress-fill" id="prog-max"></div></div>
+            <div class="card-header">
+                <div style="font-weight: 600;">⚡ 无限制</div>
+                <span class="badge badge-max">MAX</span>
+            </div>
+            <div class="track">
+                <div class="ufo" id="ufo-max" style="color: #00d9ff;">🛸</div>
+                <div class="ghost" id="ghost-max" style="display: none; color: #00d9ff;">🛸</div>
+            </div>
+            <div class="card-footer">
+                <span style="color: rgba(255,255,255,0.5);">每帧都更新</span>
+                <div class="fps-display stable" id="fps-max">
+                    <div class="fps-dot"></div>
+                    <span id="val-max">144</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 配置：严格基于时间的渲染
+        const configs = {
+            '30':  { 
+                targetFps: 30, 
+                interval: 1000/30, // 33.333ms
+                el: document.getElementById('ufo-30'),
+                lastFrame: 0,
+                frames: 0
+            },
+            '60':  { 
+                targetFps: 60, 
+                interval: 1000/60, // 16.667ms
+                el: document.getElementById('ufo-60'),
+                lastFrame: 0,
+                frames: 0
+            },
+            '120': { 
+                targetFps: 120, 
+                interval: 1000/120, // 8.333ms
+                el: document.getElementById('ufo-120'),
+                lastFrame: 0,
+                frames: 0
+            },
+            'max': { 
+                targetFps: 0, 
+                interval: 0,
+                el: document.getElementById('ufo-max'),
+                lastFrame: 0,
+                frames: 0
+            }
+        };
+
+        let speedPercentPerSecond = 50; // 每秒移动50%屏幕宽度
+        let ghostEnabled = false;
+        let startTime = performance.now();
+        let lastFpsCheck = performance.now();
+
+        function loop(timestamp) {
+            const now = timestamp;
+            const elapsed = now - startTime; // 从重置开始经过的总时间(ms)
+            
+            // 基于时间计算当前应该在哪里（0-100%）
+            // 公式：(经过的秒数 * 速度) % 100
+            const cycleTime = 100 / speedPercentPerSecond * 1000; // 完成一圈的时间(ms)
+            let currentPos = (elapsed % cycleTime) / cycleTime * 100;
+            
+            // 更新每个飞碟（只是更新DOM频率不同，位置计算基于同一全局时间）
+            for (let key in configs) {
+                const cfg = configs[key];
+                
+                // 检查是否应该渲染这一帧
+                let shouldRender = false;
+                if (key === 'max') {
+                    shouldRender = true;
+                } else if (now - cfg.lastFrame >= cfg.interval) {
+                    shouldRender = true;
+                    cfg.lastFrame = now;
+                }
+                
+                if (shouldRender) {
+                    cfg.frames++;
+                    
+                    // 严格基于时间的位置（所有飞碟同一时刻在同一位置）
+                    cfg.el.style.transform = `translateX(${currentPos}vw)`;
+                    
+                    // 更新进度条
+                    document.getElementById(`prog-${key}`).style.width = currentPos + '%';
+                }
+            }
+            
+            // 更新拖影（显示100ms前的位置）
+            if (ghostEnabled) {
+                const ghostOffset = 100; // 100ms延迟
+                const ghostTime = elapsed - ghostOffset;
+                const ghostPos = (ghostTime % cycleTime) / cycleTime * 100;
+                
+                for (let key in configs) {
+                    const ghost = document.getElementById(`ghost-${key}`);
+                    if (ghost) {
+                        ghost.style.transform = `translateX(${ghostPos}vw)`;
+                    }
+                }
+            }
+            
+            // FPS统计（每秒一次）
+            if (now - lastFpsCheck >= 1000) {
+                updateFps(now);
+            }
+            
+            requestAnimationFrame(loop);
+        }
+
+        function updateFps(now) {
+            const duration = now - lastFpsCheck;
+            
+            for (let key in configs) {
+                const cfg = configs[key];
+                const actualFps = Math.round((cfg.frames * 1000) / duration);
+                document.getElementById(`val-${key}`).textContent = actualFps;
+                
+                // 状态颜色
+                const target = cfg.targetFps || actualFps;
+                const display = document.getElementById(`fps-${key}`);
+                
+                if (key !== 'max' && Math.abs(actualFps - target) > 5) {
+                    display.className = 'fps-display danger';
+                } else {
+                    display.className = 'fps-display stable';
+                }
+                
+                cfg.frames = 0;
+            }
+            
+            lastFpsCheck = now;
+        }
+
+        function setSpeed(val) {
+            speedPercentPerSecond = parseInt(val);
+            // 重置以确保立即生效新的一圈计算
+            startTime = performance.now();
+        }
+
+        function toggleGhost() {
+            ghostEnabled = !ghostEnabled;
+            document.getElementById('ghostBtn').classList.toggle('active');
+            document.querySelectorAll('.ghost').forEach(g => {
+                g.style.display = ghostEnabled ? 'flex' : 'none';
+            });
+        }
+
+        function resetTime() {
+            startTime = performance.now();
+            for (let key in configs) {
+                configs[key].lastFrame = 0;
+                configs[key].frames = 0;
+            }
+        }
+
+        requestAnimationFrame(loop);
+    </script>
+</body>
+</html>

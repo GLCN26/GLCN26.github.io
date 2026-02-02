@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>触控太阳系模拟器</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(ellipse at center, #0a0e2a 0%, #000000 70%);
+            color: #e0f7ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            position: relative;
+            touch-action: none;
+        }
+        
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+            z-index: -1;
+        }
+        
+        #canvas {
+            display: block;
+        }
+        
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(16, 22, 58, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-height: 40vh;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        
+        #controls h3 {
+            margin: 0 0 6px 0;
+            color: #4fc3f7;
+            border-bottom: 1px solid rgba(79, 195, 247, 0.3);
+            padding-bottom: 4px;
+            font-size: 14px;
+        }
+        
+        .control-group {
+            margin: 4px 0;
+        }
+        
+        #controls input, #controls select, #controls button {
+            margin: 3px 0;
+            padding: 4px 6px;
+            background: rgba(30, 40, 90, 0.7);
+            color: #e0f7ff;
+            border: 1px solid rgba(100, 150, 255, 0.3);
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        
+        #controls button {
+            cursor: pointer;
+            background: linear-gradient(to right, #2196f3, #21cbf3);
+            color: white;
+            font-weight: bold;
+            border: none;
+            padding: 5px 8px;
+            margin-top: 4px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.4);
+        }
+        
+        #planetList {
+            margin-top: 6px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        
+        .planetItem {
+            margin: 3px 0;
+            padding: 4px;
+            background: rgba(30, 40, 90, 0.5);
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(100, 150, 255, 0.1);
+        }
+        
+        .deleteBtn {
+            background: linear-gradient(to right, #ff5252, #ff7675);
+            color: white;
+            border: none;
+            padding: 2px 6px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 10px;
+        }
+        
+        #info {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(16, 22, 58, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            font-size: 11px;
+        }
+        
+        #info h4 {
+            margin: 0 0 4px 0;
+            color: #4fc3f7;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div id="controls">
+        <h3>触控太阳系模拟器</h3>
+        <div class="control-group">
+            <label>名称:</label>
+            <input type="text" id="planetName" placeholder="星球名称">
+        </div>
+        <div class="control-group">
+            <label>半径:</label>
+            <input type="number" id="planetRadius" min="5" max="50" value="10">
+        </div>
+        <div class="control-group">
+            <label>质量:</label>
+            <input type="number" id="planetMass" min="1" max="100" value="10">
+        </div>
+        <div class="control-group">
+            <button onclick="addPlanet()">添加星球</button>
+        </div>
+        <div class="control-group">
+            <button onclick="addBlackHole()">创建黑洞</button>
+        </div>
+        <div class="control-group">
+            <button onclick="resetSolarSystem()">重置太阳系</button>
+        </div>
+        <div id="planetList"><h4>当前星球:</h4></div>
+    </div>
+    
+    <div id="info">
+        <h4>触控说明:</h4>
+        <p>• 单指拖动星球改变位置</p>
+        <p>• 双指缩放调整大小</p>
+        <p>• 星球间引力影响运动</p>
+        <p>• 碰到边界会反弹</p>
+        <p>• 黑洞会捕获并缓慢吞噬星球</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        
+        let planets = [];
+        let blackHoles = [];
+        let draggedPlanet = null;
+        let touchStartDist = 0;
+        let touchStartRadius = 0;
+        
+        const sun = { x: centerX, y: centerY, radius: 35, mass: 1000, color: '#FFD700' };
+        const G = 0.1;
+        const BLACK_HOLE_G = 0.08; // 适当调整引力强度
+        
+        function initSolarSystem() {
+            planets = [
+                { name: '水星', radius: 6, mass: 8, x: centerX + 80, y: centerY, vx: 0, vy: 0.85, color: '#8C7853', trail: [] },
+                { name: '金星', radius: 9, mass: 12, x: centerX + 110, y: centerY, vx: 0, vy: 0.75, color: '#FFC649', trail: [] },
+                { name: '地球', radius: 10, mass: 15, x: centerX + 150, y: centerY, vx: 0, vy: 0.6, color: '#4fc3f7', trail: [] },
+                { name: '月球', radius: 3, mass: 2, x: centerX + 170, y: centerY, vx: 0, vy: 0.55, color: '#E0E0E0', trail: [] },
+                { name: '火星', radius: 8, mass: 10, x: centerX + 200, y: centerY, vx: 0, vy: 0.45, color: '#FF6F61', trail: [] },
+                { name: '木星', radius: 28, mass: 60, x: centerX + 280, y: centerY, vx: 0, vy: 0.3, color: '#d47c00', trail: [] },
+                { name: '土星', radius: 24, mass: 45, x: centerX + 350, y: centerY, vx: 0, vy: 0.25, color: '#ffd54f', trail: [] },
+                { name: '天王星', radius: 16, mass: 30, x: centerX + 400, y: centerY, vx: 0, vy: 0.2, color: '#4FD0E7', trail: [] },
+                { name: '海王星', radius: 15, mass: 28, x: centerX + 450, y: centerY, vx: 0, vy: 0.18, color: '#4B70DD', trail: [] }
+            ];
+            blackHoles = [];
+            updatePlanetList();
+        }
+        
+        function addPlanet() {
+            const name = document.getElementById('planetName').value;
+            const radius = parseInt(document.getElementById('planetRadius').value);
+            const mass = parseInt(document.getElementById('planetMass').value);
+            if (!name) return alert('请输入星球名称');
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 120 + Math.random() * 250;
+            const x = centerX + Math.cos(angle) * distance;
+            const y = centerY + Math.sin(angle) * distance;
+            const speed = 0.8 / Math.sqrt(distance / 100);
+            const vx = -Math.sin(angle) * speed;
+            const vy = Math.cos(angle) * speed;
+            planets.push({ name, radius, mass, x, y, vx, vy, color: '#4fc3f7', trail: [] });
+            document.getElementById('planetName').value = '';
+            updatePlanetList();
+        }
+        
+        function addBlackHole() {
+            const x = Math.random() * (canvas.width - 200) + 100;
+            const y = Math.random() * (canvas.height - 200) + 100;
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 0.4 + Math.random() * 0.5;
+            const vx = Math.cos(angle) * speed;
+            const vy = Math.sin(angle) * speed;
+            blackHoles.push({ 
+                x, y, radius: 20, mass: 5000, eventHorizonRadius: 30, 
+                vx, vy, trail: [], consumptionProgress: 0, eatingIndex: -1
+            });
+            updatePlanetList();
+        }
+        
+        function deletePlanet(index) {
+            planets.splice(index, 1);
+            updatePlanetList();
+        }
+        
+        function deleteBlackHole(index) {
+            blackHoles.splice(index, 1);
+            updatePlanetList();
+        }
+        
+        function updatePlanetList() {
+            const listDiv = document.getElementById('planetList');
+            listDiv.innerHTML = '<h4>当前星球:</h4>';
+            planets.forEach((p, i) => {
+                const item = document.createElement('div');
+                item.className = 'planetItem';
+                item.innerHTML = `<span style="color:${p.color}">●</span>${p.name}<button class="deleteBtn" onclick="deletePlanet(${i})">删除</button>`;
+                listDiv.appendChild(item);
+            });
+            blackHoles.forEach((b, i) => {
+                const item = document.createElement('div');
+                item.className = 'planetItem';
+                item.innerHTML = `<span style="color:#000">●</span>黑洞${i+1}<button class="deleteBtn" onclick="deleteBlackHole(${i})">删除</button>`;
+                listDiv.appendChild(item);
+            });
+        }
+        
+        function resetSolarSystem() {
+            initSolarSystem();
+        }
+        
+        function calculateGravity(p1, p2) {
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 10) return { fx: 0, fy: 0 };
+            const force = G * p1.mass * p2.mass / (dist * dist);
+            return { fx: force * dx / dist, fy: force * dy / dist };
+        }
+        
+        function calculateBlackHoleGravity(p, bh) {
+            const dx = bh.x - p.x;
+            const dy = bh.y - p.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            // 如果星球已经进入事件视界，标记为捕获
+            if (dist < bh.eventHorizonRadius) {
+                return { fx: 0, fy: 0, captured: true };
+            }
+            
+            // 黑洞引力公式 - 温和的吸力
+            const force = BLACK_HOLE_G * bh.mass * p.mass / (dist * dist);
+            
+            return { 
+                fx: force * dx / dist, 
+                fy: force * dy / dist, 
+                captured: false,
+                inRange: dist < bh.eventHorizonRadius * 2
+            };
+        }
+        
+        function checkBlackHoleConsumption() {
+            blackHoles.forEach(bh => {
+                // 初始化
+                if (bh.eatingIndex === undefined) {
+                    bh.eatingIndex = -1;
+                    bh.consumptionProgress = 0;
+                }
+
+                // 如果正在吞噬，继续处理
+                if (bh.eatingIndex >= 0) {
+                    const p = planets[bh.eatingIndex];
+                    if (!p) {
+                        bh.eatingIndex = -1;
+                        bh.consumptionProgress = 0;
+                        return;
+                    }
+
+                    const dist = Math.hypot(p.x - bh.x, p.y - bh.y);
+                    if (dist < bh.eventHorizonRadius) {
+                        bh.consumptionProgress += 0.04; // 更快的吞噬速度
+                        if (bh.consumptionProgress >= 0.5) { // 50%时判断逃脱
+                            if (Math.random() < 0.33) {
+                                const ang = Math.random() * Math.PI * 2;
+                                const spd = 0.5 + Math.random() * 0.5;
+                                p.vx = Math.cos(ang) * spd;
+                                p.vy = Math.sin(ang) * spd;
+                                bh.eatingIndex = -1;
+                                bh.consumptionProgress = 0;
+                                return;
+                            }
+                        }
+                        if (bh.consumptionProgress >= 0.8) { // 80%完成吞噬
+                            planets.splice(bh.eatingIndex, 1);
+                            updatePlanetList();
+                            bh.eatingIndex = -1;
+                            bh.consumptionProgress = 0;
+                        }
+                    } else {
+                        // 星球逃脱
+                        bh.eatingIndex = -1;
+                        bh.consumptionProgress = 0;
+                    }
+                    return;
+                }
+
+                // 寻找新的目标
+                for (let i = 0; i < planets.length; i++) {
+                    const p = planets[i];
+                    if (Math.hypot(p.x - bh.x, p.y - bh.y) < bh.eventHorizonRadius) {
+                        bh.eatingIndex = i;
+                        bh.consumptionProgress = 0;
+                        break;
+                    }
+                }
+            });
+        }
+        
+        function updateBlackHoles() {
+            blackHoles.forEach((bh) => {
+                bh.x += bh.vx;
+                bh.y += bh.vy;
+                
+                if (bh.x - bh.eventHorizonRadius < 0 || bh.x + bh.eventHorizonRadius > canvas.width) {
+                    bh.vx = -bh.vx;
+                    bh.x = Math.max(bh.eventHorizonRadius, Math.min(canvas.width - bh.eventHorizonRadius, bh.x));
+                }
+                if (bh.y - bh.eventHorizonRadius < 0 || bh.y + bh.eventHorizonRadius > canvas.height) {
+                    bh.vy = -bh.vy;
+                    bh.y = Math.max(bh.eventHorizonRadius, Math.min(canvas.height - bh.eventHorizonRadius, bh.y));
+                }
+                
+                if (!bh.trail) bh.trail = [];
+                bh.trail.push({ x: bh.x, y: bh.y });
+                if (bh.trail.length > 40) bh.trail.shift();
+            });
+        }
+        
+        function bounce(p) {
+            const r = p.radius;
+            if (p.x - r < 0) {
+                p.x = r;
+                p.vx = -p.vx * 0.8;
+            } else if (p.x + r > canvas.width) {
+                p.x = canvas.width - r;
+                p.vx = -p.vx * 0.8;
+            }
+            if (p.y - r < 0) {
+                p.y = r;
+                p.vy = -p.vy * 0.8;
+            } else if (p.y + r > canvas.height) {
+                p.y = canvas.height - r;
+                p.vy = -p.vy * 0.8;
+            }
+        }
+        
+        function updatePhysics() {
+            planets.forEach((p, index) => {
+                if (p === draggedPlanet) return;
+                let fx = 0, fy = 0;
+                
+                const sunF = calculateGravity(p, sun);
+                fx += sunF.fx;
+                fy += sunF.fy;
+                
+                planets.forEach((o) => {
+                    if (p !== o) {
+                        const f = calculateGravity(p, o);
+                        fx += f.fx;
+                        fy += f.fy;
+                    }
+                });
+                
+                // 检查是否被黑洞捕获
+                let isCaptured = false;
+                blackHoles.forEach((bh) => {
+                    const bhF = calculateBlackHoleGravity(p, bh);
+                    if (bhF.captured) {
+                        isCaptured = true;
+                        // 被捕获的星球逐渐向黑洞中心移动
+                        const dx = bh.x - p.x;
+                        const dy = bh.y - p.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist > 5) { // 如果还没有到达黑洞中心
+                            p.x += dx * 0.02; // 缓慢向黑洞中心移动
+                            p.y += dy * 0.02;
+                        }
+                    } else {
+                        fx += bhF.fx;
+                        fy += bhF.fy;
+                    }
+                });
+                
+                if (!isCaptured) {
+                    p.vx += fx / p.mass;
+                    p.vy += fy / p.mass;
+                    
+                    const speed = Math.hypot(p.vx, p.vy);
+                    if (speed > 6) {
+                        p.vx = (p.vx / speed) * 6;
+                        p.vy = (p.vy / speed) * 6;
+                    }
+                    
+                    p.x += p.vx;
+                    p.y += p.vy;
+                }
+                
+                if (!p.trail) p.trail = [];
+                p.trail.push({ x: p.x, y: p.y });
+                if (p.trail.length > 60) p.trail.shift();
+                
+                bounce(p);
+            });
+            updateBlackHoles();
+            checkBlackHoleConsumption();
+        }
+        
+        function drawTrail(p, color) {
+            if (!p.trail || p.trail.length < 2) return;
+            ctx.strokeStyle = color + '30';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(p.trail[0].x, p.trail[0].y);
+            for (let i = 1; i < p.trail.length; i++) ctx.lineTo(p.trail[i].x, p.trail[i].y);
+            ctx.stroke();
+        }
+        
+        function drawBlackHole(bh) {
+            drawTrail(bh, '#8B008B');
+            
+            // 绘制吞噬进度环
+            if (bh.consumptionProgress > 0) {
+                ctx.strokeStyle = '#FF0000';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(bh.x, bh.y, bh.eventHorizonRadius + 5, 0, Math.PI * 2 * bh.consumptionProgress);
+                ctx.stroke();
+            }
+            
+            const grad = ctx.createRadialGradient(bh.x, bh.y, 0, bh.x, bh.y, bh.radius * 3);
+            grad.addColorStop(0, 'rgba(0,0,0,1)');
+            grad.addColorStop(0.3, 'rgba(50,0,100,0.8)');
+            grad.addColorStop(0.6, 'rgba(100,0,200,0.4)');
+            grad.addColorStop(1, 'transparent');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(bh.x, bh.y, bh.radius * 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(bh.x, bh.y, bh.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#8B008B';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(bh.x, bh.y, bh.eventHorizonRadius, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('黑洞', bh.x, bh.y - bh.eventHorizonRadius - 8);
+        }
+        
+        function drawPlanet(p) {
+            drawTrail(p, p.color);
+            const grad = ctx.createRadialGradient(p.x - p.radius / 3, p.y - p.radius / 3, 0, p.x, p.y, p.radius);
+            grad.addColorStop(0, '#ffffff');
+            grad.addColorStop(1, p.color);
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(p.name, p.x, p.y - p.radius - 8);
+        }
+        
+        function drawSun() {
+            const grad = ctx.createRadialGradient(sun.x, sun.y, 0, sun.x, sun.y, sun.radius * 2);
+            grad.addColorStop(0, 'rgba(255,235,59,0.8)');
+            grad.addColorStop(0.5, 'rgba(255,193,7,0.5)');
+            grad.addColorStop(1, 'transparent');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(sun.x, sun.y, sun.radius * 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#FFEB3B';
+            ctx.beginPath();
+            ctx.arc(sun.x, sun.y, sun.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function animate() {
+            ctx.fillStyle = 'rgba(0,0,0,0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            updatePhysics();
+            drawSun();
+            blackHoles.forEach(drawBlackHole);
+            planets.forEach(drawPlanet);
+            requestAnimationFrame(animate);
+        }
+        
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                const t = e.touches[0];
+                draggedPlanet = null;
+                planets.forEach(p => {
+                    const dx = t.clientX - p.x;
+                    const dy = t.clientY - p.y;
+                    if (Math.sqrt(dx * dx + dy * dy) < p.radius) draggedPlanet = p;
+                });
+            } else if (e.touches.length === 2 && draggedPlanet) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                touchStartDist = Math.sqrt(dx * dx + dy * dy);
+                touchStartRadius = draggedPlanet.radius;
+            }
+        }, { passive: false });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (e.touches.length === 1 && draggedPlanet) {
+                const t = e.touches[0];
+                draggedPlanet.x = t.clientX;
+                draggedPlanet.y = t.clientY;
+                draggedPlanet.vx = 0;
+                draggedPlanet.vy = 0;
+                draggedPlanet.trail = [];
+            } else if (e.touches.length === 2 && draggedPlanet) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const scale = dist / touchStartDist;
+                draggedPlanet.radius = Math.max(5, Math.min(50, touchStartRadius * scale));
+            }
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', () => {
+            draggedPlanet = null;
+        });
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        initSolarSystem();
+        animate();
+    </script>
+</body>
+</html>
