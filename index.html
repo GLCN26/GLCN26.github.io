@@ -22,15 +22,6 @@
             --text-light: #a0aec0;
             --text-muted: #718096;
             --white: #ffffff;
-
-            /* 主题变量 */
-            --bg-primary: #1a1a2e;
-            --bg-secondary: #16213e;
-            --bg-card: rgba(255, 255, 255, 0.05);
-            --text-primary: #e2e8f0;
-            --text-secondary: #a0aec0;
-            --border-color: rgba(255, 255, 255, 0.1);
-            --shadow-color: rgba(0, 0, 0, 0.2);
             --success: #4ade80;
             --warning: #f59e0b;
             --danger: #f87171;
@@ -346,10 +337,9 @@
         .page {
             display: none; flex: 1;
             padding: var(--spacing-md);
-            opacity: 0; transform: translateY(10px);
-            transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            opacity: 0; transform: translateY(20px);
+            transition: all var(--duration-mega-slow) var(--transition-smooth);
             height: auto; min-height: calc(100vh - 70px);
-            will-change: opacity, transform;
         }
         
         .page.active { 
@@ -693,12 +683,11 @@
         .modal-overlay {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
             display: flex; align-items: center; justify-content: center;
             z-index: 2000; opacity: 0; visibility: hidden;
-            transition: opacity 0.2s ease, visibility 0.2s ease;
-            padding: 1rem;
+            transition: all var(--duration-normal) var(--transition-smooth);
         }
 
         .modal-overlay.active {
@@ -706,14 +695,13 @@
         }
 
         .modal-content {
-            background: rgba(26, 26, 46, 0.98); backdrop-filter: blur(20px);
+            background: rgba(26, 26, 46, 0.95); backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
-            padding: var(--spacing-lg); max-width: 480px;
-            width: 100%; max-height: 75vh; overflow-y: auto;
-            transform: scale(0.95) translateY(20px);
-            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+            padding: var(--spacing-xl); max-width: 500px;
+            width: 90%; max-height: 80vh; overflow-y: auto;
+            transform: scale(0.8) translateY(50px);
+            transition: all var(--duration-slow) var(--transition-bounce);
             position: relative;
-            margin: auto;
         }
 
         .modal-overlay.active .modal-content {
@@ -1271,12 +1259,11 @@
         .password-modal-overlay {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
             display: flex; align-items: center; justify-content: center;
             z-index: 3000; opacity: 0; visibility: hidden;
-            transition: opacity 0.2s ease, visibility 0.2s ease;
-            padding: 1rem;
+            transition: all var(--duration-normal) var(--transition-smooth);
         }
 
         .password-modal-overlay.active {
@@ -1284,13 +1271,12 @@
         }
 
         .password-modal-content {
-            background: rgba(26, 26, 46, 0.98); backdrop-filter: blur(20px);
+            background: rgba(26, 26, 46, 0.95); backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.15); border-radius: var(--border-radius-lg);
-            padding: var(--spacing-lg); max-width: 420px;
-            width: 100%; transform: scale(0.95) translateY(20px);
-            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+            padding: var(--spacing-xl); max-width: 450px;
+            width: 90%; transform: scale(0.9) translateY(30px);
+            transition: all var(--duration-slow) var(--transition-bounce);
             position: relative; box-shadow: var(--shadow-xl);
-            margin: auto;
         }
 
         .password-modal-overlay.active .password-modal-content {
@@ -1804,103 +1790,6 @@
             display: none !important;
         }
 
-        /* 亮色模式 */
-        body.light-mode {
-            --bg-primary: #f8fafc;
-            --bg-secondary: #ffffff;
-            --bg-card: rgba(0, 0, 0, 0.03);
-            --text-primary: #1a1a2e;
-            --text-secondary: #4a5568;
-            --border-color: rgba(0, 0, 0, 0.1);
-            --shadow-color: rgba(0, 0, 0, 0.1);
-            --dark: #f8fafc;
-            --darker: #ffffff;
-            --darkest: #e2e8f0;
-            --text: #1a1a2e;
-            --text-light: #4a5568;
-            --text-muted: #718096;
-        }
-
-        body.light-mode .navbar {
-            background: rgba(255, 255, 255, 0.9);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .nav-menu li {
-            color: rgba(0, 0, 0, 0.7);
-        }
-
-        body.light-mode .nav-menu li:hover {
-            color: #1a1a2e;
-        }
-
-        body.light-mode .loading {
-            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-        }
-
-        body.light-mode .loading-text {
-            color: #1a1a2e;
-        }
-
-        body.light-mode .loading-subtext {
-            color: #718096;
-        }
-
-        body.light-mode .feature-card,
-        body.light-mode .homework-card {
-            background: rgba(0, 0, 0, 0.03);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .modal-content {
-            background: rgba(255, 255, 255, 0.98);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .modal-title,
-        body.light-mode .feature-title,
-        body.light-mode .homework-title {
-            color: #1a1a2e;
-        }
-
-        body.light-mode .feature-description,
-        body.light-mode .homework-subtitle {
-            color: #4a5568;
-        }
-
-        body.light-mode .password-modal-content {
-            background: rgba(255, 255, 255, 0.98);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .password-input {
-            background: rgba(0, 0, 0, 0.03);
-            border: 2px solid rgba(0, 0, 0, 0.1);
-            color: #1a1a2e;
-        }
-
-        body.light-mode .password-input::placeholder {
-            color: #a0aec0;
-        }
-
-        body.light-mode .setting-item {
-            background: rgba(0, 0, 0, 0.03);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .setting-title {
-            color: #1a1a2e;
-        }
-
-        body.light-mode .setting-description {
-            color: #4a5568;
-        }
-
-        body.light-mode footer {
-            background: #e2e8f0;
-            color: #4a5568;
-        }
-
         /* 低功耗模式适配 */
         @media (prefers-reduced-motion: reduce) {
             * {
@@ -1922,59 +1811,6 @@
         .settings-modal {
             max-width: 500px;
             width: 90%;
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-
-        /* 主题选择器样式 */
-        .theme-selector {
-            display: flex;
-            gap: 0.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 0.5rem;
-            border-radius: var(--border-radius-lg);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .theme-btn {
-            width: 44px;
-            height: 44px;
-            border: none;
-            border-radius: var(--border-radius);
-            background: transparent;
-            color: var(--text-light);
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all var(--duration-fast) var(--transition-bounce);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .theme-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--white);
-            transform: scale(1.1);
-        }
-
-        .theme-btn.active {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: var(--white);
-            box-shadow: var(--shadow-glow);
-        }
-
-        body.light-mode .theme-selector {
-            background: rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .theme-btn {
-            color: #4a5568;
-        }
-
-        body.light-mode .theme-btn:hover {
-            background: rgba(0, 0, 0, 0.1);
-            color: #1a1a2e;
         }
 
         .settings-body {
@@ -2241,103 +2077,6 @@
             display: none !important;
         }
 
-        /* 亮色模式 */
-        body.light-mode {
-            --bg-primary: #f8fafc;
-            --bg-secondary: #ffffff;
-            --bg-card: rgba(0, 0, 0, 0.03);
-            --text-primary: #1a1a2e;
-            --text-secondary: #4a5568;
-            --border-color: rgba(0, 0, 0, 0.1);
-            --shadow-color: rgba(0, 0, 0, 0.1);
-            --dark: #f8fafc;
-            --darker: #ffffff;
-            --darkest: #e2e8f0;
-            --text: #1a1a2e;
-            --text-light: #4a5568;
-            --text-muted: #718096;
-        }
-
-        body.light-mode .navbar {
-            background: rgba(255, 255, 255, 0.9);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .nav-menu li {
-            color: rgba(0, 0, 0, 0.7);
-        }
-
-        body.light-mode .nav-menu li:hover {
-            color: #1a1a2e;
-        }
-
-        body.light-mode .loading {
-            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-        }
-
-        body.light-mode .loading-text {
-            color: #1a1a2e;
-        }
-
-        body.light-mode .loading-subtext {
-            color: #718096;
-        }
-
-        body.light-mode .feature-card,
-        body.light-mode .homework-card {
-            background: rgba(0, 0, 0, 0.03);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .modal-content {
-            background: rgba(255, 255, 255, 0.98);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .modal-title,
-        body.light-mode .feature-title,
-        body.light-mode .homework-title {
-            color: #1a1a2e;
-        }
-
-        body.light-mode .feature-description,
-        body.light-mode .homework-subtitle {
-            color: #4a5568;
-        }
-
-        body.light-mode .password-modal-content {
-            background: rgba(255, 255, 255, 0.98);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .password-input {
-            background: rgba(0, 0, 0, 0.03);
-            border: 2px solid rgba(0, 0, 0, 0.1);
-            color: #1a1a2e;
-        }
-
-        body.light-mode .password-input::placeholder {
-            color: #a0aec0;
-        }
-
-        body.light-mode .setting-item {
-            background: rgba(0, 0, 0, 0.03);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-mode .setting-title {
-            color: #1a1a2e;
-        }
-
-        body.light-mode .setting-description {
-            color: #4a5568;
-        }
-
-        body.light-mode footer {
-            background: #e2e8f0;
-            color: #4a5568;
-        }
-
         /* 低功耗模式适配 */
         @media (prefers-reduced-motion: reduce) {
             * {
@@ -2474,12 +2213,12 @@
                                 进行中
                             </div>
                             <div class="current-version-badge">
-                                Version2.2
+                                Version2.1
                             </div>
                         </div>
                         <div class="current-version-text">
                             <i class="fas fa-cog fa-spin"></i>
-                            更新ing
+                            优化
                         </div>
                     </div>
 
@@ -2681,16 +2420,6 @@
                             <p class="homework-subtitle">末日生存游戏</p>
                             <span class="homework-status pending">立即游玩 <i class="fas fa-external-link-alt"></i></span>
                         </div>
-
-                        <!-- 新增游戏 10：五子棋 -->
-                        <div class="homework-card other stagger-fade-in" onclick="window.open('10.html', '_blank')">
-                            <div class="homework-icon">
-                                <i class="fas fa-chess-board"></i>
-                            </div>
-                            <h4 class="homework-title">五子棋</h4>
-                            <p class="homework-subtitle">经典策略对战游戏</p>
-                            <span class="homework-status pending">立即游玩 <i class="fas fa-external-link-alt"></i></span>
-                        </div>
                     </div>
 
                     <div class="feature-card stagger-fade-in" style="margin-top: var(--spacing-lg);">
@@ -2815,30 +2544,6 @@
                 </button>
             </div>
             <div class="modal-body settings-body">
-                <!-- 主题模式切换 -->
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div class="setting-icon">
-                            <i class="fas fa-palette"></i>
-                        </div>
-                        <div class="setting-text">
-                            <div class="setting-title">主题模式</div>
-                            <div class="setting-description">选择暗色、亮色或跟随系统</div>
-                        </div>
-                    </div>
-                    <div class="theme-selector">
-                        <button class="theme-btn" data-theme="dark" title="暗色模式">
-                            <i class="fas fa-moon"></i>
-                        </button>
-                        <button class="theme-btn" data-theme="light" title="亮色模式">
-                            <i class="fas fa-sun"></i>
-                        </button>
-                        <button class="theme-btn" data-theme="auto" title="跟随系统">
-                            <i class="fas fa-desktop"></i>
-                        </button>
-                    </div>
-                </div>
-
                 <!-- 性能模式切换 -->
                 <div class="setting-item">
                     <div class="setting-info">
@@ -2877,8 +2582,6 @@
     </footer>
 
     <script>
-        // 强制禁用亮色模式 - 临时方案
-        localStorage.setItem('theme', 'dark');
         // 增强版粒子系统 - 高性能模式专属
         class EnhancedParticleNetwork {
             constructor() {
@@ -3425,11 +3128,6 @@
         // 更新历史数据 - 以长条形式显示
         const updateHistory = [
    {
-        date: '2026-2-21',
-        version: 'Version2.1',
-        changes: ['动画优化，新增游戏']
-    },
-         {
         date: '2026-1-29',
         version: 'Version2.0',
         changes: ['春节版本']
@@ -3835,83 +3533,23 @@
         }
 
         // 设置系统
-        // 主题管理器
-        class ThemeManager {
-            constructor() {
-                this.currentTheme = this.getStoredTheme() || 'auto';
-                this.init();
-            }
-
-            init() {
-                this.applyTheme(this.currentTheme);
-
-                // 监听系统主题变化
-                if (window.matchMedia) {
-                    const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
-                    mediaQuery.addEventListener('change', () => {
-                        if (this.currentTheme === 'auto') {
-                            this.applyTheme('auto');
-                        }
-                    });
-                }
-            }
-
-            setTheme(theme) {
-                this.currentTheme = theme;
-                localStorage.setItem('theme', theme);
-                this.applyTheme(theme);
-            }
-
-            applyTheme(theme) {
-                const body = document.body;
-
-                if (theme === 'auto') {
-                    const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-                    theme = prefersLight ? 'light' : 'dark';
-                }
-
-                if (theme === 'light') {
-                    body.classList.add('light-mode');
-                    body.classList.remove('dark-mode');
-                } else {
-                    body.classList.remove('light-mode');
-                    body.classList.add('dark-mode');
-                }
-            }
-
-            getStoredTheme() {
-                return localStorage.getItem('theme');
-            }
-        }
-
-        // 设置系统
         class SettingsSystem {
             constructor() {
                 this.settingsModal = document.getElementById('settingsModal');
                 this.settingsClose = document.getElementById('settingsClose');
                 this.performanceToggle = document.getElementById('performanceToggle');
                 this.transitionOverlay = document.getElementById('transitionOverlay');
-                this.themeManager = new ThemeManager();
-
+                
                 this.init();
             }
-
+            
             init() {
                 // 绑定事件
                 this.settingsClose.addEventListener('click', () => this.hide());
                 this.settingsModal.addEventListener('click', (e) => {
                     if (e.target === this.settingsModal) this.hide();
                 });
-
-                // 主题切换
-                document.querySelectorAll('.theme-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const theme = e.currentTarget.dataset.theme;
-                        this.themeManager.setTheme(theme);
-                        this.updateThemeButtons(theme);
-                    });
-                });
-
+                
                 // 性能模式切换
                 this.performanceToggle.addEventListener('change', (e) => {
                     this.showTransition(() => {
@@ -3920,7 +3558,7 @@
                         this.performanceToggle.checked = mode === 'performance';
                     });
                 });
-
+                
                 // 键盘快捷键
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape' && this.settingsModal.classList.contains('active')) {
@@ -3928,90 +3566,95 @@
                     }
                 });
             }
-
-            updateThemeButtons(activeTheme) {
-                document.querySelectorAll('.theme-btn').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.theme === activeTheme);
-                });
-            }
-
+            
             show() {
                 // 初始化当前状态
                 this.performanceToggle.checked = document.body.classList.contains('performance-mode');
-                this.updateThemeButtons(this.themeManager.currentTheme);
-
+                
                 this.settingsModal.classList.add('active');
                 document.body.style.overflow = 'hidden';
-
+                
                 // 添加显示动画
-                requestAnimationFrame(() => {
-                    const content = this.settingsModal.querySelector('.modal-content');
-                    if (content) {
-                        content.style.transform = 'scale(1) translateY(0)';
-                        content.style.opacity = '1';
-                    }
-                });
-            }
-
-            hide() {
-                const content = this.settingsModal.querySelector('.modal-content');
-                if (content) {
-                    content.style.transform = 'scale(0.95) translateY(20px)';
-                    content.style.opacity = '0';
-                }
-
                 setTimeout(() => {
-                    this.settingsModal.classList.remove('active');
-                    document.body.style.overflow = '';
-                }, 150);
+                    this.settingsModal.querySelector('.modal-content').style.transform = 'scale(1) translateY(0)';
+                }, 10);
             }
-
+            
+            hide() {
+                this.settingsModal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            
             showTransition(callback) {
                 this.transitionOverlay.classList.add('active');
-
+                
                 setTimeout(() => {
                     callback();
-
+                    
                     // 等待DOM更新
                     setTimeout(() => {
                         this.transitionOverlay.classList.remove('active');
-                    }, 400);
-                }, 300);
+                    }, 600);
+                }, 400);
             }
         }
 
         function setupNavigation() {
-    document.querySelectorAll('.nav-menu li[data-page]').forEach(item => {
-        item.addEventListener('click', () => {
-            if (item.dataset.page === 'homework') {
-                passwordSystem.show();
-            } else if (item.dataset.page === 'settings') {
-                settingsSystem.show();
-            } else {
-                navigateTo(item.dataset.page);
-            }
-        });
-    });
-}
+            document.querySelectorAll('.nav-menu li[data-page]').forEach(item => {
+                item.addEventListener('click', () => {
+                    if (item.dataset.page === 'homework') {
+                        passwordSystem.show();
+                    } else if (item.dataset.page === 'settings') {
+                        settingsSystem.show();
+                    } else {
+                        navigateTo(item.dataset.page);
+                    }
+                });
+            });
+        }
 
-function navigateTo(pageName) {
-    document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active');
-    });
-    
-    const targetPage = document.getElementById(`page-${pageName}`);
-    if (targetPage) {
-        targetPage.classList.add('active');
-    }
-    
-    document.querySelectorAll('.nav-menu li').forEach(li => li.classList.remove('active'));
-    document.querySelector(`.nav-menu li[data-page="${pageName}"]`)?.classList.add('active');
-    
-    document.getElementById('navMenu').classList.remove('active');
-    const icon = document.querySelector('#mobileToggle i');
-    icon.classList.add('fa-bars');
-    icon.classList.remove('fa-times');
-}
+        function navigateTo(pageName) {
+            const currentPage = document.querySelector('.page.active');
+            const targetPage = document.getElementById(`page-${pageName}`);
+            
+            if (currentPage === targetPage) return;
+            
+            document.body.style.overflow = 'hidden';
+            document.querySelectorAll('.page').forEach(page => {
+                page.style.pointerEvents = 'none';
+                page.style.display = 'none';
+            });
+            
+            currentPage.classList.add('fade-out');
+            
+            setTimeout(() => {
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active');
+                    page.classList.remove('fade-out');
+                });
+                
+                if (targetPage) {
+                    targetPage.style.display = 'block';
+                    targetPage.style.pointerEvents = 'auto';
+                    setTimeout(() => {
+                        targetPage.classList.add('active');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        document.body.style.overflow = '';
+                        setTimeout(() => {
+                            applyStaggerAnimation();
+                        }, 100);
+                    }, 10);
+                }
+            }, 250);
+            
+            document.querySelectorAll('.nav-menu li').forEach(li => li.classList.remove('active'));
+            document.querySelector(`.nav-menu li[data-page="${pageName}"]`)?.classList.add('active');
+            
+            document.getElementById('navMenu').classList.remove('active');
+            const icon = document.querySelector('#mobileToggle i');
+            icon.classList.add('fa-bars');
+            icon.classList.remove('fa-times');
+        }
 
         // 渲染更新历史 - 长条版本显示
         function renderUpdateHistory() {
@@ -4160,7 +3803,7 @@ function navigateTo(pageName) {
             
             setTimeout(() => {
                 spinner.style.display = 'none';
-                loadingText.textContent = '已验证安全Version2.11';
+                loadingText.textContent = '已验证安全Version2.0';
                 loadingSubtext.textContent = '验证完成，正在加载界面...';
                 loadingCheck.style.display = 'block';
                 
