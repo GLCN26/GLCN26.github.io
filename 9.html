@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>辐射避难所：废墟纪元 v2.0</title>
+    <title>辐射避难所：废墟纪元 v2.1</title>
     <style>
         * {
             margin: 0;
@@ -90,6 +90,30 @@
             border-radius: 12px;
             cursor: pointer;
             font-size: 11px;
+        }
+        
+        /* 天气指示器 */
+        .weather-indicator {
+            position: fixed;
+            top: 50px;
+            right: 15px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(20,20,40,0.9));
+            padding: 10px 15px;
+            border-radius: 12px;
+            border: 1px solid var(--neon-blue);
+            z-index: 150;
+            font-size: 12px;
+            display: none;
+        }
+        
+        .weather-indicator.active {
+            display: block;
+        }
+        
+        .weather-icon {
+            font-size: 20px;
+            margin-right: 8px;
+            vertical-align: middle;
         }
         
         /* 主内容 */
@@ -303,6 +327,25 @@
         .risk-med { color: #f2c94c; }
         .risk-high { color: #ff416c; }
         
+        /* 潜行模式 */
+        .stealth-toggle {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .stealth-toggle label {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .stealth-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--neon-purple);
+        }
+        
         /* 按钮 */
         .action-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -335,6 +378,10 @@
             color: #000;
         }
         
+        .action-btn.secondary {
+            background: linear-gradient(135deg, rgba(100,100,120,0.5), rgba(80,80,100,0.5));
+        }
+        
         /* 资源网格 */
         .resource-grid {
             display: grid;
@@ -350,15 +397,38 @@
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
+            position: relative;
         }
         
         .resource-card:hover {
             border-color: var(--neon-blue);
         }
         
+        .resource-card.rare {
+            border-color: rgba(184, 41, 255, 0.3);
+        }
+        
+        .resource-card.epic {
+            border-color: rgba(255, 215, 0, 0.5);
+            animation: epicGlow 2s infinite;
+        }
+        
+        @keyframes epicGlow {
+            0%, 100% { box-shadow: 0 0 8px rgba(255, 215, 0, 0.3); }
+            50% { box-shadow: 0 0 16px rgba(255, 215, 0, 0.6); }
+        }
+        
         .resource-icon { font-size: 24px; margin-bottom: 3px; display: block; }
         .resource-count { font-size: 16px; font-weight: bold; color: var(--neon-green); }
         .resource-name { font-size: 9px; color: #888; margin-top: 2px; }
+        
+        .resource-durability {
+            position: absolute;
+            bottom: 2px;
+            right: 5px;
+            font-size: 8px;
+            color: #666;
+        }
         
         /* 日志 */
         .log-container {
@@ -385,6 +455,7 @@
         .log-entry.loot { background: rgba(255, 217, 61, 0.1); border-left-color: var(--neon-orange); }
         .log-entry.story { background: rgba(0, 243, 255, 0.1); border-left-color: var(--neon-blue); }
         .log-entry.night { background: rgba(100, 50, 150, 0.2); border-left-color: var(--neon-purple); }
+        .log-entry.weather { background: rgba(102, 126, 234, 0.1); border-left-color: #667eea; }
         
         .log-time { font-size: 9px; color: #666; margin-right: 6px; }
         
@@ -440,6 +511,10 @@
             background: rgba(57, 255, 20, 0.1);
         }
         
+        .build-card.upgradable {
+            border-color: var(--neon-yellow);
+        }
+        
         .build-card:hover:not(.built) {
             border-color: var(--neon-blue);
         }
@@ -448,6 +523,11 @@
         .build-name { font-weight: bold; font-size: 13px; margin: 6px 0; }
         .build-effect { font-size: 10px; color: #888; }
         .build-cost { font-size: 9px; color: #666; margin-top: 6px; }
+        .build-level {
+            font-size: 10px;
+            color: var(--neon-yellow);
+            font-weight: bold;
+        }
         
         /* 制作 */
         .craft-category { margin-bottom: 20px; }
@@ -482,6 +562,11 @@
         .craft-details h4 { font-size: 13px; margin-bottom: 2px; }
         .craft-stats { font-size: 10px; color: #888; }
         .craft-requirements { font-size: 9px; color: #666; }
+        .craft-durability {
+            font-size: 9px;
+            color: #aaa;
+            margin-top: 2px;
+        }
         
         /* 宠物 */
         .pet-container { text-align: center; padding: 15px; }
@@ -564,6 +649,11 @@
         }
         
         .equipment-icon { font-size: 32px; margin-bottom: 3px; }
+        .equipment-durability {
+            font-size: 9px;
+            color: #aaa;
+            margin-top: 2px;
+        }
         
         /* 技能 */
         .skill-grid {
@@ -601,6 +691,81 @@
             font-size: 12px;
         }
         .diary-date { color: var(--neon-pink); font-size: 11px; margin-bottom: 4px; font-weight: bold; }
+        
+        /* 成就 */
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+        }
+        
+        .achievement-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            opacity: 0.4;
+            transition: all 0.3s;
+        }
+        
+        .achievement-card.unlocked {
+            opacity: 1;
+            border-color: var(--neon-yellow);
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .achievement-card-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .achievement-card-title {
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        
+        .achievement-card-desc {
+            font-size: 10px;
+            color: #888;
+        }
+        
+        /* 图鉴 */
+        .bestiary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        
+        .bestiary-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            opacity: 0.3;
+        }
+        
+        .bestiary-card.discovered {
+            opacity: 1;
+        }
+        
+        .bestiary-icon {
+            font-size: 36px;
+            margin-bottom: 6px;
+        }
+        
+        .bestiary-name {
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .bestiary-stats {
+            font-size: 9px;
+            color: #888;
+            margin-top: 4px;
+        }
         
         /* 模态框 */
         .modal-overlay {
@@ -666,6 +831,46 @@
             border-color: var(--neon-blue);
         }
         
+        /* 转盘 */
+        .wheel-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .wheel {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            border: 8px solid var(--neon-purple);
+            margin: 0 auto 20px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+        }
+        
+        .wheel-segment {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: bottom right;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .wheel-pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 30px;
+            color: var(--neon-red);
+            z-index: 1;
+        }
+        
         /* 战斗 */
         .combat-arena {
             background: radial-gradient(circle at center, rgba(255,65,108,0.2) 0%, transparent 70%);
@@ -678,6 +883,11 @@
         
         .enemy-sprite { font-size: 70px; margin: 15px 0; }
         .enemy-name { font-size: 20px; font-weight: bold; color: #ff6b6b; margin-bottom: 12px; }
+        .enemy-weakness {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 10px;
+        }
         
         .enemy-hp-bar {
             background: rgba(0,0,0,0.5);
@@ -749,21 +959,39 @@
             .nav-item { min-width: 45px; padding: 6px 8px; }
             .nav-item .icon { font-size: 20px; }
             .nav-item .label { font-size: 9px; }
+            .wheel { width: 200px; height: 200px; }
         }
         
         @media (max-width: 480px) {
             .main-container { padding: 10px; margin-top: 40px; }
             .explore-grid { grid-template-columns: 1fr; }
+            .weather-indicator { top: 45px; }
+        }
+        
+        /* 伤害闪烁 */
+        body.flash {
+            animation: flashRed 0.3s;
+        }
+        
+        @keyframes flashRed {
+            0%, 100% { background-color: var(--dark-bg); }
+            50% { background-color: rgba(255, 0, 0, 0.2); }
         }
     </style>
 </head>
 <body>
     <!-- 公告栏 -->
     <div class="announcement-bar" id="announcementBar">
-        <span class="version-tag">v2.0</span>
-        <span style="font-size: 12px;">全新菜单导航、蝴蝶效应、夜间休息</span>
+        <span class="version-tag">v2.1</span>
+        <span style="font-size: 12px;">天气系统、装备耐久、成就、转盘、图鉴、签到</span>
         <button class="update-btn" onclick="showUpdateLog()">更新日志</button>
         <button class="close-btn" onclick="closeAnnouncement()">&times;</button>
+    </div>
+    
+    <!-- 天气指示器 -->
+    <div class="weather-indicator" id="weatherIndicator">
+        <span class="weather-icon" id="weatherIcon">☀️</span>
+        <span id="weatherText">晴朗</span>
     </div>
     
     <!-- 夜间遮罩 -->
@@ -841,6 +1069,11 @@
                         <span>辐射: <span style="color: var(--neon-pink);">低</span></span>
                         <span>安全: <span style="color: var(--neon-green);">安全</span></span>
                     </div>
+                </div>
+                
+                <div class="stealth-toggle">
+                    <input type="checkbox" id="stealthMode" class="stealth-checkbox">
+                    <label for="stealthMode">潜行模式 (消耗双倍体力，降低遭遇概率，可偷袭)</label>
                 </div>
                 
                 <div class="explore-grid">
@@ -936,7 +1169,7 @@
                     <div class="panel-title">&#127959; 建造设施</div>
                 </div>
                 <div style="margin-bottom: 12px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px; font-size: 12px; color: #888;">
-                    <strong style="color: var(--neon-blue);">&#128161;</strong> 建造高级建筑需要先解锁前置建筑
+                    <strong style="color: var(--neon-blue);">&#128161;</strong> 建筑可升级至3级，提升效果
                 </div>
                 <div class="build-grid" id="buildGrid"></div>
             </div>
@@ -965,22 +1198,26 @@
             <div class="glass-panel">
                 <div class="panel-header">
                     <div class="panel-title">&#127890; 装备栏</div>
+                    <button class="action-btn secondary" onclick="repairAll()" style="padding: 6px 12px; font-size: 11px;">&#128295; 全部维修</button>
                 </div>
                 <div class="equipment-grid">
                     <div class="equipment-slot" id="slot-weapon" onclick="unequip('weapon')">
                         <div class="equipment-icon">&#128298;</div>
                         <div style="font-size: 10px; color: #888;">武器</div>
                         <div style="font-size: 9px; color: #666; margin-top: 2px;" id="weaponName">未装备</div>
+                        <div class="equipment-durability" id="weaponDurability"></div>
                     </div>
                     <div class="equipment-slot" id="slot-armor" onclick="unequip('armor')">
                         <div class="equipment-icon">&#128085;</div>
                         <div style="font-size: 10px; color: #888;">护甲</div>
                         <div style="font-size: 9px; color: #666; margin-top: 2px;" id="armorName">未装备</div>
+                        <div class="equipment-durability" id="armorDurability"></div>
                     </div>
                     <div class="equipment-slot" id="slot-accessory" onclick="unequip('accessory')">
                         <div class="equipment-icon">&#128141;</div>
                         <div style="font-size: 10px; color: #888;">饰品</div>
                         <div style="font-size: 9px; color: #666; margin-top: 2px;" id="accessoryName">未装备</div>
+                        <div class="equipment-durability" id="accessoryDurability"></div>
                     </div>
                     <div class="equipment-slot" id="slot-pet" onclick="switchPage('pet')">
                         <div class="equipment-icon">&#128062;</div>
@@ -1030,11 +1267,76 @@
             </div>
         </div>
         
+        <!-- 成就与图鉴页面 -->
+        <div class="page-content" id="page-achievements">
+            <div class="glass-panel">
+                <div class="panel-header">
+                    <div class="panel-title">&#127942; 成就</div>
+                    <div style="color: var(--neon-yellow); font-size: 14px;">
+                        <span id="unlockedAchievements">0</span>/<span id="totalAchievements">0</span>
+                    </div>
+                </div>
+                <div class="achievements-grid" id="achievementsGrid"></div>
+            </div>
+            
+            <div class="glass-panel">
+                <div class="panel-header">
+                    <div class="panel-title">&#128218; 怪物图鉴</div>
+                    <div style="color: var(--neon-blue); font-size: 14px;">
+                        <span id="discoveredEnemies">0</span>/<span id="totalEnemies">0</span>
+                    </div>
+                </div>
+                <div class="bestiary-grid" id="bestiaryGrid"></div>
+            </div>
+        </div>
+        
+        <!-- 商店与转盘页面 -->
+        <div class="page-content" id="page-shop">
+            <div class="glass-panel">
+                <div class="panel-header">
+                    <div class="panel-title">&#127919; 每日签到</div>
+                </div>
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 60px; margin-bottom: 15px;">&#128198;</div>
+                    <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">第 <span id="checkinDay">1</span> 天</div>
+                    <button class="action-btn success" id="checkinBtn" onclick="dailyCheckin()" style="padding: 12px 30px; font-size: 14px;">
+                        领取今日奖励
+                    </button>
+                    <div style="margin-top: 20px; font-size: 12px; color: #888;">
+                        连续签到7天获得稀有奖励
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-panel">
+                <div class="panel-header">
+                    <div class="panel-title">&#127922; 幸运转盘</div>
+                </div>
+                <div class="wheel-container">
+                    <div class="wheel" id="wheel">
+                        <div class="wheel-pointer">▼</div>
+                        <div class="wheel-segment" style="background: #ff416c; transform: rotate(0deg) skewY(-45deg);">10瓶盖</div>
+                        <div class="wheel-segment" style="background: #f2994a; transform: rotate(45deg) skewY(-45deg);">5食物</div>
+                        <div class="wheel-segment" style="background: #56ccf2; transform: rotate(90deg) skewY(-45deg);">5水</div>
+                        <div class="wheel-segment" style="background: #38ef7d; transform: rotate(135deg) skewY(-45deg);">3弹药</div>
+                        <div class="wheel-segment" style="background: #b829ff; transform: rotate(180deg) skewY(-45deg);">1医疗包</div>
+                        <div class="wheel-segment" style="background: #667eea; transform: rotate(225deg) skewY(-45deg);">20瓶盖</div>
+                        <div class="wheel-segment" style="background: #ff00ff; transform: rotate(270deg) skewY(-45deg);">1电子元件</div>
+                        <div class="wheel-segment" style="background: #fff700; transform: rotate(315deg) skewY(-45deg);">50瓶盖</div>
+                    </div>
+                    <button class="action-btn" id="spinBtn" onclick="spinWheel()" style="padding: 12px 30px; font-size: 14px;">
+                        转动 (10瓶盖)
+                    </button>
+                </div>
+            </div>
+        </div>
+        
         <!-- 日记页面 -->
         <div class="page-content" id="page-diary">
             <div class="glass-panel">
                 <div class="panel-header">
                     <div class="panel-title">&#128214; 生存日记</div>
+                    <button class="action-btn secondary" onclick="exportSave()" style="padding: 6px 12px; font-size: 11px;">&#128190; 导出存档</button>
                 </div>
                 <div class="diary-entries" id="diaryEntries"></div>
             </div>
@@ -1093,6 +1395,14 @@
             <span class="icon">&#9978;</span>
             <span class="label">营地</span>
         </div>
+        <div class="nav-item" onclick="switchPage('achievements')" data-page="achievements">
+            <span class="icon">&#127942;</span>
+            <span class="label">成就</span>
+        </div>
+        <div class="nav-item" onclick="switchPage('shop')" data-page="shop">
+            <span class="icon">&#127919;</span>
+            <span class="label">商店</span>
+        </div>
         <div class="nav-item" onclick="switchPage('diary')" data-page="diary">
             <span class="icon">&#128214;</span>
             <span class="label">日记</span>
@@ -1107,10 +1417,29 @@
             <div class="modal-choices" id="modalChoices"></div>
         </div>
     </div>
-
     <script>
         // 更新日志
         const UPDATE_LOG = [
+            {
+                version: '2.1',
+                date: '2026-04-12',
+                changes: [
+                    { type: 'add', text: '天气系统（沙尘暴、酸雨、辐射风暴）' },
+                    { type: 'add', text: '装备耐久度与维修系统' },
+                    { type: 'add', text: '完整成就系统（20+成就）' },
+                    { type: 'add', text: '怪物图鉴系统' },
+                    { type: 'add', text: '每日签到奖励' },
+                    { type: 'add', text: '幸运转盘' },
+                    { type: 'add', text: '潜行/偷袭机制' },
+                    { type: 'add', text: '敌人弱点系统' },
+                    { type: 'add', text: '建筑升级系统' },
+                    { type: 'add', text: '存档导出功能' },
+                    { type: 'add', text: '饥饿与口渴差异化惩罚' },
+                    { type: 'opt', text: '优化UI视觉效果' },
+                    { type: 'opt', text: '提升游戏性能' },
+                    { type: 'fix', text: '修复已知bug' }
+                ]
+            },
             {
                 version: '2.0',
                 date: '2026-02-21',
@@ -1135,9 +1464,88 @@
             traderRep: 0
         };
         
+        // 天气系统
+        const WEATHER_TYPES = {
+            sunny: { name: '晴朗', icon: '☀️', effect: null },
+            cloudy: { name: '多云', icon: '☁️', effect: null },
+            sandstorm: { 
+                name: '沙尘暴', 
+                icon: '🌪️', 
+                effect: { 
+                    radBonus: 10, 
+                    encounterChance: 0.2, 
+                    rareResourceChance: 0.15 
+                } 
+            },
+            acidRain: { 
+                name: '酸雨', 
+                icon: '🌧️', 
+                effect: { 
+                    healthDecay: 2, 
+                    greenhouseBonus: 2 
+                } 
+            },
+            radiationStorm: { 
+                name: '辐射风暴', 
+                icon: '☢️', 
+                effect: { 
+                    radBonus: 30, 
+                    encounterChance: 0.3, 
+                    legendaryDropChance: 0.05 
+                } 
+            }
+        };
+        
+        // 成就系统
+        const ACHIEVEMENTS = [
+            { id: 'first_day', title: '初出茅庐', desc: '生存1天', icon: '🏠', condition: (gs) => gs.time.day >= 1 },
+            { id: 'survivor_3', title: '幸存者', desc: '生存3天', icon: '🏕️', condition: (gs) => gs.time.day >= 3 },
+            { id: 'survivor_7', title: '废土行者', desc: '生存7天', icon: '🚶', condition: (gs) => gs.time.day >= 7 },
+            { id: 'survivor_30', title: '废土传奇', desc: '生存30天', icon: '🏆', condition: (gs) => gs.time.day >= 30 },
+            { id: 'first_kill', title: '首杀', desc: '击败第一个敌人', icon: '⚔️', condition: (gs) => gs.stats.kills >= 1 },
+            { id: 'hunter_10', title: '猎人', desc: '击败10个敌人', icon: '🎯', condition: (gs) => gs.stats.kills >= 10 },
+            { id: 'hunter_50', title: '废土猎人', desc: '击败50个敌人', icon: '💀', condition: (gs) => gs.stats.kills >= 50 },
+            { id: 'first_explore', title: '探索者', desc: '第一次探索', icon: '🗺️', condition: (gs) => gs.stats.explores >= 1 },
+            { id: 'explorer_10', title: '探险家', desc: '探索10次', icon: '🧭', condition: (gs) => gs.stats.explores >= 10 },
+            { id: 'first_build', title: '建造者', desc: '建造第一个建筑', icon: '🏗️', condition: (gs) => gs.stats.builds >= 1 },
+            { id: 'builder_all', title: '建筑大师', desc: '建造所有基础建筑', icon: '🏰', condition: (gs) => Object.keys(gs.buildings).length >= 4 },
+            { id: 'first_craft', title: '工匠', desc: '制作第一件装备', icon: '🔨', condition: (gs) => gs.stats.crafts >= 1 },
+            { id: 'first_quest', title: '任务达人', desc: '完成第一个任务', icon: '📋', condition: (gs) => gs.stats.quests >= 1 },
+            { id: 'first_pet', title: '动物伙伴', desc: '获得第一只宠物', icon: '🐕', condition: (gs) => gs.pet !== null },
+            { id: 'level_5', title: '成长', desc: '达到5级', icon: '⬆️', condition: (gs) => gs.player.level >= 5 },
+            { id: 'level_10', title: '强者', desc: '达到10级', icon: '💪', condition: (gs) => gs.player.level >= 10 },
+            { id: 'rich', title: '富翁', desc: '拥有500瓶盖', icon: '💰', condition: (gs) => gs.caps >= 500 },
+            { id: 'collector', title: '收藏家', desc: '收集所有基础资源', icon: '📦', condition: (gs) => Object.values(gs.resources).every(v => v > 0) },
+            { id: 'camp_level_3', title: '营地领袖', desc: '营地达到3级', icon: '👑', condition: (gs) => gs.camp.level >= 3 },
+            { id: 'first_elite', title: '精英猎手', desc: '击败一个精英敌人', icon: '⭐', condition: (gs) => gs.stats.eliteKills >= 1 }
+        ];
+        
+        // 签到奖励
+        const CHECKIN_REWARDS = [
+            { caps: 20, food: 2, water: 2 },
+            { caps: 30, ammo: 5 },
+            { caps: 40, wood: 10 },
+            { caps: 50, metal: 10 },
+            { caps: 60, medkit: 1 },
+            { caps: 80, electronics: 1 },
+            { caps: 150, crystal: 1 }
+        ];
+        
+        // 转盘奖励
+        const WHEEL_REWARDS = [
+            { type: 'caps', amount: 10 },
+            { type: 'food', amount: 5 },
+            { type: 'water', amount: 5 },
+            { type: 'ammo', amount: 3 },
+            { type: 'medkit', amount: 1 },
+            { type: 'caps', amount: 20 },
+            { type: 'electronics', amount: 1 },
+            { type: 'caps', amount: 50 }
+        ];
+        
         // 游戏数据
         const gameData = {
-            version: '2.0',
+            version: '2.1',
             player: {
                 level: 1,
                 exp: 0,
@@ -1159,8 +1567,19 @@
                 cloth: 0
             },
             caps: 50,
-            equipment: { weapon: null, armor: null, accessory: null, pet: null },
+            equipment: { 
+                weapon: null, 
+                armor: null, 
+                accessory: null, 
+                pet: null 
+            },
+            equipmentDurability: {
+                weapon: 100,
+                armor: 100,
+                accessory: 100
+            },
             buildings: {},
+            buildingLevels: {},
             skills: { combat: 0, survival: 0, crafting: 0, barter: 0, leadership: 0 },
             skillPoints: 0,
             quests: [],
@@ -1169,27 +1588,42 @@
             pet: null,
             npcs: [],
             camp: { level: 1, members: ['player'], prosperity: 100, maxMembers: 5, defense: 10 },
-            stats: { kills: 0, explores: 0, builds: 0, crafts: 0, quests: 0 },
+            stats: { 
+                kills: 0, 
+                explores: 0, 
+                builds: 0, 
+                crafts: 0, 
+                quests: 0,
+                eliteKills: 0
+            },
             time: { day: 1, hour: 8, minute: 0, paused: false, isNight: false, sleeping: false },
             flags: { introRead: false, factoryUnlocked: false },
             eventCooldowns: {},
-            butterflyEffects: {...butterflyEffects}
+            butterflyEffects: {...butterflyEffects},
+            weather: 'sunny',
+            achievements: [],
+            discoveredEnemies: [],
+            checkin: {
+                day: 1,
+                lastCheckin: null
+            },
+            wheelSpins: 0
         };
         
         // 配置
         const config = {
             resources: [
-                {id: 'wood', name: '木材', icon: '&#129717;', rarity: 'common'},
-                {id: 'stone', name: '石材', icon: '&#129704;', rarity: 'common'},
-                {id: 'metal', name: '金属', icon: '&#9881;', rarity: 'common'},
-                {id: 'food', name: '食物', icon: '&#127830;', rarity: 'common'},
-                {id: 'water', name: '净水', icon: '&#128167;', rarity: 'common'},
-                {id: 'medkit', name: '医疗包', icon: '&#128138;', rarity: 'uncommon'},
-                {id: 'ammo', name: '弹药', icon: '&#127919;', rarity: 'common'},
-                {id: 'fuel', name: '燃料', icon: '&#9981;', rarity: 'rare'},
-                {id: 'electronics', name: '电子元件', icon: '&#128187;', rarity: 'rare'},
-                {id: 'crystal', name: '辐射结晶', icon: '&#128142;', rarity: 'epic'},
-                {id: 'cloth', name: '布料', icon: '&#129525;', rarity: 'common'}
+                {id: 'wood', name: '木材', icon: '🪵', rarity: 'common'},
+                {id: 'stone', name: '石材', icon: '🪨', rarity: 'common'},
+                {id: 'metal', name: '金属', icon: '⚙️', rarity: 'common'},
+                {id: 'food', name: '食物', icon: '🍖', rarity: 'common'},
+                {id: 'water', name: '净水', icon: '💧', rarity: 'common'},
+                {id: 'medkit', name: '医疗包', icon: '💊', rarity: 'uncommon'},
+                {id: 'ammo', name: '弹药', icon: '🔫', rarity: 'common'},
+                {id: 'fuel', name: '燃料', icon: '⛽', rarity: 'rare'},
+                {id: 'electronics', name: '电子元件', icon: '💻', rarity: 'rare'},
+                {id: 'crystal', name: '辐射结晶', icon: '💎', rarity: 'epic'},
+                {id: 'cloth', name: '布料', icon: '🧵', rarity: 'common'}
             ],
             
             randomEvents: [
@@ -1320,64 +1754,70 @@
             ],
             
             pets: [
-                {id: 'dog', name: '阿尔法', icon: '&#128021;', type: 'combat', bonus: {damage: 8, defense: 2}, desc: '忠诚军犬，增加攻击和防御'},
-                {id: 'cat', name: '喵喵', icon: '&#128008;', type: 'survival', bonus: {findBonus: 0.3}, desc: '机敏的猫，提高资源发现率'},
-                {id: 'robot', name: 'R2', icon: '&#129302;', type: 'utility', bonus: {craftSpeed: 0.5}, desc: '旧机器人，减少制作消耗'},
-                {id: 'bird', name: '小彩', icon: '&#129436;', type: 'scout', bonus: {avoidDanger: 0.25}, desc: '变异鹦鹉，预警危险'}
+                {id: 'dog', name: '阿尔法', icon: '🐕', type: 'combat', bonus: {damage: 8, defense: 2}, desc: '忠诚军犬，增加攻击和防御'},
+                {id: 'cat', name: '喵喵', icon: '🐱', type: 'survival', bonus: {findBonus: 0.3}, desc: '机敏的猫，提高资源发现率'},
+                {id: 'robot', name: 'R2', icon: '🤖', type: 'utility', bonus: {craftSpeed: 0.5}, desc: '旧机器人，减少制作消耗'},
+                {id: 'bird', name: '小彩', icon: '🦜', type: 'scout', bonus: {avoidDanger: 0.25}, desc: '变异鹦鹉，预警危险'}
             ],
             
             npcs: [
-                {id: 'doc', name: '医生李', icon: '&#128104;&#8205;&#9877;', role: '医生', affection: 0, maxAffection: 100, desc: '前战地医生，提供医疗帮助', gift: 'medkit'},
-                {id: 'merchant', name: '行商老张', icon: '&#128115;', role: '商人', affection: 10, maxAffection: 100, desc: '废土老手，提供交易', gift: 'caps'},
-                {id: 'engineer', name: '工程师王', icon: '&#128119;', role: '工程师', affection: 0, maxAffection: 100, desc: '机械天才，帮助建造', gift: 'electronics'},
-                {id: 'hunter', name: '猎手陈', icon: '&#127993;', role: '猎人', affection: 0, maxAffection: 100, desc: '废土猎人，分享技巧', gift: 'food'},
-                {id: 'scientist', name: '博士杨', icon: '&#128105;&#8205;&#128300;', role: '科学家', affection: 0, maxAffection: 100, desc: '辐射专家，净化辐射', gift: 'crystal'}
+                {id: 'doc', name: '医生李', icon: '👨‍⚕️', role: '医生', affection: 0, maxAffection: 100, desc: '前战地医生，提供医疗帮助', gift: 'medkit'},
+                {id: 'merchant', name: '行商老张', icon: '👨‍💼', role: '商人', affection: 10, maxAffection: 100, desc: '废土老手，提供交易', gift: 'caps'},
+                {id: 'engineer', name: '工程师王', icon: '👨‍🔧', role: '工程师', affection: 0, maxAffection: 100, desc: '机械天才，帮助建造', gift: 'electronics'},
+                {id: 'hunter', name: '猎手陈', icon: '🏃', role: '猎人', affection: 0, maxAffection: 100, desc: '废土猎人，分享技巧', gift: 'food'},
+                {id: 'scientist', name: '博士杨', icon: '👩‍🔬', role: '科学家', affection: 0, maxAffection: 100, desc: '辐射专家，净化辐射', gift: 'crystal'}
             ],
             
             buildings: [
-                {id: 'tent', name: '简易帐篷', icon: '&#9978;', cost: {wood: 15, cloth: 5}, effect: '每日恢复生命', level: 1},
-                {id: 'water_collector', name: '集水器', icon: '&#128167;', cost: {wood: 20, metal: 5}, effect: '每日+2水', level: 1},
-                {id: 'storage', name: '储藏室', icon: '&#128230;', cost: {wood: 25, metal: 8}, effect: '容量+30', level: 1},
-                {id: 'greenhouse', name: '温室', icon: '&#127793;', cost: {wood: 35, stone: 15, water: 3}, effect: '每日+2食物', level: 2, req: 'water_collector'},
-                {id: 'workshop', name: '工坊', icon: '&#128295;', cost: {wood: 30, stone: 20, metal: 15, electronics: 2}, effect: '解锁高级制作', level: 2},
-                {id: 'medical_station', name: '医疗站', icon: '&#127973;', cost: {wood: 35, metal: 12, electronics: 3}, effect: '每日回血+12', level: 2, req: 'tent'},
-                {id: 'armory', name: '军械库', icon: '&#127984;', cost: {stone: 50, metal: 40, electronics: 8}, effect: '装备强化', level: 3, req: 'workshop'},
-                {id: 'bunker', name: '地下堡垒', icon: '&#128737;', cost: {stone: 80, metal: 60, electronics: 15, crystal: 3}, effect: '辐射防护', level: 4, req: 'armory'}
+                {id: 'tent', name: '简易帐篷', icon: '⛺', cost: {wood: 15, cloth: 5}, effect: '每日恢复生命', maxLevel: 3, effects: ['每日+12生命', '每日+18生命', '每日+25生命']},
+                {id: 'water_collector', name: '集水器', icon: '💧', cost: {wood: 20, metal: 5}, effect: '每日+2水', maxLevel: 3, effects: ['每日+2水', '每日+3水', '每日+5水']},
+                {id: 'storage', name: '储藏室', icon: '📦', cost: {wood: 25, metal: 8}, effect: '容量+30', maxLevel: 3, effects: ['容量+30', '容量+50', '容量+80']},
+                {id: 'greenhouse', name: '温室', icon: '🌱', cost: {wood: 35, stone: 15, water: 3}, effect: '每日+2食物', maxLevel: 3, effects: ['每日+2食物', '每日+3食物', '每日+5食物'], req: 'water_collector'},
+                {id: 'workshop', name: '工坊', icon: '🔨', cost: {wood: 30, stone: 20, metal: 15, electronics: 2}, effect: '解锁高级制作', maxLevel: 3, effects: ['解锁高级制作', '制作消耗-10%', '制作消耗-20%'], req: 'storage'},
+                {id: 'medical_station', name: '医疗站', icon: '🏥', cost: {wood: 35, metal: 12, electronics: 3}, effect: '每日回血+12', maxLevel: 3, effects: ['每日+12生命', '每日+18生命', '每日+25生命'], req: 'tent'},
+                {id: 'armory', name: '军械库', icon: '🏠', cost: {stone: 50, metal: 40, electronics: 8}, effect: '装备强化', maxLevel: 3, effects: ['装备强化', '武器伤害+10%', '武器伤害+20%'], req: 'workshop'},
+                {id: 'bunker', name: '地下堡垒', icon: '🏰', cost: {stone: 80, metal: 60, electronics: 15, crystal: 3}, effect: '辐射防护', maxLevel: 3, effects: ['-25%辐射', '-40%辐射', '-60%辐射'], req: 'armory'}
             ],
             
             weapons: [
-                {id: 'knife', name: '生存刀', icon: '&#128298;', damage: 12, cost: {wood: 5, metal: 3}},
-                {id: 'bat', name: '球棒', icon: '&#127951;', damage: 18, cost: {wood: 12}},
-                {id: 'machete', name: '砍刀', icon: '&#128481;', damage: 25, cost: {metal: 15, wood: 5}},
-                {id: 'pistol', name: '手枪', icon: '&#128299;', damage: 30, cost: {metal: 15, electronics: 3, ammo: 15}},
-                {id: 'rifle', name: '步枪', icon: '&#127919;', damage: 50, cost: {metal: 35, electronics: 8, wood: 10, ammo: 40}, req: 'workshop'},
-                {id: 'shotgun', name: '霰弹枪', icon: '&#128299;', damage: 65, cost: {metal: 45, wood: 15, ammo: 25}, req: 'workshop'},
-                {id: 'sniper', name: '狙击枪', icon: '&#127919;', damage: 85, cost: {metal: 70, electronics: 25, ammo: 80}, req: 'armory'}
+                {id: 'knife', name: '生存刀', icon: '🔪', damage: 12, durability: 50, cost: {wood: 5, metal: 3}},
+                {id: 'bat', name: '球棒', icon: '🏏', damage: 18, durability: 60, cost: {wood: 12}},
+                {id: 'machete', name: '砍刀', icon: '🔪', damage: 25, durability: 80, cost: {metal: 15, wood: 5}},
+                {id: 'pistol', name: '手枪', icon: '🔫', damage: 30, durability: 100, cost: {metal: 15, electronics: 3, ammo: 15}},
+                {id: 'rifle', name: '步枪', icon: '🔫', damage: 50, durability: 150, cost: {metal: 35, electronics: 8, wood: 10, ammo: 40}, req: 'workshop'},
+                {id: 'shotgun', name: '霰弹枪', icon: '🔫', damage: 65, durability: 120, cost: {metal: 45, wood: 15, ammo: 25}, req: 'workshop'},
+                {id: 'sniper', name: '狙击枪', icon: '🔫', damage: 85, durability: 200, cost: {metal: 70, electronics: 25, ammo: 80}, req: 'armory'}
             ],
             
             armors: [
-                {id: 'clothes', name: '破烂衣服', icon: '&#128085;', defense: 2, cost: {cloth: 8}},
-                {id: 'leather', name: '皮甲', icon: '&#129403;', defense: 8, cost: {cloth: 12, metal: 8}},
-                {id: 'metal_armor', name: '金属甲', icon: '&#9939;', defense: 18, cost: {metal: 35}, req: 'workshop'},
-                {id: 'combat_armor', name: '战斗装甲', icon: '&#129466;', defense: 32, cost: {metal: 50, electronics: 12, cloth: 15}, req: 'armory'}
+                {id: 'clothes', name: '破烂衣服', icon: '👔', defense: 2, durability: 30, cost: {cloth: 8}},
+                {id: 'leather', name: '皮甲', icon: '🦺', defense: 8, durability: 60, cost: {cloth: 12, metal: 8}},
+                {id: 'metal_armor', name: '金属甲', icon: '⚙️', defense: 18, durability: 120, cost: {metal: 35}, req: 'workshop'},
+                {id: 'combat_armor', name: '战斗装甲', icon: '🦺', defense: 32, durability: 200, cost: {metal: 50, electronics: 12, cloth: 15}, req: 'armory'}
             ],
             
             accessories: [
-                {id: 'luck_ring', name: '幸运戒指', icon: '&#128141;', effect: 'findBonus', value: 0.12, cost: {metal: 12, crystal: 1}, desc: '+12%发现率'},
-                {id: 'health_amulet', name: '生命护符', icon: '&#128255;', effect: 'healthRegen', value: 2, cost: {electronics: 15, crystal: 1}, desc: '每分钟+2生命'},
-                {id: 'rad_badge', name: '辐射徽章', icon: '&#9762;', effect: 'radResist', value: 0.25, cost: {metal: 15, electronics: 8}, desc: '-25%辐射'},
-                {id: 'ammo_pouch', name: '弹药袋', icon: '&#127890;', effect: 'ammoSave', value: 0.2, cost: {cloth: 15, metal: 8}, desc: '20%省弹药'}
+                {id: 'luck_ring', name: '幸运戒指', icon: '💍', effect: 'findBonus', value: 0.12, durability: 200, cost: {metal: 12, crystal: 1}, desc: '+12%发现率'},
+                {id: 'health_amulet', name: '生命护符', icon: '💫', effect: 'healthRegen', value: 2, durability: 200, cost: {electronics: 15, crystal: 1}, desc: '每分钟+2生命'},
+                {id: 'rad_badge', name: '辐射徽章', icon: '☢️', effect: 'radResist', value: 0.25, durability: 200, cost: {metal: 15, electronics: 8}, desc: '-25%辐射'},
+                {id: 'ammo_pouch', name: '弹药袋', icon: '🎒', effect: 'ammoSave', value: 0.2, durability: 200, cost: {cloth: 15, metal: 8}, desc: '20%省弹药'}
             ],
             
             enemies: [
-                {name: '变异鼠', icon: '&#128000;', hp: 30, damage: 5, exp: 18, loot: {food: 1, cloth: 1}, type: 'animal'},
-                {name: '强盗', icon: '&#128121;', hp: 55, damage: 10, exp: 35, loot: {caps: 40, ammo: 6}, type: 'human'},
-                {name: '变异犬', icon: '&#128021;', hp: 65, damage: 16, exp: 50, loot: {food: 2, cloth: 2}, type: 'animal'},
-                {name: '食尸鬼', icon: '&#128128;', hp: 80, damage: 20, exp: 70, loot: {medkit: 1, caps: 50}, type: 'ghoul'},
-                {name: '巨蝎', icon: '&#129410;', hp: 100, damage: 25, exp: 90, loot: {crystal: 1, metal: 12}, type: 'animal'},
-                {name: '超级变种人', icon: '&#129503;', hp: 160, damage: 35, exp: 160, loot: {ammo: 35, metal: 25, caps: 200}, type: 'mutant'},
-                {name: '死亡爪', icon: '&#129429;', hp: 280, damage: 55, exp: 320, loot: {crystal: 4, caps: 450, metal: 90}, type: 'legendary'},
-                {name: '辐射僵尸', icon: '&#9762;', hp: 120, damage: 22, exp: 100, loot: {crystal: 1}, type: 'ghoul', radDamage: 4}
+                {name: '变异鼠', icon: '🐀', hp: 30, damage: 5, exp: 18, loot: {food: 1, cloth: 1}, type: 'animal', weakness: 'fire'},
+                {name: '强盗', icon: '👹', hp: 55, damage: 10, exp: 35, loot: {caps: 40, ammo: 6}, type: 'human', weakness: 'blunt'},
+                {name: '变异犬', icon: '🐕', hp: 65, damage: 16, exp: 50, loot: {food: 2, cloth: 2}, type: 'animal', weakness: 'piercing'},
+                {name: '食尸鬼', icon: '👻', hp: 80, damage: 20, exp: 70, loot: {medkit: 1, caps: 50}, type: 'ghoul', weakness: 'fire'},
+                {name: '巨蝎', icon: '🦂', hp: 100, damage: 25, exp: 90, loot: {crystal: 1, metal: 12}, type: 'animal', weakness: 'electric'},
+                {name: '超级变种人', icon: '👽', hp: 160, damage: 35, exp: 160, loot: {ammo: 35, metal: 25, caps: 200}, type: 'mutant', weakness: 'explosive'},
+                {name: '死亡爪', icon: '🦖', hp: 280, damage: 55, exp: 320, loot: {crystal: 4, caps: 450, metal: 90}, type: 'legendary', weakness: 'piercing'},
+                {name: '辐射僵尸', icon: '☢️', hp: 120, damage: 22, exp: 100, loot: {crystal: 1}, type: 'ghoul', radDamage: 4, weakness: 'fire'}
+            ],
+            
+            eliteEnemies: [
+                {name: '巨型变异鼠王', icon: '🐀', hp: 150, damage: 20, exp: 200, loot: {caps: 200, crystal: 2}, type: 'elite', weakness: 'fire'},
+                {name: '强盗头目', icon: '👹', hp: 200, damage: 25, exp: 250, loot: {caps: 300, ammo: 50}, type: 'elite', weakness: 'blunt'},
+                {name: '辐射巨兽', icon: '☢️', hp: 300, damage: 35, exp: 400, loot: {crystal: 5, electronics: 5}, type: 'elite', radDamage: 10, weakness: 'electric'}
             ],
             
             story: {
@@ -1389,6 +1829,7 @@
         let gameState = JSON.parse(JSON.stringify(gameData));
         let currentEnemy = null;
         let gameInterval = null;
+        let isSpinning = false;
         
         // 初始化
         function init() {
@@ -1407,7 +1848,12 @@
             }
             
             startGameLoop();
+            updateWeather();
             updateUI();
+            checkAchievements();
+            renderAchievements();
+            renderBestiary();
+            updateCheckinButton();
         }
         
         function initQuests() { gameState.quests = JSON.parse(JSON.stringify(config.quests)); }
@@ -1432,6 +1878,10 @@
             if (pageName === 'craft') renderCrafting();
             if (pageName === 'pet') renderPet();
             if (pageName === 'camp') renderNPCs();
+            if (pageName === 'achievements') {
+                renderAchievements();
+                renderBestiary();
+            }
             if (pageName === 'diary') renderDiary();
         }
         
@@ -1439,6 +1889,7 @@
         function closeAnnouncement() {
             document.getElementById('announcementBar').classList.add('hidden');
             document.getElementById('mainContainer').style.marginTop = '0';
+            document.getElementById('weatherIndicator').style.top = '10px';
         }
         
         function showUpdateLog() {
@@ -1455,6 +1906,30 @@
             
             showModal('更新日志', '', [{text: '关闭', action: closeModal}]);
             document.getElementById('modalText').innerHTML = html;
+        }
+        
+        // 天气系统
+        function updateWeather() {
+            // 每天有30%概率改变天气
+            if (Math.random() < 0.3) {
+                const weatherTypes = Object.keys(WEATHER_TYPES);
+                const newWeather = weatherTypes[Math.floor(Math.random() * weatherTypes.length)];
+                if (newWeather !== gameState.weather) {
+                    gameState.weather = newWeather;
+                    const weather = WEATHER_TYPES[newWeather];
+                    addLog('天气变化: ' + weather.name, 'weather');
+                }
+            }
+            
+            const weather = WEATHER_TYPES[gameState.weather];
+            document.getElementById('weatherIcon').textContent = weather.icon;
+            document.getElementById('weatherText').textContent = weather.name;
+            
+            if (gameState.weather !== 'sunny' && gameState.weather !== 'cloudy') {
+                document.getElementById('weatherIndicator').classList.add('active');
+            } else {
+                document.getElementById('weatherIndicator').classList.remove('active');
+            }
         }
         
         // 时间系统
@@ -1484,6 +1959,7 @@
             if (Math.random() < 0.012) triggerRandomEvent();
             document.getElementById('radDisplay').textContent = Math.floor(gameState.player.stats.radiation);
             updateStatCards();
+            checkAchievements();
         }
         
         function updateTimeDisplay() {
@@ -1522,8 +1998,8 @@
             gameState.resources.food -= 2;
             gameState.resources.water -= 2;
             
-            var healAmount = 35 + (gameState.camp.level * 6) + (gameState.buildings.tent ? 12 : 0);
-            var radHeal = 6 + (gameState.buildings.bunker ? 12 : 0);
+            var healAmount = 35 + (gameState.camp.level * 6) + (gameState.buildings.tent ? 12 * (gameState.buildingLevels.tent || 1) : 0);
+            var radHeal = 6 + (gameState.buildings.bunker ? 12 * (gameState.buildingLevels.bunker || 1) : 0);
             
             changeStat('energy', 100);
             changeStat('health', healAmount);
@@ -1558,6 +2034,13 @@
                 thirstDecay *= (1 - bonus);
             }
             
+            // 天气效果
+            const weather = WEATHER_TYPES[gameState.weather];
+            if (weather.effect && weather.effect.healthDecay) {
+                changeStat('health', -weather.effect.healthDecay);
+                addLog('酸雨侵蚀你的皮肤...', 'danger');
+            }
+            
             changeStat('hunger', -hungerDecay);
             changeStat('thirst', -thirstDecay);
             changeStat('energy', -energyDecay);
@@ -1570,13 +2053,23 @@
             var acc = config.accessories.find(function(a) { return a.id === gameState.equipment.accessory; });
             if (acc && acc.effect === 'healthRegen') changeStat('health', acc.value * 0.5);
             
-            if (gameState.player.stats.hunger <= 0) {
-                changeStat('health', -2);
-                if (Math.random() < 0.06) addLog('饥饿让你虚弱...', 'danger');
+            // 饥饿与口渴差异化惩罚
+            if (gameState.player.stats.hunger <= 20) {
+                if (gameState.player.stats.hunger <= 0) {
+                    changeStat('health', -2);
+                    if (Math.random() < 0.06) addLog('饥饿让你虚弱...', 'danger');
+                }
+                // 攻击力下降
+                addLog('饥饿导致攻击力下降20%', 'warning');
             }
-            if (gameState.player.stats.thirst <= 0) {
-                changeStat('health', -3);
-                if (Math.random() < 0.06) addLog('脱水症状！', 'danger');
+            
+            if (gameState.player.stats.thirst <= 20) {
+                if (gameState.player.stats.thirst <= 0) {
+                    changeStat('health', -3);
+                    if (Math.random() < 0.06) addLog('脱水症状！', 'danger');
+                }
+                // 体力消耗翻倍
+                addLog('脱水导致体力消耗翻倍', 'warning');
             }
         }
         
@@ -1586,8 +2079,13 @@
             applyBuildingEffects();
             applyPetEffects();
             applyCampEffects();
+            applyWeatherEffects();
             refreshDailyQuests();
             checkUnlocks();
+            updateWeather();
+            checkEliteSpawn();
+            checkAchievements();
+            updateCheckinButton();
             updateUI();
         }
         
@@ -1596,6 +2094,29 @@
             if (gameState.stats.kills > 0) events.push('击杀' + gameState.stats.kills + '敌人');
             if (gameState.stats.explores > 0) events.push('探索' + gameState.stats.explores + '次');
             return events.length ? events.join('，') : '平静的一天';
+        }
+        
+        function applyWeatherEffects() {
+            const weather = WEATHER_TYPES[gameState.weather];
+            if (weather.effect && weather.effect.greenhouseBonus && gameState.buildings.greenhouse) {
+                const level = gameState.buildingLevels.greenhouse || 1;
+                const baseAmount = [2, 3, 5][level - 1];
+                const bonusAmount = baseAmount * weather.effect.greenhouseBonus;
+                gameState.resources.food += Math.floor(bonusAmount);
+                addLog('酸雨加速植物生长，温室额外产出' + Math.floor(bonusAmount) + '食物', 'success');
+            }
+        }
+        
+        // 精英怪系统
+        function checkEliteSpawn() {
+            // 每10天有概率刷新精英怪
+            if (gameState.time.day % 10 === 0 && Math.random() < 0.5) {
+                const elite = config.eliteEnemies[Math.floor(Math.random() * config.eliteEnemies.length)];
+                addLog('⚠️ 警告：' + elite.name + '出现在附近！', 'danger');
+                // 标记精英怪可遭遇
+                gameState.flags.eliteAvailable = true;
+                gameState.currentElite = elite;
+            }
         }
         
         // 蝴蝶效应
@@ -1705,8 +2226,8 @@
             if (choice.combat) {
                 closeModal();
                 var enemy;
-                if (choice.enemy === 'trader') enemy = {name: '愤怒商人', icon: '&#128115;', hp: 80, damage: 15, exp: 50, loot: {caps: 100}, type: 'human'};
-                else if (choice.enemy === 'bandit_group') enemy = {name: '强盗团伙', icon: '&#128121;', hp: 120, damage: 20, exp: 80, loot: {caps: 150, food: 3}, type: 'human'};
+                if (choice.enemy === 'trader') enemy = {name: '愤怒商人', icon: '👨‍💼', hp: 80, damage: 15, exp: 50, loot: {caps: 100}, type: 'human'};
+                else if (choice.enemy === 'bandit_group') enemy = {name: '强盗团伙', icon: '👹', hp: 120, damage: 20, exp: 80, loot: {caps: 150, food: 3}, type: 'human'};
                 else enemy = config.enemies.find(function(e) { return e.name.includes(choice.enemy) || e.type === choice.enemy; });
                 if (enemy) {
                     var copy = Object.assign({}, enemy);
@@ -1730,20 +2251,52 @@
             var costs = {suburbs: 10, city: 20, lab: 30, factory: 40};
             var riskLevel = {suburbs: 0.25, city: 0.45, lab: 0.65, factory: 0.8};
             
-            if (gameState.player.stats.energy < costs[location]) {
+            // 潜行模式消耗双倍体力
+            const isStealth = document.getElementById('stealthMode').checked;
+            const energyCost = isStealth ? costs[location] * 2 : costs[location];
+            
+            if (gameState.player.stats.energy < energyCost) {
                 addLog('体力不足！需要休息', 'warning');
                 return;
             }
             
-            changeStat('energy', -costs[location]);
+            changeStat('energy', -energyCost);
             gameState.stats.explores++;
             
             var radGain = {suburbs: 1, city: 3, lab: 7, factory: 10}[location];
+            
+            // 天气影响辐射
+            const weather = WEATHER_TYPES[gameState.weather];
+            if (weather.effect && weather.effect.radBonus) {
+                radGain += weather.effect.radBonus;
+            }
+            
             gameState.player.stats.radiation = Math.min(100, gameState.player.stats.radiation + radGain * (1 - getRadResist()));
             
             var encounterChance = riskLevel[location];
+            
+            // 潜行模式降低遭遇概率
+            if (isStealth) {
+                encounterChance *= 0.5;
+                addLog('潜行中...', 'story');
+            }
+            
             if (gameState.pet && gameState.pet.type === 'scout') encounterChance *= (1 - gameState.pet.bonus.avoidDanger);
             if (gameState.butterflyEffects.sparedGhoul && Math.random() < 0.3) encounterChance *= 0.7;
+            
+            // 天气影响遭遇概率
+            if (weather.effect && weather.effect.encounterChance) {
+                encounterChance += weather.effect.encounterChance;
+            }
+            
+            // 精英怪遭遇
+            if (gameState.flags.eliteAvailable && Math.random() < 0.3) {
+                const elite = Object.assign({}, gameState.currentElite);
+                elite.maxHp = elite.hp;
+                gameState.flags.eliteAvailable = false;
+                startCombat(elite, true);
+                return;
+            }
             
             if (Math.random() < encounterChance) {
                 var enemyPool = {suburbs: [0, 1], city: [1, 2, 3], lab: [3, 4, 5], factory: [4, 5, 6]}[location];
@@ -1754,7 +2307,7 @@
                 enemy.hp = Math.floor(enemy.hp * (1 + enemy.level * 0.08));
                 enemy.damage = Math.floor(enemy.damage * (1 + enemy.level * 0.04));
                 enemy.exp = Math.floor(enemy.exp * (1 + enemy.level * 0.08));
-                startCombat(enemy);
+                startCombat(enemy, false, isStealth);
                 return;
             }
             
@@ -1767,6 +2320,12 @@
             
             var lootText = [];
             var bonus = 1 + (gameState.skills.survival * 0.08) + (gameState.pet ? gameState.pet.bonus.findBonus || 0 : 0);
+            
+            // 天气影响稀有资源
+            if (weather.effect && weather.effect.rareResourceChance && Math.random() < weather.effect.rareResourceChance) {
+                gameState.resources.crystal += 1;
+                lootText.push('1' + getResourceIcon('crystal') + '(沙尘暴稀有掉落)');
+            }
             
             for (var res in rewards[location]) {
                 var range = rewards[location][res];
@@ -1785,33 +2344,43 @@
         
         function getRadResist() {
             var resist = 0;
-            if (gameState.buildings.bunker) resist += 0.25;
+            if (gameState.buildings.bunker) {
+                const level = gameState.buildingLevels.bunker || 1;
+                resist += [0.25, 0.4, 0.6][level - 1];
+            }
             var acc = config.accessories.find(function(a) { return a.id === gameState.equipment.accessory; });
             if (acc && acc.effect === 'radResist') resist += acc.value;
             return Math.min(0.7, resist);
         }
         
-        function startCombat(enemy) {
+        function startCombat(enemy, isElite = false, isStealth = false) {
             currentEnemy = enemy;
             gameState.flags.firstCombat = true;
             
+            // 记录到图鉴
+            if (!gameState.discoveredEnemies.includes(enemy.name)) {
+                gameState.discoveredEnemies.push(enemy.name);
+                addLog('发现新敌人: ' + enemy.name, 'story');
+            }
+            
             var combatHTML = '<div class="combat-arena">' +
-                '<div style="font-size: 18px; font-weight: bold; margin-bottom: 12px; color: #ff416c;">' +
-                '战斗 - ' + enemy.name + ' Lv.' + enemy.level +
+                '<div style="font-size: 18px; font-weight: bold; margin-bottom: 12px; color: ' + (isElite ? '#ffd700' : '#ff416c') + ';">' +
+                (isElite ? '⭐ 精英战斗 - ' : '战斗 - ') + enemy.name + ' Lv.' + (enemy.level || 1) +
                 '</div>' +
                 '<div class="enemy-sprite">' + enemy.icon + '</div>' +
                 '<div class="enemy-name">' + enemy.name + '</div>' +
+                (enemy.weakness ? '<div class="enemy-weakness">弱点: ' + enemy.weakness + '</div>' : '') +
                 '<div style="color: #888; margin-bottom: 12px; font-size: 12px;">攻击力: ' + enemy.damage + '</div>' +
                 '<div class="enemy-hp-bar">' +
                 '<div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px;">' +
                 '<span>HP</span><span id="enemyHpText">' + enemy.hp + '/' + enemy.maxHp + '</span>' +
                 '</div>' +
                 '<div style="height: 16px; background: rgba(0,0,0,0.5); border-radius: 8px; overflow: hidden;">' +
-                '<div id="enemyHpBar" style="width: 100%; height: 100%; background: linear-gradient(90deg, #ff416c, #ff6b6b); transition: width 0.3s;"></div>' +
+                '<div id="enemyHpBar" style="width: 100%; height: 100%; background: linear-gradient(90deg, ' + (isElite ? '#ffd700, #ff8c00' : '#ff416c, #ff6b6b') + '); transition: width 0.3s;"></div>' +
                 '</div>' +
                 '</div>' +
                 '<div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 20px;">' +
-                '<button class="action-btn" onclick="playerAttack()">攻击</button>' +
+                '<button class="action-btn" onclick="playerAttack(' + isStealth + ')">攻击</button>' +
                 '<button class="action-btn" onclick="useSkill()">技能</button>' +
                 '<button class="action-btn" onclick="useItem(\'medkit\')">治疗</button>' +
                 '<button class="action-btn danger" onclick="flee()">逃跑</button>' +
@@ -1820,10 +2389,10 @@
             
             document.getElementById('combatArea').innerHTML = combatHTML;
             document.getElementById('combatArea').style.display = 'block';
-            addLog('遭遇 Lv.' + enemy.level + ' ' + enemy.name + '！', 'danger');
+            addLog('遭遇 Lv.' + (enemy.level || 1) + ' ' + enemy.name + '！', 'danger');
         }
         
-        function playerAttack() {
+        function playerAttack(isStealth = false) {
             if (!currentEnemy) return;
             
             var weapon = config.weapons.find(function(w) { return w.id === gameState.equipment.weapon; });
@@ -1831,7 +2400,24 @@
             if (weapon) damage += weapon.damage;
             if (gameState.pet && gameState.pet.type === 'combat') damage += gameState.pet.bonus.damage;
             
+            // 军械库加成
+            if (gameState.buildings.armory) {
+                const level = gameState.buildingLevels.armory || 1;
+                damage *= 1 + [0, 0.1, 0.2][level - 1];
+            }
+            
+            // 饥饿惩罚
+            if (gameState.player.stats.hunger <= 20) {
+                damage *= 0.8;
+            }
+            
             damage = Math.floor(damage * (0.9 + Math.random() * 0.2));
+            
+            // 偷袭伤害
+            if (isStealth) {
+                damage *= 2;
+                addLog('偷袭成功！双倍伤害！', 'success');
+            }
             
             var critChance = 0.06 + (gameState.skills.combat * 0.025);
             if (Math.random() < critChance) {
@@ -1839,8 +2425,30 @@
                 addLog('暴击！', 'warning');
             }
             
+            // 敌人弱点加成
+            if (currentEnemy.weakness && weapon && weapon.id.includes('knife')) {
+                damage *= 1.5;
+                addLog('击中弱点！', 'success');
+            }
+            
             currentEnemy.hp -= damage;
-            if (currentEnemy.hp <= 0) { setTimeout(function() { winCombat(); }, 400); return; }
+            
+            // 消耗武器耐久
+            if (weapon) {
+                gameState.equipmentDurability.weapon--;
+                if (gameState.equipmentDurability.weapon <= 0) {
+                    addLog('武器损坏！', 'danger');
+                    gameState.equipment.weapon = null;
+                    gameState.equipmentDurability.weapon = 100;
+                }
+            }
+            
+            if (currentEnemy.hp <= 0) { 
+                setTimeout(function() { 
+                    winCombat(currentEnemy.isElite); 
+                }, 400); 
+                return; 
+            }
             
             updateCombatUI();
             if (gameState.pet && gameState.pet.type === 'combat') setTimeout(function() { petAttack(); }, 300);
@@ -1868,6 +2476,17 @@
             if (Math.random() < dodgeChance) { addLog('闪避成功！', 'success'); return; }
             
             changeStat('health', -damage);
+            
+            // 消耗护甲耐久
+            if (armor) {
+                gameState.equipmentDurability.armor--;
+                if (gameState.equipmentDurability.armor <= 0) {
+                    addLog('护甲损坏！', 'danger');
+                    gameState.equipment.armor = null;
+                    gameState.equipmentDurability.armor = 100;
+                }
+            }
+            
             if (currentEnemy.radDamage) {
                 gameState.player.stats.radiation += currentEnemy.radDamage;
                 addLog('受到' + currentEnemy.radDamage + '辐射伤害！', 'danger');
@@ -1878,7 +2497,7 @@
             addLog(currentEnemy.name + ' 造成' + damage + '伤害！', 'danger');
         }
         
-        function winCombat() {
+        function winCombat(isElite = false) {
             var enemy = currentEnemy;
             addLog('击败' + enemy.name + '！+' + enemy.exp + '经验', 'success');
             
@@ -1889,7 +2508,19 @@
                 addLog('获得 ' + finalAmount + ' ' + getResourceName(item), 'loot');
             }
             
+            // 天气影响传奇掉落
+            const weather = WEATHER_TYPES[gameState.weather];
+            if (weather.effect && weather.effect.legendaryDropChance && Math.random() < weather.effect.legendaryDropChance) {
+                gameState.resources.crystal += 3;
+                addLog('辐射风暴带来了稀有掉落！获得3个辐射结晶', 'loot');
+            }
+            
             if (Math.random() < 0.08) { gameState.caps += 35; addLog('幸运掉落: 35瓶盖！', 'loot'); }
+            
+            if (isElite) {
+                gameState.stats.eliteKills++;
+                addLog('击败精英敌人！获得额外奖励', 'success');
+            }
             
             gameState.stats.kills++;
             gainExp(enemy.exp);
@@ -1984,7 +2615,7 @@
             var activeQuests = gameState.quests.filter(function(q) { return !q.completed; });
             
             if (activeQuests.length === 0) {
-                list.innerHTML = '<div style="text-align: center; color: #666; padding: 30px;"><div style="font-size: 40px; margin-bottom: 10px;">&#128236;</div>暂无任务</div>';
+                list.innerHTML = '<div style="text-align: center; color: #666; padding: 30px;"><div style="font-size: 40px; margin-bottom: 10px;">📋</div>暂无任务</div>';
                 return;
             }
             
@@ -2009,36 +2640,71 @@
                     '<div class="quest-desc">' + quest.desc + '</div>' +
                     (progressText ? '<div style="display: flex; justify-content: space-between; font-size: 10px; color: #888; margin-top: 6px;"><span>进度</span><span style="color: #fff;">' + progressText + '</span></div>' +
                     '<div class="quest-progress"><div class="quest-progress-fill" style="width: ' + progressPct + '%"></div></div>' : '') +
-                    '<div style="font-size: 11px; color: var(--neon-green); margin-top: 6px;">&#127873; ' + formatReward(quest.reward) + '</div>' +
+                    '<div style="font-size: 11px; color: var(--neon-green); margin-top: 6px;">🎁 ' + formatReward(quest.reward) + '</div>' +
                     '</div>';
             }).join('');
         }
         
-        // 建造系统
+        // 建造系统 - 修复后的版本
         function renderBuildings() {
             var grid = document.getElementById('buildGrid');
             grid.innerHTML = '';
             
             config.buildings.forEach(function(build) {
                 var hasBuilt = gameState.buildings[build.id];
+                var currentLevel = gameState.buildingLevels[build.id] || 1;
                 var canBuild = checkCost(build.cost) && (!build.req || gameState.buildings[build.req]);
+                var canUpgrade = hasBuilt && currentLevel < build.maxLevel;
                 var missingReq = build.req && !gameState.buildings[build.req];
                 
                 var div = document.createElement('div');
-                div.className = 'build-card' + (hasBuilt ? ' built' : '');
+                div.className = 'build-card' + (hasBuilt ? ' built' : '') + (canUpgrade ? ' upgradable' : '');
                 
                 var statusText = '';
-                if (hasBuilt) statusText = '<div style="color: var(--neon-green); font-weight: bold; margin-top: 6px; font-size: 11px;">&#10003; 已建造</div>';
-                else if (missingReq) statusText = '<div style="color: #ff416c; font-size: 9px; margin-top: 6px;">&#128274; 需' + (config.buildings.find(function(b) { return b.id === build.req; }) || {}).name + '</div>';
-                else statusText = '<div style="font-size: 9px; color: ' + (canBuild ? 'var(--neon-green)' : '#ff416c') + '; margin-top: 6px;">' + formatCost(build.cost) + '</div>';
+                if (hasBuilt) {
+                    if (canUpgrade) {
+                        const upgradeCost = {};
+                        for (var res in build.cost) {
+                            upgradeCost[res] = Math.floor(build.cost[res] * (currentLevel + 1) * 0.8);
+                        }
+                        statusText = '<div class="build-level">Lv.' + currentLevel + ' → Lv.' + (currentLevel + 1) + '</div>' +
+                            '<div style="font-size: 9px; color: var(--neon-yellow); margin-top: 4px;">' + formatCost(upgradeCost) + '</div>';
+                    } else {
+                        statusText = '<div style="color: var(--neon-green); font-weight: bold; margin-top: 6px; font-size: 11px;">✓ 已满级</div>';
+                    }
+                } else if (missingReq) {
+                    statusText = '<div style="color: #ff416c; font-size: 9px; margin-top: 6px;">🔒 需' + (config.buildings.find(function(b) { return b.id === build.req; }) || {}).name + '</div>';
+                } else {
+                    statusText = '<div style="font-size: 9px; color: ' + (canBuild ? 'var(--neon-green)' : '#ff416c') + '; margin-top: 6px;">' + formatCost(build.cost) + '</div>';
+                }
                 
                 div.innerHTML = '<div class="build-icon">' + build.icon + '</div>' +
                     '<div class="build-name">' + build.name + '</div>' +
-                    '<div class="build-effect">' + build.effect + '</div>' + statusText;
+                    '<div class="build-effect">' + (hasBuilt ? build.effects[currentLevel - 1] : build.effect) + '</div>' + statusText;
                 
-                if (!hasBuilt && canBuild) div.onclick = function() { build(build); };
-                else if (!hasBuilt && !missingReq) div.style.opacity = '0.6';
-                else if (missingReq) div.style.opacity = '0.4';
+                // 给所有卡片添加点击事件
+                div.onclick = function() {
+                    if (hasBuilt) {
+                        if (canUpgrade) {
+                            upgradeBuilding(build);
+                        } else {
+                            addLog(build.name + ' 已经是最高等级了', 'info');
+                        }
+                    } else if (missingReq) {
+                        addLog('需要先建造 ' + (config.buildings.find(function(b) { return b.id === build.req; }) || {}).name, 'warning');
+                    } else if (!canBuild) {
+                        // 显示缺少的资源
+                        var missing = [];
+                        for (var res in build.cost) {
+                            if ((gameState.resources[res] || 0) < build.cost[res]) {
+                                missing.push(build.cost[res] - (gameState.resources[res] || 0) + ' ' + getResourceName(res));
+                            }
+                        }
+                        addLog('资源不足！还需要: ' + missing.join(', '), 'warning');
+                    } else {
+                        build(build);
+                    }
+                };
                 
                 grid.appendChild(div);
             });
@@ -2049,11 +2715,34 @@
             for (var res in building.cost) gameState.resources[res] -= building.cost[res];
             
             gameState.buildings[building.id] = true;
+            gameState.buildingLevels[building.id] = 1;
             gameState.stats.builds++;
             addLog('建造: ' + building.name, 'success');
             addDiaryEntry('build', '建造' + building.name);
             updateQuestProgress('build', building.id);
             if (building.id === 'workshop') showAchievement('工坊解锁', '可制作高级装备！');
+            updateUI();
+        }
+        
+        function upgradeBuilding(building) {
+            const currentLevel = gameState.buildingLevels[building.id] || 1;
+            const upgradeCost = {};
+            for (var res in building.cost) {
+                upgradeCost[res] = Math.floor(building.cost[res] * (currentLevel + 1) * 0.8);
+            }
+            
+            if (!checkCost(upgradeCost)) {
+                addLog('资源不足！', 'warning');
+                return;
+            }
+            
+            for (var res in upgradeCost) {
+                gameState.resources[res] -= upgradeCost[res];
+            }
+            
+            gameState.buildingLevels[building.id] = currentLevel + 1;
+            addLog('升级: ' + building.name + ' → Lv.' + (currentLevel + 1), 'success');
+            addDiaryEntry('build', '升级' + building.name + '到Lv.' + (currentLevel + 1));
             updateUI();
         }
         
@@ -2063,9 +2752,9 @@
             list.innerHTML = '';
             
             var categories = [
-                {name: '&#9876; 武器', items: config.weapons},
-                {name: '&#128737; 护甲', items: config.armors},
-                {name: '&#128141; 饰品', items: config.accessories}
+                {name: '⚔️ 武器', items: config.weapons},
+                {name: '🛡️ 护甲', items: config.armors},
+                {name: '💍 饰品', items: config.accessories}
             ];
             
             categories.forEach(function(cat) {
@@ -2089,8 +2778,9 @@
                     itemDiv.innerHTML = '<div class="craft-info">' +
                         '<div class="craft-icon">' + item.icon + '</div>' +
                         '<div class="craft-details">' +
-                        '<h4 style="font-size: 12px;">' + item.name + ' ' + (isEquipped ? '&#10003;' : '') + '</h4>' +
+                        '<h4 style="font-size: 12px;">' + item.name + ' ' + (isEquipped ? '✓' : '') + '</h4>' +
                         '<div class="craft-stats">' + stats + '</div>' +
+                        '<div class="craft-durability">耐久: ' + item.durability + '</div>' +
                         '<div class="craft-requirements">' + formatCost(item.cost) + '</div>' + reqText +
                         '</div></div>' +
                         (!isEquipped && canCraft ? '<button class="action-btn" onclick="craft(\'' + item.id + '\', \'' + (cat.name.includes('武器') ? 'weapon' : cat.name.includes('护甲') ? 'armor' : 'accessory') + '\')" style="padding: 6px 12px; font-size: 11px;">制作</button>' : '');
@@ -2111,10 +2801,17 @@
             if (!item || !checkCost(item.cost)) return;
             
             var discount = gameState.skills.crafting * 0.05;
+            // 工坊加成
+            if (gameState.buildings.workshop) {
+                const level = gameState.buildingLevels.workshop || 1;
+                discount += [0, 0.1, 0.2][level - 1];
+            }
+            
             for (var res in item.cost) gameState.resources[res] -= Math.floor(item.cost[res] * (1 - discount));
             
             var type = item.damage ? 'weapon' : item.defense ? 'armor' : 'accessory';
             gameState.equipment[type] = itemId;
+            gameState.equipmentDurability[type] = item.durability;
             addLog('制作并装备: ' + item.name, 'success');
             gameState.stats.crafts++;
             updateQuestProgress('craft', itemId);
@@ -2124,6 +2821,35 @@
         function unequip(type) {
             if (!gameState.equipment[type]) return;
             gameState.equipment[type] = null;
+            gameState.equipmentDurability[type] = 100;
+            updateUI();
+        }
+        
+        // 装备维修系统
+        function repairAll() {
+            const repairCost = {metal: 5, cloth: 3};
+            if (!checkCost(repairCost)) {
+                addLog('维修材料不足！需要5金属和3布料', 'warning');
+                return;
+            }
+            
+            let repaired = false;
+            ['weapon', 'armor', 'accessory'].forEach(type => {
+                if (gameState.equipment[type] && gameState.equipmentDurability[type] < 100) {
+                    gameState.equipmentDurability[type] = 100;
+                    repaired = true;
+                }
+            });
+            
+            if (repaired) {
+                for (var res in repairCost) {
+                    gameState.resources[res] -= repairCost[res];
+                }
+                addLog('所有装备已修复！', 'success');
+            } else {
+                addLog('没有需要维修的装备', 'info');
+            }
+            
             updateUI();
         }
         
@@ -2143,7 +2869,7 @@
             var container = document.getElementById('petDisplay');
             if (!gameState.pet) {
                 container.innerHTML = '<div style="color: #666; padding: 30px; font-size: 13px;">' +
-                    '<div style="font-size: 45px; margin-bottom: 10px;">&#128062;</div>' +
+                    '<div style="font-size: 45px; margin-bottom: 10px;">🐾</div>' +
                     '还没有伙伴<br><span style="font-size: 11px; opacity: 0.7;">探索时可能遇到可驯服的动物</span></div>';
                 return;
             }
@@ -2171,9 +2897,9 @@
                 '<div style="font-size: 10px; color: #888;">心情</div>' +
                 '<div style="font-size: 14px; font-weight: bold; color: var(--neon-green);">' + (pet.loyalty > 80 ? '开心' : pet.loyalty > 50 ? '平静' : '低落') + '</div></div></div>' +
                 '<div style="margin-top: 15px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">' +
-                '<button class="action-btn" onclick="feedPet()" style="padding: 8px 14px; font-size: 11px;">&#127830; 喂食</button>' +
-                '<button class="action-btn warning" onclick="playWithPet()" style="padding: 8px 14px; font-size: 11px;">&#9918; 玩耍</button>' +
-                '<button class="action-btn info" onclick="trainPet()" style="padding: 8px 14px; font-size: 11px;">&#128218; 训练</button></div>';
+                '<button class="action-btn" onclick="feedPet()" style="padding: 8px 14px; font-size: 11px;">🍖 喂食</button>' +
+                '<button class="action-btn warning" onclick="playWithPet()" style="padding: 8px 14px; font-size: 11px;">🎮 玩耍</button>' +
+                '<button class="action-btn info" onclick="trainPet()" style="padding: 8px 14px; font-size: 11px;">📖 训练</button></div>';
         }
         
         function feedPet() {
@@ -2211,7 +2937,7 @@
                 div.className = 'npc-card';
                 var hearts = '';
                 for (var i = 0; i < 5; i++) {
-                    hearts += '<span style="font-size: 12px; ' + (i < Math.floor(npc.affection / 20) ? 'color: #ff416c;' : 'color: rgba(255,255,255,0.2);') + '">&#10084;</span>';
+                    hearts += '<span style="font-size: 12px; ' + (i < Math.floor(npc.affection / 20) ? 'color: #ff416c;' : 'color: rgba(255,255,255,0.2);') + '❤️</span>';
                 }
                 
                 div.innerHTML = '<div class="npc-avatar">' + npc.icon + '</div>' +
@@ -2227,11 +2953,11 @@
         
         function interactNPC(npc) {
             var actions = [
-                {text: '&#128172; 交谈', action: function() { npc.affection = Math.min(npc.maxAffection, npc.affection + 6); addLog('与' + npc.name + '交谈，好感+6', 'success'); checkRecruit(npc); updateUI(); closeModal(); }}
+                {text: '💬 交谈', action: function() { npc.affection = Math.min(npc.maxAffection, npc.affection + 6); addLog('与' + npc.name + '交谈，好感+6', 'success'); checkRecruit(npc); updateUI(); closeModal(); }}
             ];
             
             if (npc.affection >= 25) actions.push({
-                text: '&#127873; 要礼物', action: function() {
+                text: '🎁 要礼物', action: function() {
                     if (npc.gift === 'caps') gameState.caps += 70;
                     else gameState.resources[npc.gift] = (gameState.resources[npc.gift] || 0) + 2;
                     addLog(npc.name + ' 给了礼物！', 'loot');
@@ -2240,7 +2966,7 @@
             });
             
             if (npc.specialty === 'medical' && npc.affection >= 15) actions.push({
-                text: '&#127973; 治疗 (50瓶盖)', action: function() {
+                text: '🏥 治疗 (50瓶盖)', action: function() {
                     if (gameState.caps >= 50) {
                         gameState.caps -= 50;
                         changeStat('health', 35);
@@ -2251,7 +2977,7 @@
                 }
             });
             
-            actions.push({text: '&#128075; 离开', action: closeModal});
+            actions.push({text: '👋 离开', action: closeModal});
             
             showModal(npc.name, npc.desc + '\n\n好感度: ' + npc.affection + '/' + npc.maxAffection + '\n\n"' + getNPCDialogue(npc) + '"', actions);
         }
@@ -2292,6 +3018,143 @@
             updateUI();
         }
         
+        // 成就系统
+        function checkAchievements() {
+            ACHIEVEMENTS.forEach(achievement => {
+                if (!gameState.achievements.includes(achievement.id) && achievement.condition(gameState)) {
+                    unlockAchievement(achievement);
+                }
+            });
+        }
+        
+        function unlockAchievement(achievement) {
+            gameState.achievements.push(achievement.id);
+            showAchievement('成就解锁: ' + achievement.title, achievement.desc);
+            addLog('🏆 成就解锁: ' + achievement.title, 'success');
+            // 成就奖励
+            gameState.caps += 50;
+            gameState.skillPoints += 1;
+        }
+        
+        function renderAchievements() {
+            const grid = document.getElementById('achievementsGrid');
+            grid.innerHTML = '';
+            
+            ACHIEVEMENTS.forEach(achievement => {
+                const isUnlocked = gameState.achievements.includes(achievement.id);
+                const div = document.createElement('div');
+                div.className = 'achievement-card' + (isUnlocked ? ' unlocked' : '');
+                div.innerHTML = `
+                    <div class="achievement-card-icon">${achievement.icon}</div>
+                    <div class="achievement-card-title">${isUnlocked ? achievement.title : '???'}</div>
+                    <div class="achievement-card-desc">${isUnlocked ? achievement.desc : '未解锁'}</div>
+                `;
+                grid.appendChild(div);
+            });
+            
+            document.getElementById('unlockedAchievements').textContent = gameState.achievements.length;
+            document.getElementById('totalAchievements').textContent = ACHIEVEMENTS.length;
+        }
+        
+        // 图鉴系统
+        function renderBestiary() {
+            const grid = document.getElementById('bestiaryGrid');
+            grid.innerHTML = '';
+            
+            config.enemies.forEach(enemy => {
+                const isDiscovered = gameState.discoveredEnemies.includes(enemy.name);
+                const div = document.createElement('div');
+                div.className = 'bestiary-card' + (isDiscovered ? ' discovered' : '');
+                div.innerHTML = `
+                    <div class="bestiary-icon">${isDiscovered ? enemy.icon : '❓'}</div>
+                    <div class="bestiary-name">${isDiscovered ? enemy.name : '???'}</div>
+                    ${isDiscovered ? `<div class="bestiary-stats">HP: ${enemy.hp} | ATK: ${enemy.damage}</div>` : ''}
+                `;
+                grid.appendChild(div);
+            });
+            
+            document.getElementById('discoveredEnemies').textContent = gameState.discoveredEnemies.length;
+            document.getElementById('totalEnemies').textContent = config.enemies.length;
+        }
+        
+        // 每日签到
+        function dailyCheckin() {
+            const today = new Date().toDateString();
+            if (gameState.checkin.lastCheckin === today) {
+                addLog('今日已签到！', 'warning');
+                return;
+            }
+            
+            const reward = CHECKIN_REWARDS[(gameState.checkin.day - 1) % 7];
+            for (const [key, value] of Object.entries(reward)) {
+                if (key === 'caps') {
+                    gameState.caps += value;
+                } else {
+                    gameState.resources[key] = (gameState.resources[key] || 0) + value;
+                }
+            }
+            
+            gameState.checkin.lastCheckin = today;
+            gameState.checkin.day++;
+            
+            addLog('签到成功！获得: ' + formatReward(reward), 'success');
+            showAchievement('每日签到', '第' + (gameState.checkin.day - 1) + '天');
+            updateCheckinButton();
+            updateUI();
+        }
+        
+        function updateCheckinButton() {
+            const today = new Date().toDateString();
+            const btn = document.getElementById('checkinBtn');
+            const dayEl = document.getElementById('checkinDay');
+            
+            dayEl.textContent = gameState.checkin.day;
+            
+            if (gameState.checkin.lastCheckin === today) {
+                btn.disabled = true;
+                btn.textContent = '今日已签到';
+                btn.style.opacity = '0.5';
+            } else {
+                btn.disabled = false;
+                btn.textContent = '领取今日奖励';
+                btn.style.opacity = '1';
+            }
+        }
+        
+        // 幸运转盘
+        function spinWheel() {
+            if (isSpinning) return;
+            if (gameState.caps < 10) {
+                addLog('瓶盖不足！需要10瓶盖', 'warning');
+                return;
+            }
+            
+            gameState.caps -= 10;
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+            
+            const randomIndex = Math.floor(Math.random() * WHEEL_REWARDS.length);
+            const degrees = 360 * 5 + randomIndex * 45;
+            
+            document.getElementById('wheel').style.transform = `rotate(${degrees}deg)`;
+            
+            setTimeout(() => {
+                const reward = WHEEL_REWARDS[randomIndex];
+                if (reward.type === 'caps') {
+                    gameState.caps += reward.amount;
+                } else {
+                    gameState.resources[reward.type] = (gameState.resources[reward.type] || 0) + reward.amount;
+                }
+                
+                addLog('转盘获得: ' + reward.amount + ' ' + getResourceName(reward.type), 'loot');
+                showAchievement('幸运转盘', '获得' + reward.amount + ' ' + getResourceName(reward.type));
+                
+                isSpinning = false;
+                document.getElementById('spinBtn').disabled = false;
+                updateUI();
+            }, 4000);
+        }
+        
         // 日记系统
         function addDiaryEntry(type, content) {
             var entry = { day: gameState.time.day, time: String(gameState.time.hour).padStart(2,'0') + ':' + String(gameState.time.minute).padStart(2,'0'), type: type, content: content };
@@ -2325,11 +3188,11 @@
             tree.innerHTML = '';
             
             var skills = [
-                {id: 'combat', name: '战斗', icon: '&#9876;', desc: '攻击+3/级'},
-                {id: 'survival', name: '生存', icon: '&#127794;', desc: '资源+8%/级'},
-                {id: 'crafting', name: '工艺', icon: '&#128295;', desc: '制作-8%消耗'},
-                {id: 'barter', name: '交易', icon: '&#128176;', desc: '价格+8%/级'},
-                {id: 'leadership', name: '领袖', icon: '&#128081;', desc: '繁荣+25/级'}
+                {id: 'combat', name: '战斗', icon: '⚔️', desc: '攻击+3/级'},
+                {id: 'survival', name: '生存', icon: '🌲', desc: '资源+8%/级'},
+                {id: 'crafting', name: '工艺', icon: '🔨', desc: '制作-8%消耗'},
+                {id: 'barter', name: '交易', icon: '💰', desc: '价格+8%/级'},
+                {id: 'leadership', name: '领袖', icon: '👑', desc: '繁荣+25/级'}
             ];
             
             skills.forEach(function(skill) {
@@ -2353,8 +3216,8 @@
             gameState.resources.food -= 2;
             gameState.resources.water -= 2;
             
-            var healAmount = 35 + (gameState.camp.level * 6) + (gameState.buildings.tent ? 12 : 0);
-            var radHeal = 6 + (gameState.buildings.bunker ? 12 : 0);
+            var healAmount = 35 + (gameState.camp.level * 6) + (gameState.buildings.tent ? 12 * (gameState.buildingLevels.tent || 1) : 0);
+            var radHeal = 6 + (gameState.buildings.bunker ? 12 * (gameState.buildingLevels.bunker || 1) : 0);
             
             changeStat('energy', 100);
             changeStat('health', healAmount);
@@ -2372,7 +3235,7 @@
         
         function toggleTime() {
             gameState.time.paused = !gameState.time.paused;
-            document.getElementById('timeBtn').innerHTML = gameState.time.paused ? '&#9654;' : '&#9208;';
+            document.getElementById('timeBtn').innerHTML = gameState.time.paused ? '▶️' : '⏸️';
             addLog(gameState.time.paused ? '已暂停' : '继续', 'story');
         }
         
@@ -2420,9 +3283,24 @@
         
         function applyBuildingEffects() {
             var effects = [];
-            if (gameState.buildings.water_collector) { var amt = 2 + (gameState.skills.survival * 0.4); gameState.resources.water += Math.floor(amt); effects.push('集水器+' + Math.floor(amt) + '水'); }
-            if (gameState.buildings.greenhouse) { var amt = 2 + (gameState.skills.survival * 0.4); gameState.resources.food += Math.floor(amt); effects.push('温室+' + Math.floor(amt) + '食物'); }
-            if (gameState.buildings.medical_station) { var heal = 12 + (gameState.skills.crafting * 1.5); changeStat('health', heal); effects.push('医疗站+' + Math.floor(heal) + '生命'); }
+            if (gameState.buildings.water_collector) { 
+                const level = gameState.buildingLevels.water_collector || 1;
+                var amt = [2, 3, 5][level - 1] + (gameState.skills.survival * 0.4); 
+                gameState.resources.water += Math.floor(amt); 
+                effects.push('集水器+' + Math.floor(amt) + '水'); 
+            }
+            if (gameState.buildings.greenhouse) { 
+                const level = gameState.buildingLevels.greenhouse || 1;
+                var amt = [2, 3, 5][level - 1] + (gameState.skills.survival * 0.4); 
+                gameState.resources.food += Math.floor(amt); 
+                effects.push('温室+' + Math.floor(amt) + '食物'); 
+            }
+            if (gameState.buildings.medical_station) { 
+                const level = gameState.buildingLevels.medical_station || 1;
+                var heal = [12, 18, 25][level - 1] + (gameState.skills.crafting * 1.5); 
+                changeStat('health', heal); 
+                effects.push('医疗站+' + Math.floor(heal) + '生命'); 
+            }
             if (effects.length) addLog('每日: ' + effects.join(', '), 'success');
         }
         
@@ -2462,6 +3340,29 @@
             }
         }
         
+        // 存档导出功能
+        function exportSave() {
+            const saveData = btoa(encodeURIComponent(JSON.stringify(gameState)));
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay active';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">存档导出</div>
+                    <div class="modal-body">
+                        复制以下代码保存，下次游戏时粘贴即可导入：
+                        <textarea style="width: 100%; height: 150px; margin-top: 10px; background: rgba(0,0,0,0.3); border: 1px solid var(--neon-blue); border-radius: 8px; color: #fff; padding: 10px; font-family: monospace; font-size: 11px;" readonly>${saveData}</textarea>
+                    </div>
+                    <div class="modal-choices">
+                        <button class="modal-choice-btn" onclick="this.closest('.modal-overlay').remove()">关闭</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.querySelector('textarea').select();
+            document.execCommand('copy');
+            addLog('存档已复制到剪贴板', 'success');
+        }
+        
         // UI更新
         function updateUI() {
             document.getElementById('playerLevel').textContent = gameState.player.level;
@@ -2493,6 +3394,11 @@
             updateEquipment('accessory', config.accessories);
             document.getElementById('petSlotName').textContent = gameState.pet ? gameState.pet.name : '无';
             
+            // 更新装备耐久显示
+            document.getElementById('weaponDurability').textContent = gameState.equipment.weapon ? '耐久: ' + gameState.equipmentDurability.weapon : '';
+            document.getElementById('armorDurability').textContent = gameState.equipment.armor ? '耐久: ' + gameState.equipmentDurability.armor : '';
+            document.getElementById('accessoryDurability').textContent = gameState.equipment.accessory ? '耐久: ' + gameState.equipmentDurability.accessory : '';
+            
             document.getElementById('statKills').textContent = gameState.stats.kills;
             document.getElementById('statExplores').textContent = gameState.stats.explores;
             document.getElementById('statQuests').textContent = gameState.stats.quests;
@@ -2504,6 +3410,8 @@
             document.getElementById('campMaxMembers').textContent = gameState.camp.maxMembers;
             document.getElementById('campProsperity').textContent = gameState.camp.prosperity;
             document.getElementById('campDefense').textContent = gameState.camp.defense;
+            
+            renderSkills();
         }
         
         function calculateScore() {
@@ -2555,8 +3463,9 @@
             var data = JSON.stringify(gameState);
             localStorage.setItem('wasteland_v2_save', data);
             localStorage.setItem('wasteland_v2_backup', btoa(encodeURIComponent(data)));
-            addLog('已保存！', 'success');
-            showAchievement('存档完成', '进度已存储');
+            // 去掉自动保存的日志提示，避免刷屏
+            // addLog('已保存！', 'success');
+            // showAchievement('存档完成', '进度已存储');
         }
         
         function loadGame() {
@@ -2567,10 +3476,21 @@
                 gameState = Object.assign({}, gameData, loaded);
                 if (!gameState.butterflyEffects) gameState.butterflyEffects = Object.assign({}, butterflyEffects);
                 if (!gameState.time.minute) gameState.time.minute = 0;
+                // 兼容旧存档
+                if (!gameState.equipmentDurability) gameState.equipmentDurability = {weapon: 100, armor: 100, accessory: 100};
+                if (!gameState.buildingLevels) gameState.buildingLevels = {};
+                if (!gameState.achievements) gameState.achievements = [];
+                if (!gameState.discoveredEnemies) gameState.discoveredEnemies = [];
+                if (!gameState.checkin) gameState.checkin = {day: 1, lastCheckin: null};
+                if (!gameState.stats.eliteKills) gameState.stats.eliteKills = 0;
+                if (!gameState.weather) gameState.weather = 'sunny';
+                
                 addLog('存档已读取', 'success');
                 addDiaryEntry('system', '读取存档，第' + gameState.time.day + '天');
                 if (gameState.flags.factoryUnlocked) document.getElementById('explore-factory').style.display = 'block';
+                updateWeather();
                 updateUI();
+                checkAchievements();
             } catch(e) { addLog('存档损坏！', 'danger'); }
         }
         
@@ -2627,7 +3547,7 @@
         
         function getResourceIcon(id) {
             var r = config.resources.find(function(r) { return r.id === id; });
-            return r ? r.icon : '&#128230;';
+            return r ? r.icon : '📦';
         }
         
         function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
@@ -2676,9 +3596,15 @@
         }
         
         // 启动
-        window.onload = init;
+        window.onload = function() {
+            loadGame();
+            init();
+        };
         window.onbeforeunload = function() { if (gameState.time.day > 1) return '确定离开？未保存进度将丢失。'; };
         document.getElementById('gameModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+        
+        // 自动保存
+        setInterval(saveGame, 60000);
     </script>
 </body>
 </html>
