@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
     <title>GLcn - Hello</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- ===== 优化1：提前加载关键CSS，阻塞最小化 ===== -->
     <style>
+        /* ---------- 关键样式：首屏可见部分 ---------- */
         :root {
             --primary: #6d7aea;
             --primary-dark: #5a67d8;
@@ -32,28 +34,28 @@
             --subject-chemistry: #805ad5;
             --subject-politics: #dd6b20;
             --subject-other: #718096;
-            
+
             --transition-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
             --transition-spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
             --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
             --transition-ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            
+
             --duration-fast: 0.25s;
             --duration-normal: 0.4s;
             --duration-slow: 0.6s;
             --duration-mega-slow: 0.8s;
-            
+
             --border-radius: 16px;
             --border-radius-sm: 8px;
             --border-radius-lg: 24px;
             --border-radius-xl: 32px;
-            
+
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
             --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.15);
             --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.2);
             --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.3);
             --shadow-glow: 0 0 30px rgba(102, 126, 234, 0.4);
-            
+
             --spacing-xs: 0.5rem;
             --spacing-sm: 1rem;
             --spacing-md: 1.5rem;
@@ -62,20 +64,18 @@
             --spacing-xxl: 4rem;
         }
 
-        * { 
-            margin: 0; 
-            padding: 0; 
+        * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
-        
-        html { 
-            scroll-behavior: smooth; 
+        html {
+            scroll-behavior: smooth;
             scroll-padding-top: 70px;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
-        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft YaHei', 'PingFang SC', sans-serif;
             background: var(--dark);
@@ -88,7 +88,6 @@
             min-height: 100vh;
             transition: all var(--duration-normal) var(--transition-smooth);
         }
-
         body::before {
             content: '';
             position: fixed;
@@ -96,7 +95,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: 
+            background:
                 radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
                 radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.08) 0%, transparent 50%),
                 radial-gradient(circle at 40% 80%, rgba(240, 147, 251, 0.04) 0%, transparent 50%);
@@ -104,12 +103,19 @@
             z-index: -1;
             will-change: transform;
         }
-
         @keyframes backgroundShift {
-            0%, 100% { opacity: 0.3; transform: rotate(0deg) scale(1); }
-            50% { opacity: 0.6; transform: rotate(3deg) scale(1.05); }
+            0%,
+            100% {
+                opacity: 0.3;
+                transform: rotate(0deg) scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: rotate(3deg) scale(1.05);
+            }
         }
 
+        /* 粒子画布占位 — 不阻塞渲染 */
         #particles-canvas {
             position: fixed;
             top: 0;
@@ -121,954 +127,829 @@
             will-change: transform;
         }
 
-        body.performance-mode .particle-glow {
-            filter: blur(0.5px) drop-shadow(0 0 8px currentColor);
-        }
-
+        /* ---------- 导航栏 ---------- */
         .navbar {
-            position: fixed; top: 0; width: 100%;
+            position: fixed;
+            top: 0;
+            width: 100%;
             background: rgba(26, 26, 46, 0.8);
             backdrop-filter: blur(20px) saturate(180%);
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            z-index: 1000; 
+            z-index: 1000;
             transition: all var(--duration-normal) var(--transition-smooth);
             transform: translateY(0);
             will-change: transform;
         }
-        
         .navbar-container {
-            max-width: 1200px; margin: 0 auto;
-            display: flex; justify-content: space-between; align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: var(--spacing-sm) clamp(1rem, 5vw, 2rem);
             min-height: 70px;
         }
-        
         .logo {
-            font-size: clamp(1.6rem, 5vw, 1.8rem); font-weight: 800;
+            font-size: clamp(1.6rem, 5vw, 1.8rem);
+            font-weight: 800;
             background: linear-gradient(135deg, var(--primary), var(--accent));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            display: flex; align-items: center; gap: 0.5rem;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
             transition: all var(--duration-slow) var(--transition-spring);
             cursor: pointer;
         }
-        
         .logo:hover {
             transform: scale(1.05) translateY(-2px);
             filter: drop-shadow(0 0 15px rgba(102, 126, 234, 0.4));
         }
-        
         .nav-menu {
-            display: flex; gap: clamp(1rem, 3vw, 2.5rem); 
+            display: flex;
+            gap: clamp(1rem, 3vw, 2.5rem);
             list-style: none;
         }
-        
         .nav-menu li {
-            cursor: pointer; color: rgba(255, 255, 255, 0.8); 
-            font-weight: 500; padding: var(--spacing-xs) 0; 
-            position: relative; transition: all var(--duration-normal) var(--transition-spring);
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            padding: var(--spacing-xs) 0;
+            position: relative;
+            transition: all var(--duration-normal) var(--transition-spring);
             user-select: none;
         }
-        
         .nav-menu li::after {
-            content: ''; position: absolute; bottom: 0; left: 0;
-            width: 0; height: 2px; border-radius: 1px;
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            border-radius: 1px;
             background: linear-gradient(90deg, var(--primary), var(--accent));
             transition: all var(--duration-normal) var(--transition-bounce);
         }
-        
-        .nav-menu li:hover::after, 
-        .nav-menu li.active::after { width: 100%; }
-        
+        .nav-menu li:hover::after,
+        .nav-menu li.active::after {
+            width: 100%;
+        }
         .nav-menu li:hover {
             color: var(--white);
             transform: translateY(-2px) scale(1.02);
         }
-
         .nav-menu li.active {
             color: var(--primary);
             transform: translateY(-1px);
         }
-        
         .mobile-toggle {
-            display: none; 
-            background: rgba(255, 255, 255, 0.2); 
+            display: none;
+            background: rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white; font-size: 1.5rem; cursor: pointer;
-            padding: 0.5rem 1rem; min-width: 88px; min-height: 44px;
-            border-radius: var(--border-radius-lg); transition: all var(--duration-fast) var(--transition-bounce);
-            display: flex; align-items: center; gap: 0.5rem; justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            min-width: 88px;
+            min-height: 44px;
+            border-radius: var(--border-radius-lg);
+            transition: all var(--duration-fast) var(--transition-bounce);
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: center;
         }
-        
         .mobile-toggle:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: scale(1.05);
             box-shadow: 0 0 15px rgba(102, 126, 234, 0.4);
         }
-
-        .mobile-toggle:active { transform: scale(0.95); }
-
+        .mobile-toggle:active {
+            transform: scale(0.95);
+        }
         .mobile-toggle span {
-            font-size: 0.9rem; font-weight: 500;
+            font-size: 0.9rem;
+            font-weight: 500;
             white-space: nowrap;
         }
 
+        /* ---------- 页面 ---------- */
         .page {
-            display: none; flex: 1;
+            display: none;
+            flex: 1;
             padding: var(--spacing-md);
-            opacity: 0; transform: translateY(20px);
+            opacity: 0;
+            transform: translateY(20px);
             transition: all var(--duration-mega-slow) var(--transition-smooth);
-            height: auto; min-height: calc(100vh - 70px);
+            height: auto;
+            min-height: calc(100vh - 70px);
         }
-        
-        .page.active { 
-            display: block; 
-            opacity: 1; 
+        .page.active {
+            display: block;
+            opacity: 1;
             transform: translateY(0);
         }
-        
         .page.fade-out {
             opacity: 0;
             transform: translateY(-20px);
         }
+        .page-content {
+            padding-top: 70px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
+        /* ---------- Hero ---------- */
         .hero {
             background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, var(--secondary) 100%);
-            color: white; text-align: center; 
+            color: white;
+            text-align: center;
             padding: clamp(2rem, 6vw, 4rem) clamp(1rem, 5vw, 2rem);
-            position: relative; overflow: hidden;
+            position: relative;
+            overflow: hidden;
             border-radius: var(--border-radius-lg);
             margin: var(--spacing-sm) auto;
             box-shadow: var(--shadow-xl);
             max-width: 1200px;
         }
-        
         .hero::before {
             content: '';
-            position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: 
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
                 radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
                 radial-gradient(circle at 80% 70%, rgba(240, 147, 251, 0.15) 0%, transparent 50%);
             animation: heroPulse 8s var(--transition-smooth) infinite;
             z-index: 1;
         }
-        
         @keyframes heroPulse {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.02); }
+            0%,
+            100% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.02);
+            }
         }
-
         .hero-content {
-            position: relative; z-index: 1;
-            width: 100%; display: flex;
-            flex-direction: column; align-items: center;
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-
         .hero h1 {
-            font-size: clamp(1.8rem, 6vw, 2.8rem); font-weight: 800; 
-            margin-bottom: 1rem; line-height: 1.2;
-            position: relative; z-index: 1;
+            font-size: clamp(1.8rem, 6vw, 2.8rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+            position: relative;
+            z-index: 1;
             text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             animation: fadeInUp 1s var(--transition-ease-out) forwards;
         }
-
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         #beijingTime {
-            font-size: clamp(2rem, 8vw, 3.2rem); font-weight: 800;
+            font-size: clamp(2rem, 8vw, 3.2rem);
+            font-weight: 800;
             margin-bottom: 0.5rem;
             background: linear-gradient(135deg, var(--primary), var(--accent));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-align: center; letter-spacing: 0.05em;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            letter-spacing: 0.05em;
             animation: timeGlow 2s var(--transition-smooth) infinite alternate;
         }
-
         @keyframes timeGlow {
-            from { filter: drop-shadow(0 0 5px rgba(102, 126, 234, 0.3)); }
-            to { filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.6)); }
+            from {
+                filter: drop-shadow(0 0 5px rgba(102, 126, 234, 0.3));
+            }
+            to {
+                filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.6));
+            }
         }
-
         .time-date {
-            font-size: clamp(1rem, 3vw, 1.4rem); color: rgba(255, 255, 255, 0.85);
+            font-size: clamp(1rem, 3vw, 1.4rem);
+            color: rgba(255, 255, 255, 0.85);
             margin-bottom: 1.5rem;
             animation: fadeInUp 1s var(--transition-ease-out) forwards 0.3s;
         }
-
         .uptime-display {
-            font-size: clamp(0.9rem, 2.5vw, 1.1rem); color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 1.5rem; background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: var(--border-radius);
-            padding: var(--spacing-sm) var(--spacing-md); display: flex;
-            align-items: center; gap: var(--spacing-sm); justify-content: center;
-            width: fit-content; margin-left: auto; margin-right: auto; text-align: center;
+            padding: var(--spacing-sm) var(--spacing-md);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            justify-content: center;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
             transition: all var(--duration-normal) var(--transition-smooth);
             animation: fadeInUp 1s var(--transition-ease-out) forwards 0.6s;
         }
-
         .uptime-display:hover {
             background: rgba(255, 255, 255, 0.12);
             transform: translateY(-2px) scale(1.02);
             box-shadow: var(--shadow-glow);
         }
-
         .uptime-icon {
-            font-size: 1.2rem; color: var(--success);
+            font-size: 1.2rem;
+            color: var(--success);
             animation: pulse 2s ease-in-out infinite;
         }
-
         @keyframes pulse {
-            0%, 100% { opacity: 0.7; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.1); }
+            0%,
+            100% {
+                opacity: 0.7;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
         }
 
         .ua-display {
-            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: var(--border-radius);
-            padding: var(--spacing-sm) var(--spacing-md); margin-top: 1rem;
-            display: flex; align-items: center; gap: var(--spacing-sm);
-            font-size: clamp(0.9rem, 2.5vw, 1.1rem); color: rgba(255, 255, 255, 0.9);
-            transition: all var(--duration-normal) var(--transition-smooth); justify-content: center;
-            width: fit-content; margin-left: auto; margin-right: auto; text-align: center;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-sm) var(--spacing-md);
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            color: rgba(255, 255, 255, 0.9);
+            transition: all var(--duration-normal) var(--transition-smooth);
+            justify-content: center;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
             animation: fadeInUp 1s var(--transition-ease-out) forwards 1s;
         }
-
         .ua-display:hover {
             background: rgba(255, 255, 255, 0.12);
             transform: translateY(-2px) scale(1.02);
             box-shadow: var(--shadow-glow);
         }
-
         .ua-icon {
-            font-size: 1.2rem; color: var(--accent);
+            font-size: 1.2rem;
+        }
+        .ua-pc {
+            color: var(--primary);
+        }
+        .ua-ios {
+            color: var(--success);
+        }
+        .ua-android {
+            color: var(--warning);
+        }
+        .ua-mobile {
+            color: var(--accent);
+        }
+        .ua-wechat {
+            color: #07C160;
+        }
+        .ua-qq {
+            color: #12B7F5;
         }
 
         .stn-studio-display {
-            position: relative; margin-top: 1.5rem; padding: 1rem 2rem;
-            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50px;
-            font-size: clamp(1.1rem, 3vw, 1.5rem); font-weight: 700; color: var(--white);
-            text-align: center; animation: fadeInUp 1s var(--transition-ease-out) forwards 0.9s, stnGlow 3s ease-in-out infinite;
-            transition: all var(--duration-normal) var(--transition-smooth); overflow: hidden;
+            position: relative;
+            margin-top: 1.5rem;
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50px;
+            font-size: clamp(1.1rem, 3vw, 1.5rem);
+            font-weight: 700;
+            color: var(--white);
+            text-align: center;
+            animation: fadeInUp 1s var(--transition-ease-out) forwards 0.9s, stnGlow 3s ease-in-out infinite;
+            transition: all var(--duration-normal) var(--transition-smooth);
+            overflow: hidden;
         }
-
         .stn-studio-display::before {
             content: '';
-            position: absolute; top: 50%; left: 50%;
-            width: 120%; height: 120%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 120%;
+            height: 120%;
             transform: translate(-50%, -50%);
             background: conic-gradient(from 0deg, transparent, rgba(102, 126, 234, 0.3), rgba(240, 147, 251, 0.3), transparent);
-            animation: stnRotate 4s linear infinite; z-index: -1; border-radius: 50px;
+            animation: stnRotate 4s linear infinite;
+            z-index: -1;
+            border-radius: 50px;
         }
-
         .stn-studio-display::after {
-            content: ''; position: absolute; top: 2px; left: 2px; right: 2px; bottom: 2px;
-            background: var(--dark); border-radius: 48px; z-index: -1;
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            background: var(--dark);
+            border-radius: 48px;
+            z-index: -1;
         }
-
         @keyframes stnRotate {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
         }
-
         @keyframes stnGlow {
-            0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3); }
-            50% { box-shadow: 0 0 30px rgba(72, 187, 120, 0.6), 0 0 40px rgba(240, 147, 251, 0.3); }
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(72, 187, 120, 0.6), 0 0 40px rgba(240, 147, 251, 0.3);
+            }
         }
-
         .stn-studio-display:hover {
             transform: translateY(-3px) scale(1.02);
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
 
-        .content-section {
-            padding-top: 70px; min-height: 100vh;
-            display: flex; flex-direction: column;
-        }
-
+        /* ---------- 功能卡片 ---------- */
         .feature-card {
-            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl); text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl);
+            text-align: center;
             transition: all var(--duration-normal) var(--transition-bounce);
-            position: relative; overflow: hidden;
-            margin: var(--spacing-md) auto; max-width: 800px;
+            position: relative;
+            overflow: hidden;
+            margin: var(--spacing-md) auto;
+            max-width: 800px;
         }
-
         .feature-card::before {
             content: '';
-            position: absolute; top: 0; left: -100%;
-            width: 100%; height: 100%;
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
             transition: left var(--duration-mega-slow) var(--transition-smooth);
         }
-
-        .feature-card:hover::before { left: 100%; }
-
+        .feature-card:hover::before {
+            left: 100%;
+        }
         .feature-card:hover {
             transform: translateY(-10px) scale(1.02);
             box-shadow: var(--shadow-xl), var(--shadow-glow);
             border-color: rgba(102, 126, 234, 0.3);
         }
-
         .feature-icon {
-            font-size: 4rem; color: var(--primary);
+            font-size: 4rem;
+            color: var(--primary);
             margin-bottom: var(--spacing-md);
             transition: all var(--duration-normal) var(--transition-bounce);
             display: inline-block;
         }
-
         .feature-card:hover .feature-icon {
             transform: scale(1.1) rotate(5deg);
             color: var(--accent);
         }
-
         .feature-title {
-            font-size: 1.5rem; font-weight: 700;
-            margin-bottom: var(--spacing-sm); color: var(--white);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+            color: var(--white);
         }
-
         .feature-description {
-            color: var(--text-light); line-height: 1.6;
+            color: var(--text-light);
+            line-height: 1.6;
         }
-
-        .announcement-content {
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            min-height: calc(100vh - 300px); padding: var(--spacing-lg) 0;
-        }
-
-        .modal-overlay {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 2000; opacity: 0; visibility: hidden;
-            transition: all var(--duration-normal) var(--transition-smooth);
-        }
-
-        .modal-overlay.active {
-            opacity: 1; visibility: visible;
-        }
-
-        .modal-content {
-            background: rgba(26, 26, 46, 0.95); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl); max-width: 500px;
-            width: 90%; max-height: 80vh; overflow-y: auto;
-            transform: scale(0.8) translateY(50px);
-            transition: all var(--duration-slow) var(--transition-bounce);
-            position: relative;
-        }
-
-        .modal-overlay.active .modal-content {
-            transform: scale(1) translateY(0);
-        }
-
-        .modal-header {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: var(--spacing-lg); padding-bottom: var(--spacing-md);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .modal-title {
-            font-size: 1.5rem; font-weight: 700;
-            color: var(--white); display: flex;
-            align-items: center; gap: var(--spacing-sm);
-        }
-
-        .modal-close {
-            background: none; border: none; color: var(--text-light);
-            font-size: 1.5rem; cursor: pointer; padding: var(--spacing-xs);
-            border-radius: var(--border-radius-sm); transition: all var(--duration-fast) var(--transition-smooth);
-        }
-
-        .modal-close:hover {
-            color: var(--white); background: rgba(255, 255, 255, 0.1);
-        }
-
-        .modal-body {
-            color: var(--text-light); line-height: 1.6;
-        }
-
-        .modal-body h4 {
-            color: var(--white); margin-bottom: var(--spacing-sm);
-            font-size: 1.1rem;
-        }
-
-        .modal-body p { margin-bottom: var(--spacing-md); }
-
-        .modal-body .info-grid {
-            display: grid; grid-template-columns: 1fr 1fr;
-            gap: var(--spacing-md); margin: var(--spacing-md) 0;
-        }
-
-        .modal-body .info-item {
-            background: rgba(255, 255, 255, 0.05); padding: var(--spacing-sm);
-            border-radius: var(--border-radius-sm); border-left: 3px solid var(--primary);
-        }
-
-        .modal-body .info-label {
-            font-size: 0.8rem; color: var(--text-muted);
-            margin-bottom: 0.25rem;
-        }
-
-        .modal-body .info-value {
-            color: var(--white); font-weight: 600;
-        }
-
-        .modal-footer {
-            margin-top: var(--spacing-lg); padding-top: var(--spacing-md);
-            border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center;
-        }
-
         .modal-button {
             background: linear-gradient(135deg, var(--primary), var(--accent));
-            border: none; color: white; padding: var(--spacing-sm) var(--spacing-lg);
-            border-radius: var(--border-radius); font-weight: 600;
-            cursor: pointer; transition: all var(--duration-fast) var(--transition-bounce);
+            border: none;
+            color: white;
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--transition-bounce);
+            margin-top: var(--spacing-md);
         }
-
         .modal-button:hover {
             transform: translateY(-2px) scale(1.03);
             box-shadow: var(--shadow-glow);
         }
 
-        footer {
-            background: var(--darkest); color: rgba(255, 255, 255, 0.8);
-            padding: var(--spacing-lg) clamp(1rem, 5vw, 2rem); text-align: center;
-            position: relative; overflow: hidden; margin-top: auto;
-        }
-        
-        footer::before {
-            content: ''; position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 0%, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
-        }
-        
-        .footer-content { 
-            max-width: 1200px; margin: 0 auto; 
-            position: relative; z-index: 1;
-            transition: all var(--duration-normal) var(--transition-smooth);
-        }
-        
-        .footer-content:hover {
-            color: var(--white);
-            transform: translateY(-2px);
-        }
-
-        @media (max-width: 768px) {
-            .nav-menu {
-                position: fixed; top: 70px; left: -100%;
-                width: 100%; height: calc(100vh - 70px); 
-                background: rgba(26, 26, 46, 0.95);
-                flex-direction: column; align-items: center; justify-content: flex-start;
-                padding-top: var(--spacing-xl); transition: left 0.5s var(--transition-bounce);
-                backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.1);
-            }
-            
-            .nav-menu li { 
-                width: 80%; text-align: center; 
-                padding: var(--spacing-md); margin: var(--spacing-xs) 0;
-                border-radius: var(--border-radius);
-                transition: all var(--duration-normal) var(--transition-smooth);
-            }
-
-            .nav-menu li:hover {
-                background: rgba(102, 126, 234, 0.1);
-                transform: translateX(5px);
-            }
-            
-            .nav-menu li::after {
-                left: 50%; transform: translateX(-50%);
-            }
-            
-            .nav-menu.active { left: 0; }
-            .mobile-toggle { display: flex; }
-
-            .hero {
-                margin: var(--spacing-xs) auto;
-                padding: clamp(1.5rem, 5vw, 3rem) clamp(1rem, 4vw, 1.5rem);
-            }
-
-            #beijingTime { font-size: clamp(1.8rem, 6vw, 2.5rem); }
-            .time-date { font-size: clamp(0.9rem, 2.5vw, 1.1rem); }
-            .uptime-display { font-size: clamp(0.8rem, 2vw, 0.95rem); padding: var(--spacing-xs) var(--spacing-sm); }
-            .ua-display { font-size: clamp(0.8rem, 2vw, 0.95rem); padding: var(--spacing-xs) var(--spacing-sm); }
-            .stn-studio-display {
-                padding: 0.8rem 1.5rem;
-                font-size: clamp(0.95rem, 2.5vw, 1.2rem);
-            }
-
-            .modal-content {
-                width: 95%;
-                padding: var(--spacing-lg);
-                margin: var(--spacing-md);
-            }
-
-            .modal-body .info-grid { grid-template-columns: 1fr; }
-        }
-
-        @media (max-width: 480px) {
-            .page { padding: var(--spacing-sm); }
-            .hero { padding: clamp(1.2rem, 4vw, 2.5rem) clamp(0.5rem, 3vw, 1rem); }
-            #beijingTime { font-size: clamp(1.6rem, 5vw, 2.2rem); }
-            .time-date { font-size: clamp(0.9rem, 2.5vw, 1.1rem); }
-            .uptime-display { font-size: clamp(0.75rem, 2vw, 0.9rem); }
-            .ua-display { font-size: clamp(0.8rem, 2vw, 0.95rem); }
-            .stn-studio-display {
-                padding: 0.6rem 1.2rem;
-                font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-            }
-        }
-
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--dark); }
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(var(--primary), var(--accent));
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(var(--primary-dark), var(--accent-secondary));
-        }
-
-        ::selection {
-            background: rgba(102, 126, 234, 0.3);
-            color: var(--white);
-        }
-
-        *:focus {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
-        }
-
-        .ua-pc { color: var(--primary); }
-        .ua-ios { color: var(--success); }
-        .ua-android { color: var(--warning); }
-        .ua-mobile { color: var(--accent); }
-        .ua-wechat { color: #07C160; }
-        .ua-qq { color: #12B7F5; }
-
-        .music-player {
-            position: fixed; bottom: var(--spacing-lg); right: var(--spacing-lg);
-            z-index: 999; opacity: 0; transform: scale(0);
-            transition: all var(--duration-slow) var(--transition-bounce);
-        }
-
-        .music-player.show {
-            opacity: 1; transform: scale(1);
-        }
-
-        body.compatibility-mode .music-player {
-            display: none !important;
-        }
-
-        .music-button {
-            width: 60px; height: 60px; border: none; border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2); color: var(--white);
-            font-size: 1.5rem; cursor: pointer; position: relative;
-            overflow: hidden; transition: all var(--duration-normal) var(--transition-bounce);
-            box-shadow: var(--shadow-lg); display: flex;
-            align-items: center; justify-content: center;
-        }
-
-        .music-button:hover {
-            transform: scale(1.1) rotate(10deg);
-            box-shadow: var(--shadow-xl), var(--shadow-glow);
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .music-button:active { transform: scale(0.95); }
-
-        .music-button.playing {
-            animation: musicPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes musicPulse {
-            0%, 100% { box-shadow: var(--shadow-lg), 0 0 0 0 rgba(102, 126, 234, 0.4); }
-            50% { box-shadow: var(--shadow-xl), 0 0 0 10px rgba(102, 126, 234, 0); }
-        }
-
-        .music-button::before {
-            content: '';
-            position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            opacity: 0; transition: all var(--duration-normal) var(--transition-smooth);
-            z-index: -1;
-        }
-
-        .music-button:hover::before { opacity: 0.3; }
-
-        .page-content {
-            padding-top: 70px; min-height: 100vh;
-            display: flex; flex-direction: column;
-        }
-
-        .announcement-content {
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            min-height: calc(100vh - 300px); padding: var(--spacing-lg) 0;
-        }
-
-        .stagger-fade-in {
-            opacity: 0; transform: translateY(20px);
-            animation: staggerFadeIn 0.6s var(--transition-bounce) forwards;
-        }
-
-        @keyframes staggerFadeIn {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
+        /* ---------- 歌词 ---------- */
         .lyrics-container {
-            position: relative; max-width: 800px;
-            margin: 2rem auto; padding: 1rem;
-            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
-            box-shadow: var(--shadow-lg); overflow: hidden;
+            position: relative;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
             transition: all var(--duration-normal) var(--transition-smooth);
             transform: translateY(0);
         }
-
-        body.compatibility-mode .lyrics-container {
-            display: none !important;
-        }
-
         .lyrics-header {
-            display: flex; justify-content: space-between;
-            align-items: center; padding: 0 1rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1rem 1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 1rem;
         }
-
         .lyrics-title {
-            font-size: 1.3rem; font-weight: 700;
-            color: var(--white); display: flex;
-            align-items: center; gap: 0.5rem;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-
         .lyrics-title i {
             color: var(--accent);
             animation: musicPulse 2s ease-in-out infinite;
         }
-
         .lyrics-toggle {
-            background: rgba(255, 255, 255, 0.1); border: none;
-            color: var(--text-light); padding: 0.5rem 1rem;
-            border-radius: var(--border-radius-sm); cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-light);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
             transition: all var(--duration-fast) var(--transition-smooth);
             font-size: 0.9rem;
         }
-
         .lyrics-toggle:hover {
-            background: rgba(255, 255, 255, 0.2); color: var(--white);
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--white);
             transform: translateY(-2px);
         }
-
         .lyrics-wrapper {
-            position: relative; height: 300px; overflow: hidden;
+            position: relative;
+            height: 300px;
+            overflow: hidden;
             mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
             -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
             transition: height var(--duration-normal) var(--transition-smooth);
         }
-
         .lyrics-lines {
-            position: absolute; width: 100%;
+            position: absolute;
+            width: 100%;
             transition: transform 0.3s var(--transition-smooth);
         }
-
         .lyrics-line {
-            padding: 1rem 2rem; text-align: center;
-            color: var(--text-muted); font-size: 1.1rem;
-            line-height: 1.6; transition: all 0.4s var(--transition-bounce);
-            cursor: pointer; opacity: 0.7; transform: scale(0.95);
+            padding: 1rem 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            transition: all 0.4s var(--transition-bounce);
+            cursor: pointer;
+            opacity: 0.7;
+            transform: scale(0.95);
             user-select: none;
             position: relative;
         }
-
         .lyrics-line:hover {
-            color: var(--text-light); background: rgba(255, 255, 255, 0.03);
+            color: var(--text-light);
+            background: rgba(255, 255, 255, 0.03);
             border-radius: var(--border-radius);
             transform: scale(0.98);
         }
-
         .lyrics-line.active {
-            color: var(--white); font-size: 1.3rem; font-weight: 600;
-            opacity: 1; transform: scale(1);
+            color: var(--white);
+            font-size: 1.3rem;
+            font-weight: 600;
+            opacity: 1;
+            transform: scale(1);
             text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
         }
-
         .lyrics-line.active::before {
-            content: '♪'; position: absolute; left: 1rem;
-            color: var(--accent); animation: pulse 1s ease-in-out infinite;
+            content: '♪';
+            position: absolute;
+            left: 1rem;
+            color: var(--accent);
+            animation: pulse 1s ease-in-out infinite;
         }
-
         .lyrics-line.active::after {
-            content: '♪'; position: absolute; right: 1rem;
-            color: var(--accent); animation: pulse 1s ease-in-out infinite;
+            content: '♪';
+            position: absolute;
+            right: 1rem;
+            color: var(--accent);
+            animation: pulse 1s ease-in-out infinite;
         }
-
         .lyrics-progress {
-            position: absolute; bottom: 0; left: 0; right: 0;
-            height: 3px; background: rgba(255, 255, 255, 0.1);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
             overflow: hidden;
         }
-
         .lyrics-progress-bar {
-            height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent));
-            width: 0%; transition: width 0.1s linear;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            width: 0%;
+            transition: width 0.1s linear;
             box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
         }
-
         .lyrics-status {
-            display: flex; justify-content: center; align-items: center;
-            padding: 1rem; color: var(--text-muted); font-size: 0.9rem;
-            gap: 0.5rem; transition: all var(--duration-fast) var(--transition-smooth);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            gap: 0.5rem;
+            transition: all var(--duration-fast) var(--transition-smooth);
         }
-
         .lyrics-status i {
-            font-size: 1.1rem; transition: all var(--duration-fast) var(--transition-smooth);
+            font-size: 1.1rem;
+            transition: all var(--duration-fast) var(--transition-smooth);
         }
-
-        .lyrics-status.loading i { animation: fa-spin 1s linear infinite; }
-        .lyrics-status.error { color: var(--danger); }
-        .lyrics-status.success { color: var(--success); }
-
+        .lyrics-status.loading i {
+            animation: fa-spin 1s linear infinite;
+        }
+        .lyrics-status.error {
+            color: var(--danger);
+        }
+        .lyrics-status.success {
+            color: var(--success);
+        }
         .lyrics-container.collapsed {
             transform: translateY(calc(100% - 60px)) scale(0.98);
             box-shadow: var(--shadow-md);
             opacity: 0.9;
         }
-
         .lyrics-container.collapsed .lyrics-wrapper {
             height: 0;
             opacity: 0;
         }
-
-        .lyrics-container.collapsed .lyrics-progress { opacity: 0; }
-        .lyrics-container.collapsed .lyrics-status { padding: 0.5rem; }
-
-        @media (max-width: 768px) {
-            .lyrics-container {
-                margin: 1rem auto;
-                border-radius: var(--border-radius);
-            }
-            .lyrics-wrapper { height: 250px; }
-            .lyrics-line {
-                padding: 0.8rem 1.5rem;
-                font-size: 1rem;
-            }
-            .lyrics-line.active { font-size: 1.1rem; }
-            .lyrics-line.active::before, .lyrics-line.active::after { display: none; }
-            .lyrics-title { font-size: 1.1rem; }
-            .lyrics-toggle {
-                padding: 0.4rem 0.8rem;
-                font-size: 0.8rem;
-            }
+        .lyrics-container.collapsed .lyrics-progress {
+            opacity: 0;
+        }
+        .lyrics-container.collapsed .lyrics-status {
+            padding: 0.5rem;
         }
 
-        @media (max-width: 480px) {
-            .lyrics-wrapper { height: 200px; }
-            .lyrics-line {
-                padding: 0.6rem 1rem;
-                font-size: 0.9rem;
-            }
-            .lyrics-line.active { font-size: 1rem; }
-        }
-
-        .music-button.lyrics-active {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            animation: musicPulse 2s ease-in-out infinite;
-        }
-
-        .music-button.lyrics-active:hover {
-            box-shadow: var(--shadow-xl), 0 0 30px rgba(102, 126, 234, 0.6);
-        }
-
+        /* ---------- 关于我们 / 历史 ---------- */
         .history-content {
-            display: flex; flex-direction: column;
-            align-items: center; padding: var(--spacing-lg) 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--spacing-lg) 0;
             min-height: calc(100vh - 300px);
         }
-
         .history-container {
-            max-width: 900px; margin: 0 auto;
-            padding: var(--spacing-lg) 0; width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: var(--spacing-lg) 0;
+            width: 100%;
         }
-
+        .history-banner {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+            padding: var(--spacing-lg);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 800px;
+        }
+        .history-banner-icon {
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: var(--spacing-md);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .history-banner-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: var(--spacing-sm);
+        }
+        .history-banner-subtitle {
+            color: var(--text-light);
+            font-size: 1rem;
+        }
         .current-version-banner {
             margin-bottom: var(--spacing-xl);
             padding: var(--spacing-lg);
-            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius-lg);
             box-shadow: var(--shadow-lg);
             width: 100%;
             max-width: 800px;
             margin-left: auto;
             margin-right: auto;
         }
-
         .current-version-header {
-            display: flex; justify-content: space-between;
-            align-items: center; margin-bottom: var(--spacing-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
             padding-bottom: var(--spacing-sm);
             border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
-            flex-wrap: wrap; gap: var(--spacing-sm);
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
         }
-
         .current-version-title {
-            font-size: 1.4rem; font-weight: 700; color: var(--warning);
-            display: flex; align-items: center; gap: var(--spacing-xs);
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--warning);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
         }
-
-        .current-version-title i { animation: fa-spin 2s linear infinite; }
-
+        .current-version-title i {
+            animation: fa-spin 2s linear infinite;
+        }
         .current-version-badge {
-            font-size: 0.9rem; font-weight: 600; color: var(--white);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--white);
             background: linear-gradient(135deg, var(--warning), var(--accent));
-            padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--border-radius-sm);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
             box-shadow: var(--shadow-sm);
             animation: pulse 2s ease-in-out infinite;
         }
-
         .current-version-text {
-            display: flex; align-items: center; gap: var(--spacing-sm);
-            color: var(--text-light); font-size: 0.95rem; line-height: 1.5;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: var(--text-light);
+            font-size: 0.95rem;
+            line-height: 1.5;
         }
-
         .history-timeline {
-            position: relative; padding-left: var(--spacing-lg);
+            position: relative;
+            padding-left: var(--spacing-lg);
             margin-left: auto;
             margin-right: auto;
             max-width: 800px;
         }
-
         .history-timeline::before {
             content: '';
-            position: absolute; left: 0; top: 0;
-            height: 100%; width: 3px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
             background: linear-gradient(to bottom, var(--primary), var(--accent));
             border-radius: 2px;
         }
-
         .history-item {
-            position: relative; margin-bottom: var(--spacing-xl);
-            opacity: 0; transform: translateX(-20px);
+            position: relative;
+            margin-bottom: var(--spacing-xl);
+            opacity: 0;
+            transform: translateX(-20px);
             animation: slideInLeft 0.6s var(--transition-smooth) forwards;
         }
-
         @keyframes slideInLeft {
-            to { opacity: 1; transform: translateX(0); }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
-
         .history-item::before {
             content: '';
-            position: absolute; left: -2.5rem; top: 1.5rem;
-            width: 16px; height: 16px; background: var(--primary);
-            border: 3px solid var(--dark); border-radius: 50%;
-            box-shadow: 0 0 10px var(--primary); z-index: 1;
+            position: absolute;
+            left: -2.5rem;
+            top: 1.5rem;
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border: 3px solid var(--dark);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--primary);
+            z-index: 1;
             transition: all var(--duration-normal) var(--transition-bounce);
         }
-
         .history-item:hover::before {
             transform: scale(1.2);
             box-shadow: 0 0 15px var(--accent);
             background: var(--accent);
         }
-
         .history-card {
-            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
-            padding: var(--spacing-lg); transition: all var(--duration-normal) var(--transition-bounce);
-            position: relative; overflow: hidden; box-shadow: var(--shadow-md);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg);
+            transition: all var(--duration-normal) var(--transition-bounce);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
             width: 100%;
             display: flex;
             flex-direction: column;
             gap: var(--spacing-sm);
         }
-
         .history-card:hover {
             transform: translateX(10px) scale(1.02);
             box-shadow: var(--shadow-xl), var(--shadow-glow);
             border-color: rgba(102, 126, 234, 0.3);
         }
-
         .history-header {
-            display: flex; justify-content: space-between;
-            align-items: center; margin-bottom: var(--spacing-sm);
-            flex-wrap: wrap; gap: var(--spacing-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
         }
-
         .history-date {
-            font-size: 1.1rem; font-weight: 600; color: var(--accent);
-            display: flex; align-items: center; gap: var(--spacing-xs);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
         }
-
         .history-date i {
-            font-size: 0.9rem; color: var(--primary);
+            font-size: 0.9rem;
+            color: var(--primary);
         }
-
         .history-version {
-            font-size: 1.2rem; font-weight: 700; color: var(--white);
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--white);
             background: linear-gradient(135deg, var(--primary), var(--secondary));
-            padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--border-radius-sm);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
             box-shadow: var(--shadow-sm);
             letter-spacing: 0.5px;
         }
-
         .history-changes {
-            list-style: none; padding-left: 0; margin: var(--spacing-sm) 0 0 0;
+            list-style: none;
+            padding-left: 0;
+            margin: var(--spacing-sm) 0 0 0;
         }
-
         .history-change {
-            padding: var(--spacing-xs) 0; color: var(--text-light);
-            position: relative; padding-left: var(--spacing-md);
-            font-size: 0.95rem; line-height: 1.5;
+            padding: var(--spacing-xs) 0;
+            color: var(--text-light);
+            position: relative;
+            padding-left: var(--spacing-md);
+            font-size: 0.95rem;
+            line-height: 1.5;
         }
-
         .history-change::before {
-            content: '•'; position: absolute; left: 0;
-            color: var(--primary); font-weight: bold; font-size: 1.2rem;
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.2rem;
         }
-
         .history-change:not(:last-child) {
             border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
         }
-
-        .history-banner {
-            text-align: center; margin-bottom: var(--spacing-xl);
-            padding: var(--spacing-lg);
-            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-lg);
-            box-shadow: var(--shadow-lg);
-            margin-left: auto;
-            margin-right: auto;
-            max-width: 800px;
-        }
-
-        .history-banner-icon {
-            font-size: 3rem; color: var(--accent);
-            margin-bottom: var(--spacing-md);
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        .history-banner-title {
-            font-size: 1.8rem; font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            margin-bottom: var(--spacing-sm);
-        }
-
-        .history-banner-subtitle {
-            color: var(--text-light); font-size: 1rem;
-        }
-
         .feedback-section {
             margin-top: var(--spacing-xl);
             padding: 0 var(--spacing-md);
@@ -1077,84 +958,177 @@
             margin-right: auto;
         }
 
-        @media (max-width: 768px) {
-            .history-timeline { padding-left: var(--spacing-md); }
-            .history-item::before { left: -2rem; }
-            .history-banner {
-                margin: 0 var(--spacing-sm) var(--spacing-lg);
-                padding: var(--spacing-md);
+        /* ---------- 音乐播放器 ---------- */
+        .music-player {
+            position: fixed;
+            bottom: var(--spacing-lg);
+            right: var(--spacing-lg);
+            z-index: 999;
+            opacity: 0;
+            transform: scale(0);
+            transition: all var(--duration-slow) var(--transition-bounce);
+        }
+        .music-player.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .music-button {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--white);
+            font-size: 1.5rem;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--duration-normal) var(--transition-bounce);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .music-button:hover {
+            transform: scale(1.1) rotate(10deg);
+            box-shadow: var(--shadow-xl), var(--shadow-glow);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .music-button:active {
+            transform: scale(0.95);
+        }
+        .music-button.playing {
+            animation: musicPulse 2s ease-in-out infinite;
+        }
+        @keyframes musicPulse {
+            0%,
+            100% {
+                box-shadow: var(--shadow-lg), 0 0 0 0 rgba(102, 126, 234, 0.4);
             }
-            .history-banner-title { font-size: 1.5rem; }
-            .history-banner-icon { font-size: 2.5rem; }
-            .current-version-banner { margin: 0 var(--spacing-sm) var(--spacing-lg); }
-            .history-card { padding: var(--spacing-md); }
-            .history-header { flex-direction: column; align-items: flex-start; }
-            .history-version { align-self: flex-start; }
-        }
-
-        @media (max-width: 480px) {
-            .history-timeline { padding-left: var(--spacing-sm); }
-            .history-item::before { left: -1.8rem; }
-            .history-date { font-size: 1rem; }
-            .history-version { font-size: 1.1rem; }
-        }
-
-        .ua-android { color: var(--warning); }
-        .ua-ios { color: var(--success); }
-
-        .mode-selector-modal {
-            position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(26, 26, 46, 0.95); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl); max-width: 400px;
-            width: 90%; z-index: 4000; box-shadow: var(--shadow-xl);
-        }
-
-        .mode-selector-modal h3 {
-            color: var(--white); text-align: center; margin-bottom: var(--spacing-lg);
-        }
-
-        .mode-btn {
-            width: 100%; padding: var(--spacing-md); margin-bottom: var(--spacing-sm);
-            border: none; border-radius: var(--border-radius); font-weight: 600;
-            cursor: pointer; transition: all var(--duration-fast) var(--transition-bounce);
-        }
-
-        .mode-btn.performance {
-            background: linear-gradient(135deg, var(--primary), var(--accent)); color: white;
-        }
-
-        .mode-btn.compatibility {
-            background: rgba(255, 255, 255, 0.08); color: var(--text-light);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-
-        .mode-btn:hover { transform: translateY(-3px) scale(1.02); }
-        .mode-btn.performance:hover { box-shadow: var(--shadow-glow); }
-
-        body.compatibility-mode #particles-canvas,
-        body.compatibility-mode .music-player,
-        body.compatibility-mode .lyrics-container {
-            display: none !important;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
+            50% {
+                box-shadow: var(--shadow-xl), 0 0 0 10px rgba(102, 126, 234, 0);
             }
         }
-
-        .download-content {
-            display: flex; flex-direction: column;
-            align-items: center; padding: var(--spacing-lg) 0;
+        .music-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            opacity: 0;
+            transition: all var(--duration-normal) var(--transition-smooth);
+            z-index: -1;
+        }
+        .music-button:hover::before {
+            opacity: 0.3;
+        }
+        .music-button.lyrics-active {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            animation: musicPulse 2s ease-in-out infinite;
+        }
+        .music-button.lyrics-active:hover {
+            box-shadow: var(--shadow-xl), 0 0 30px rgba(102, 126, 234, 0.6);
         }
 
-        .settings-modal { max-width: 500px; width: 90%; }
-        .settings-body { padding: 1.5rem 0; }
+        /* ---------- 模态框 ---------- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--duration-normal) var(--transition-smooth);
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: scale(0.8) translateY(50px);
+            transition: all var(--duration-slow) var(--transition-bounce);
+            position: relative;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: var(--spacing-xs);
+            border-radius: var(--border-radius-sm);
+            transition: all var(--duration-fast) var(--transition-smooth);
+        }
+        .modal-close:hover {
+            color: var(--white);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .modal-body {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+        .modal-body h4 {
+            color: var(--white);
+            margin-bottom: var(--spacing-sm);
+            font-size: 1.1rem;
+        }
+        .modal-body p {
+            margin-bottom: var(--spacing-md);
+        }
+        .modal-footer {
+            margin-top: var(--spacing-lg);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
 
+        /* ---------- 设置 ---------- */
+        .settings-modal {
+            max-width: 500px;
+            width: 90%;
+        }
+        .settings-body {
+            padding: 1.5rem 0;
+        }
         .setting-item {
             display: flex;
             align-items: center;
@@ -1166,19 +1140,16 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all var(--duration-normal) var(--transition-bounce);
         }
-
         .setting-item:hover {
             background: rgba(255, 255, 255, 0.08);
             transform: translateX(5px);
             box-shadow: var(--shadow-md);
         }
-
         .setting-info {
             display: flex;
             align-items: center;
             gap: 1rem;
         }
-
         .setting-icon {
             width: 50px;
             height: 50px;
@@ -1192,26 +1163,23 @@
             box-shadow: var(--shadow-sm);
             transition: all var(--duration-fast) var(--transition-bounce);
         }
-
         .setting-item:hover .setting-icon {
             transform: scale(1.1) rotate(10deg);
             box-shadow: var(--shadow-glow);
         }
-
-        .setting-text { flex: 1; }
-
+        .setting-text {
+            flex: 1;
+        }
         .setting-title {
             font-size: 1.1rem;
             font-weight: 600;
             color: var(--white);
             margin-bottom: 0.25rem;
         }
-
         .setting-description {
             font-size: 0.85rem;
             color: var(--text-light);
         }
-
         .toggle-switch {
             position: relative;
             width: 140px;
@@ -1219,13 +1187,11 @@
             cursor: pointer;
             user-select: none;
         }
-
         .toggle-switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
-
         .toggle-slider {
             position: absolute;
             inset: 0;
@@ -1241,7 +1207,6 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: var(--shadow-sm);
         }
-
         .toggle-slider::before {
             content: '';
             position: absolute;
@@ -1255,17 +1220,14 @@
             box-shadow: var(--shadow-md);
             z-index: 2;
         }
-
-        .toggle-switch input:checked + .toggle-slider::before {
+        .toggle-switch input:checked+.toggle-slider::before {
             transform: translateX(95px);
             background: linear-gradient(135deg, var(--accent), var(--primary));
         }
-
-        .toggle-switch input:checked + .toggle-slider {
+        .toggle-switch input:checked+.toggle-slider {
             background: rgba(102, 126, 234, 0.2);
             border-color: rgba(102, 126, 234, 0.3);
         }
-
         .toggle-label {
             font-size: 0.75rem;
             font-weight: 600;
@@ -1275,17 +1237,20 @@
             padding: 0.25rem 0.5rem;
             border-radius: var(--border-radius-sm);
         }
-
-        .toggle-label.performance { color: var(--success); }
-        .toggle-label.compatibility { color: var(--warning); }
-
-        .toggle-switch input:not(:checked) + .toggle-slider .performance,
-        .toggle-switch input:checked + .toggle-slider .compatibility {
+        .toggle-label.performance {
+            color: var(--success);
+        }
+        .toggle-label.compatibility {
+            color: var(--warning);
+        }
+        .toggle-switch input:not(:checked)+.toggle-slider .performance,
+        .toggle-switch input:checked+.toggle-slider .compatibility {
             background: rgba(255, 255, 255, 0.15);
             color: var(--white);
             transform: scale(1.05);
         }
 
+        /* ---------- 过渡遮罩 ---------- */
         .transition-overlay {
             position: fixed;
             top: 0;
@@ -1302,46 +1267,191 @@
             transition: all var(--duration-normal) var(--transition-smooth);
             backdrop-filter: blur(20px);
         }
-
         .transition-overlay.active {
             opacity: 1;
             visibility: visible;
         }
-
         .transition-content {
             text-align: center;
-            background: var(--card-bg);
             padding: 2rem;
             border-radius: var(--border-radius-lg);
-            border: 1px solid var(--border-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: var(--shadow-xl);
         }
-
         .transition-spinner {
             width: 60px;
             height: 60px;
-            border: 4px solid var(--border-color);
+            border: 4px solid rgba(255, 255, 255, 0.1);
             border-top: 4px solid var(--primary);
             border-radius: 50%;
             animation: spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
             margin: 0 auto 1rem;
         }
-
         .transition-text {
-            color: var(--text-primary);
+            color: var(--text);
             font-size: 1.2rem;
             font-weight: 600;
         }
-
-        #settingsMenuItem i {
-            transition: all var(--duration-fast) var(--transition-bounce);
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
-        #settingsMenuItem:hover i {
-            transform: rotate(30deg) scale(1.2);
+        /* ---------- footer ---------- */
+        footer {
+            background: var(--darkest);
+            color: rgba(255, 255, 255, 0.8);
+            padding: var(--spacing-lg) clamp(1rem, 5vw, 2rem);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin-top: auto;
+        }
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 0%, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+        }
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            transition: all var(--duration-normal) var(--transition-smooth);
+        }
+        .footer-content:hover {
+            color: var(--white);
+            transform: translateY(-2px);
         }
 
+        /* ---------- 响应式 ---------- */
         @media (max-width: 768px) {
+            .nav-menu {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 70px);
+                background: rgba(26, 26, 46, 0.95);
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                padding-top: var(--spacing-xl);
+                transition: left 0.5s var(--transition-bounce);
+                backdrop-filter: blur(20px);
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .nav-menu li {
+                width: 80%;
+                text-align: center;
+                padding: var(--spacing-md);
+                margin: var(--spacing-xs) 0;
+                border-radius: var(--border-radius);
+                transition: all var(--duration-normal) var(--transition-smooth);
+            }
+            .nav-menu li:hover {
+                background: rgba(102, 126, 234, 0.1);
+                transform: translateX(5px);
+            }
+            .nav-menu li::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            .nav-menu.active {
+                left: 0;
+            }
+            .mobile-toggle {
+                display: flex;
+            }
+            .hero {
+                margin: var(--spacing-xs) auto;
+                padding: clamp(1.5rem, 5vw, 3rem) clamp(1rem, 4vw, 1.5rem);
+            }
+            #beijingTime {
+                font-size: clamp(1.8rem, 6vw, 2.5rem);
+            }
+            .time-date {
+                font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            }
+            .uptime-display {
+                font-size: clamp(0.8rem, 2vw, 0.95rem);
+                padding: var(--spacing-xs) var(--spacing-sm);
+            }
+            .ua-display {
+                font-size: clamp(0.8rem, 2vw, 0.95rem);
+                padding: var(--spacing-xs) var(--spacing-sm);
+            }
+            .stn-studio-display {
+                padding: 0.8rem 1.5rem;
+                font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+            }
+            .modal-content {
+                width: 95%;
+                padding: var(--spacing-lg);
+                margin: var(--spacing-md);
+            }
+            .lyrics-container {
+                margin: 1rem auto;
+                border-radius: var(--border-radius);
+            }
+            .lyrics-wrapper {
+                height: 250px;
+            }
+            .lyrics-line {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+            .lyrics-line.active {
+                font-size: 1.1rem;
+            }
+            .lyrics-line.active::before,
+            .lyrics-line.active::after {
+                display: none;
+            }
+            .lyrics-title {
+                font-size: 1.1rem;
+            }
+            .lyrics-toggle {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+            .history-timeline {
+                padding-left: var(--spacing-md);
+            }
+            .history-item::before {
+                left: -2rem;
+            }
+            .history-banner {
+                margin: 0 var(--spacing-sm) var(--spacing-lg);
+                padding: var(--spacing-md);
+            }
+            .history-banner-title {
+                font-size: 1.5rem;
+            }
+            .history-banner-icon {
+                font-size: 2.5rem;
+            }
+            .current-version-banner {
+                margin: 0 var(--spacing-sm) var(--spacing-lg);
+            }
+            .history-card {
+                padding: var(--spacing-md);
+            }
+            .history-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .history-version {
+                align-self: flex-start;
+            }
             .settings-modal {
                 width: 95%;
                 margin: 1rem;
@@ -1351,13 +1461,171 @@
                 gap: 1rem;
                 align-items: flex-start;
             }
-            .toggle-switch { align-self: flex-end; }
+            .toggle-switch {
+                align-self: flex-end;
+            }
+        }
+        @media (max-width: 480px) {
+            .page {
+                padding: var(--spacing-sm);
+            }
+            .hero {
+                padding: clamp(1.2rem, 4vw, 2.5rem) clamp(0.5rem, 3vw, 1rem);
+            }
+            #beijingTime {
+                font-size: clamp(1.6rem, 5vw, 2.2rem);
+            }
+            .time-date {
+                font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            }
+            .uptime-display {
+                font-size: clamp(0.75rem, 2vw, 0.9rem);
+            }
+            .ua-display {
+                font-size: clamp(0.8rem, 2vw, 0.95rem);
+            }
+            .stn-studio-display {
+                padding: 0.6rem 1.2rem;
+                font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            }
+            .lyrics-wrapper {
+                height: 200px;
+            }
+            .lyrics-line {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+            .lyrics-line.active {
+                font-size: 1rem;
+            }
+            .history-timeline {
+                padding-left: var(--spacing-sm);
+            }
+            .history-item::before {
+                left: -1.8rem;
+            }
+            .history-date {
+                font-size: 1rem;
+            }
+            .history-version {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* ---------- 滚动条 ---------- */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--dark);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--primary), var(--accent));
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(var(--primary-dark), var(--accent-secondary));
+        }
+        ::selection {
+            background: rgba(102, 126, 234, 0.3);
+            color: var(--white);
+        }
+        *:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+        .stagger-fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: staggerFadeIn 0.6s var(--transition-bounce) forwards;
+        }
+        @keyframes staggerFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        body.compatibility-mode #particles-canvas,
+        body.compatibility-mode .music-player,
+        body.compatibility-mode .lyrics-container {
+            display: none !important;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        #settingsMenuItem i {
+            transition: all var(--duration-fast) var(--transition-bounce);
+        }
+        #settingsMenuItem:hover i {
+            transform: rotate(30deg) scale(1.2);
+        }
+    </style>
+
+    <!-- ===== 优化2：UA 检测前置 - 同步执行，立即显示 ===== -->
+    <script>
+        // 极速 UA 检测 —— 在 head 中同步执行，不阻塞渲染
+        (function() {
+            var ua = navigator.userAgent.toLowerCase();
+            var type = 'PC',
+                icon = 'fa-desktop',
+                cls = 'ua-pc';
+            if (/iphone|ipad|ipod/.test(ua)) {
+                type = 'IOS';
+                icon = 'fa-mobile-alt';
+                cls = 'ua-ios';
+            } else if (/android/.test(ua)) {
+                type = '安卓手机端';
+                icon = 'fa-android';
+                cls = 'ua-android';
+            } else if (/micromessenger/.test(ua)) {
+                type = '微信端';
+                icon = 'fa-comment-dots';
+                cls = 'ua-wechat';
+            } else if (/qq\//.test(ua) || /qqbrowser/.test(ua) || /qqapp/.test(ua)) {
+                type = 'QQ端';
+                icon = 'fa-comment';
+                cls = 'ua-qq';
+            } else if (/windows|macintosh|linux/.test(ua) && !/mobile/.test(ua)) {
+                type = 'PC';
+                icon = 'fa-desktop';
+                cls = 'ua-pc';
+            } else if (/mobile|tablet/.test(ua)) {
+                type = '手机端';
+                icon = 'fa-mobile-alt';
+                cls = 'ua-mobile';
+            }
+            // 暂存到全局，等DOM就绪后渲染
+            window._uaInfo = { type: type, icon: icon, cls: cls };
+        })();
+    </script>
+
+    <!-- ===== 优化3：Font Awesome 异步加载（不阻塞渲染） ===== -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    </noscript>
+
+    <style>
+        /* 备胎：Font Awesome 加载完成前用纯文本占位 */
+        .fa,
+        .fas,
+        .far,
+        .fal,
+        .fab {
+            font-family: 'Font Awesome 6 Free', 'Font Awesome 6 Brands', sans-serif;
         }
     </style>
 </head>
 <body>
+
+    <!-- ===== 粒子画布 ===== -->
     <canvas id="particles-canvas"></canvas>
 
+    <!-- ===== 导航栏 ===== -->
     <nav class="navbar" id="navbar">
         <div class="navbar-container">
             <div class="logo">
@@ -1367,9 +1635,8 @@
             <ul class="nav-menu" id="navMenu">
                 <li data-page="home" class="active">首页</li>
                 <li data-page="history">关于我们</li>
-                <li onclick="window.open('https://stn2a.github.io', '_blank')">作业网页版</li>
-                <li data-page="download">下载客户端</li>
                 <li data-page="settings" id="settingsMenuItem"><i class="fas fa-cog"></i> 设置</li>
+                <li onclick="window.open('https://stn2a.github.io', '_blank')">作业网页版</li>
             </ul>
             <button class="mobile-toggle" id="mobileToggle" aria-label="打开菜单">
                 <i class="fas fa-bars"></i>
@@ -1378,7 +1645,10 @@
         </div>
     </nav>
 
+    <!-- ===== 页面容器 ===== -->
     <div class="page-content">
+
+        <!-- 首页 -->
         <div class="page active" data-page="home" id="page-home">
             <section class="hero">
                 <div class="hero-content">
@@ -1393,12 +1663,11 @@
                         <i class="fas fa-device ua-icon" id="uaIcon"></i>
                         <span id="uaText">当前访问UA: …</span>
                     </div>
-                    <div class="stn-studio-display">
-                        STNStudio
-                    </div>
+                    <div class="stn-studio-display">STNStudio</div>
                 </div>
             </section>
-            
+
+            <!-- 歌词容器（默认折叠） -->
             <div class="lyrics-container collapsed" id="lyricsContainer">
                 <div class="lyrics-header">
                     <div class="lyrics-title">
@@ -1410,16 +1679,12 @@
                         <span>展开</span>
                     </button>
                 </div>
-                
                 <div class="lyrics-wrapper">
-                    <div class="lyrics-lines" id="lyricsLines">
-                    </div>
+                    <div class="lyrics-lines" id="lyricsLines"></div>
                 </div>
-                
                 <div class="lyrics-progress">
                     <div class="lyrics-progress-bar" id="lyricsProgressBar"></div>
                 </div>
-                
                 <div class="lyrics-status" id="lyricsStatus">
                     <i class="fas fa-info-circle"></i>
                     <span>点击音乐按钮开始播放</span>
@@ -1427,55 +1692,26 @@
             </div>
         </div>
 
-        <div class="page" data-page="announcement" id="page-announcement">
-            <div class="announcement-content">
-                <div class="content-section">
-                    <div class="feature-card stagger-fade-in">
-                        <div class="feature-icon">
-                            <i class="fas fa-bullhorn"></i>
-                        </div>
-                        <h3 class="feature-title">公告</h3>
-                        <p class="feature-description">下滑导航栏可以下载客户端</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <!-- 关于我们 -->
         <div class="page" data-page="history" id="page-history">
             <div class="history-content">
                 <div class="history-container">
                     <div class="history-banner stagger-fade-in">
-                        <div class="history-banner-icon">
-                            <i class="fas fa-code-branch"></i>
-                        </div>
+                        <div class="history-banner-icon"><i class="fas fa-code-branch"></i></div>
                         <h2 class="history-banner-title">关于我们</h2>
                         <p class="history-banner-subtitle">记录每一次进步的足迹</p>
                     </div>
-                    
-                    <div class="current-version-banner stagger-fade-in" style="animation-delay: 0.1s">
+                    <div class="current-version-banner stagger-fade-in" style="animation-delay:0.1s">
                         <div class="current-version-header">
-                            <div class="current-version-title">
-                                <i class="fas fa-sync-alt"></i>
-                                全新客户端版本
-                            </div>
-                            <div class="current-version-badge">
-                                Version2.3
-                            </div>
+                            <div class="current-version-title"><i class="fas fa-sync-alt"></i> 全新客户端版本</div>
+                            <div class="current-version-badge">Version2.3</div>
                         </div>
-                        <div class="current-version-text">
-                            <i class="fas fa-cog fa-spin"></i>
-                            请下载客户端
-                        </div>
+                        <div class="current-version-text"><i class="fas fa-cog fa-spin"></i> 请下载客户端</div>
                     </div>
-
-                    <div class="history-timeline" id="historyTimeline">
-                    </div>
-                    
+                    <div class="history-timeline" id="historyTimeline"></div>
                     <div class="feedback-section">
                         <div class="feature-card stagger-fade-in">
-                            <div class="feature-icon">
-                                <i class="fas fa-comment-dots"></i>
-                            </div>
+                            <div class="feature-icon"><i class="fas fa-comment-dots"></i></div>
                             <h3 class="feature-title">用户反馈</h3>
                             <p class="feature-description">您的意见对我们很重要，欢迎通过腾讯问卷提交反馈</p>
                             <button class="modal-button" onclick="window.open('https://docs.qq.com/form/page/DT0hkWkRCYXNvcHFm', '_blank')">
@@ -1487,73 +1723,47 @@
             </div>
         </div>
 
-        <div class="page" data-page="download" id="page-download">
-            <div class="download-content">
-                <div class="content-section">
-                    <div class="feature-card stagger-fade-in">
-                        <div class="feature-icon">
-                            <i class="fas fa-download"></i>
-                        </div>
-                        <h3 class="feature-title">下载安卓客户端</h3>
-                        <p class="feature-description">点击下方按钮获取最新版本的安卓客户端</p>
-                        <button class="modal-button" onclick="window.open('https://job-manager-artifacts-online.cdn.miaoda.online/prod/artifacts/d63ecc9b-c615-4ebf-8487-d0f6e03c4da3/%E7%9F%A5%E9%9B%A8.apk', '_blank')">
-                            <i class="fas fa-download"></i> 立即下载
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="page" data-page="settings" id="page-settings" style="display: none;">
-        </div>
+        <!-- 设置页（由JS控制显示） -->
+        <div class="page" data-page="settings" id="page-settings" style="display:none;"></div>
     </div>
 
+    <!-- ===== 音乐播放器 ===== -->
     <div class="music-player" id="musicPlayer">
         <button class="music-button" id="musicButton" aria-label="播放/暂停音乐">
             <i class="fas fa-play" id="musicIcon"></i>
         </button>
     </div>
 
+    <!-- ===== 音频元素（preload="metadata" 仅加载元数据，大幅提速） ===== -->
     <audio id="bgMusic" loop preload="metadata">
         <source src="music.mp3" type="audio/mpeg">
     </audio>
 
+    <!-- ===== 模态框 ===== -->
     <div class="modal-overlay" id="homeworkModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title" id="modalTitle">
-                    <i class="fas fa-book"></i>
-                    <span id="modalSubject">作业详情</span>
-                </h3>
-                <button class="modal-close" id="modalClose">
-                    <i class="fas fa-times"></i>
-                </button>
+                <h3 class="modal-title"><i class="fas fa-book"></i> <span id="modalSubject">作业详情</span></h3>
+                <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body" id="modalBody">
-            </div>
+            <div class="modal-body" id="modalBody"></div>
             <div class="modal-footer">
                 <button class="modal-button" id="modalButton">知道了</button>
             </div>
         </div>
     </div>
 
+    <!-- ===== 设置模态框 ===== -->
     <div class="modal-overlay" id="settingsModal">
         <div class="modal-content settings-modal">
             <div class="modal-header">
-                <h3 class="modal-title">
-                    <i class="fas fa-cog"></i>
-                    <span>设置</span>
-                </h3>
-                <button class="modal-close" id="settingsClose">
-                    <i class="fas fa-times"></i>
-                </button>
+                <h3 class="modal-title"><i class="fas fa-cog"></i> <span>设置</span></h3>
+                <button class="modal-close" id="settingsClose"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body settings-body">
                 <div class="setting-item">
                     <div class="setting-info">
-                        <div class="setting-icon">
-                            <i class="fas fa-rocket"></i>
-                        </div>
+                        <div class="setting-icon"><i class="fas fa-rocket"></i></div>
                         <div class="setting-text">
                             <div class="setting-title">性能模式</div>
                             <div class="setting-description">切换高性能或兼容模式</div>
@@ -1571,6 +1781,7 @@
         </div>
     </div>
 
+    <!-- ===== 过渡遮罩 ===== -->
     <div class="transition-overlay" id="transitionOverlay">
         <div class="transition-content">
             <div class="transition-spinner"></div>
@@ -1578,1274 +1789,752 @@
         </div>
     </div>
 
+    <!-- ===== Footer ===== -->
     <footer>
         <div class="footer-content">
-            <p>&copy; 2025-2026 最终解释权 GLcn | STNStudio </p>
+            <p>&copy; 2025-2026 最终解释权 GLcn | STNStudio</p>
         </div>
     </footer>
 
-    <script>
-        class EnhancedParticleNetwork {
-            constructor() {
-                this.canvas = document.getElementById('particles-canvas');
-                this.ctx = this.canvas.getContext('2d');
-                this.layers = { background: [], middle: [], foreground: [] };
-                this.mouse = { x: -1000, y: -1000 };
-                this.mouseTrail = [];
-                this.lastMouseTime = 0;
-                this.animationId = null;
-                this.lastFrameTime = 0;
-                this.frameCount = 0;
-                this.fps = 0;
-                this.targetFPS = 60;
-                this.isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                this.isPerformanceMode = document.body.classList.contains('performance-mode');
-                this.particleConfig = this.isPerformanceMode ? {
-                    background: { count: 40, speed: 0.3, size: [1.5, 2.5], opacity: [0.2, 0.4], color: '#7c5aa0' },
-                    middle: { count: 50, speed: 0.8, size: [2, 3], opacity: [0.4, 0.6], color: '#6d7aea' },
-                    foreground: { count: 30, speed: 1.5, size: [3, 4], opacity: [0.6, 0.8], color: '#ec8bf7' }
-                } : {
-                    background: { count: 20, speed: 0.2, size: [1, 2], opacity: [0.1, 0.3], color: '#7c5aa0' },
-                    middle: { count: 30, speed: 0.5, size: [1.5, 2.5], opacity: [0.3, 0.5], color: '#6d7aea' },
-                    foreground: { count: 15, speed: 1.0, size: [2, 3], opacity: [0.5, 0.7], color: '#ec8bf7' }
-                };
-                
-                this.init();
-                this.createParticles();
-                this.animate();
-                this.bindEvents();
+    <!-- ============================================================ -->
+    <!-- ===== 优化4：主脚本 defer 加载，不阻塞 HTML 解析 ===== -->
+    <script defer>
+        // =================================================================
+        // 1. 立即渲染 UA（利用预存的 _uaInfo）
+        // =================================================================
+        (function renderUA() {
+            var info = window._uaInfo || { type: 'PC', icon: 'fa-desktop', cls: 'ua-pc' };
+            var uaText = document.getElementById('uaText');
+            var uaIcon = document.getElementById('uaIcon');
+            if (uaText) uaText.textContent = '当前访问UA：' + info.type;
+            if (uaIcon) {
+                uaIcon.className = 'fas ' + info.icon + ' ua-icon ' + info.cls;
             }
-            
-            init() {
-                this.resizeCanvas();
-                window.addEventListener('resize', () => {
-                    this.resizeCanvas();
-                    this.createParticles();
-                });
-                
-                setInterval(() => {
-                    this.fps = this.frameCount;
-                    this.frameCount = 0;
-                    this.adjustParticleCount();
-                }, 1000);
-            }
-            
-            resizeCanvas() {
-                this.canvas.width = window.innerWidth;
-                this.canvas.height = window.innerHeight;
-            }
-            
-            createParticles() {
-                this.layers = { background: [], middle: [], foreground: [] };
-                
-                Object.keys(this.layers).forEach(layerName => {
-                    const config = this.particleConfig[layerName];
-                    const count = Math.min(config.count, Math.floor((window.innerWidth * window.innerHeight) / 15000));
-                    
-                    for (let i = 0; i < count; i++) {
-                        this.layers[layerName].push({
-                            x: Math.random() * this.canvas.width,
-                            y: Math.random() * this.canvas.height,
-                            vx: (Math.random() - 0.5) * config.speed * 0.5,
-                            vy: (Math.random() - 0.5) * config.speed * 0.5,
-                            radius: config.size[0] + Math.random() * (config.size[1] - config.size[0]),
-                            opacity: config.opacity[0] + Math.random() * (config.opacity[1] - config.opacity[0]),
-                            color: config.color,
-                            trail: [],
-                            glowIntensity: 0,
-                            breathOffset: Math.random() * Math.PI * 2
-                        });
-                    }
-                });
-            }
-            
-            adjustParticleCount() {
-                if (!this.isPerformanceMode) return;
-                if (this.fps < 45 && this.layers.foreground.length > 10) {
-                    this.layers.foreground = this.layers.foreground.slice(0, -5);
-                } else if (this.fps > 55 && this.layers.foreground.length < this.particleConfig.foreground.count) {
-                    this.createParticles();
-                }
-            }
-            
-            bindEvents() {
-                const updateMouse = (e) => {
-                    this.mouse.x = e.clientX;
-                    this.mouse.y = e.clientY;
-                    const now = Date.now();
-                    if (now - this.lastMouseTime > 30) {
-                        this.mouseTrail.push({ x: e.clientX, y: e.clientY, time: now });
-                        this.lastMouseTime = now;
-                        if (this.mouseTrail.length > 8) this.mouseTrail.shift();
-                    }
-                };
+        })();
 
-                window.addEventListener('mousemove', updateMouse);
-                window.addEventListener('touchmove', (e) => {
-                    if (e.touches.length > 0) updateMouse(e.touches[0]);
-                });
-                
-                window.addEventListener('click', (e) => {
-                    if (this.isPerformanceMode) this.createClickEffect(e.clientX, e.clientY);
-                });
-                
-                window.addEventListener('mouseleave', () => {
-                    this.mouse.x = -1000;
-                    this.mouse.y = -1000;
-                    this.mouseTrail = [];
-                });
-                
-                document.addEventListener('visibilitychange', () => {
-                    if (document.hidden) this.stop();
-                    else this.start();
-                });
+        // =================================================================
+        // 2. 运行时间（纯本地计算，零延迟）
+        // =================================================================
+        (function updateUptimeNow() {
+            var start = new Date('2025-12-18T18:00:00');
+            var now = new Date();
+            var diff = now - start;
+            var days = Math.floor(diff / 86400000);
+            var hours = Math.floor((diff % 86400000) / 3600000);
+            var minutes = Math.floor((diff % 3600000) / 60000);
+            var seconds = Math.floor((diff % 60000) / 1000);
+            var el = document.getElementById('uptimeText');
+            if (el) {
+                el.textContent = '运行时间：' + days + '天 ' + hours + '小时 ' + minutes + '分钟 ' + seconds + '秒';
             }
-            
-            createClickEffect(x, y) {
-                for (let layer = 0; layer < 3; layer++) {
-                    const particleCount = 6 + layer * 6;
-                    const speed = 4 - layer * 1.2;
-                    const color = layer === 0 ? '#ec8bf7' : layer === 1 ? '#6d7aea' : '#7c5aa0';
-                    
-                    for (let i = 0; i < particleCount; i++) {
-                        const angle = (Math.PI * 2 / particleCount) * i + Math.random() * 0.3;
-                        this.layers.foreground.push({
-                            x: x + Math.random() * 20 - 10,
-                            y: y + Math.random() * 20 - 10,
-                            vx: Math.cos(angle) * speed,
-                            vy: Math.sin(angle) * speed,
-                            radius: 2 + Math.random() * 2,
-                            opacity: 0.9,
-                            color: color,
-                            life: 40 + layer * 10,
-                            isEffect: true
-                        });
-                    }
+        })();
+
+        // =================================================================
+        // 3. 北京时间（先用本地时间，后台异步同步）
+        // =================================================================
+        (function initBeijingTime() {
+            var timeEl = document.getElementById('beijingTime');
+            var dateEl = document.getElementById('beijingDate');
+
+            function updateLocal() {
+                var d = new Date();
+                if (timeEl) {
+                    timeEl.textContent = d.toLocaleTimeString('zh-CN', { hour12: false, hour: '2-digit', minute: '2-digit',
+                        second: '2-digit' });
+                }
+                if (dateEl) {
+                    dateEl.textContent = d.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric',
+                        weekday: 'long' });
                 }
             }
-            
-            animate() {
-                if (this.isReducedMotion) {
-                    this.animationId = setTimeout(() => this.animate(), 100);
-                } else {
-                    this.animationId = requestAnimationFrame(() => this.animate());
-                }
+            updateLocal();
 
-                const now = Date.now();
-                if (now - this.lastFrameTime < (1000 / this.targetFPS) && !this.isReducedMotion) return;
-                this.lastFrameTime = now;
-                this.frameCount++;
+            // 每秒更新
+            setInterval(updateLocal, 1000);
 
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                
-                if (this.mouseTrail.length > 1 && this.isPerformanceMode) {
-                    this.ctx.strokeStyle = 'rgba(102, 126, 234, 0.3)';
-                    this.ctx.lineWidth = 2;
-                    this.ctx.beginPath();
-                    this.mouseTrail.forEach((point, index) => {
-                        if (index === 0) this.ctx.moveTo(point.x, point.y);
-                        else this.ctx.lineTo(point.x, point.y);
-                    });
-                    this.ctx.stroke();
-                }
-                
-                ['background', 'middle', 'foreground'].forEach((layerName, layerIndex) => {
-                    const particles = this.layers[layerName];
-                    const layerMultiplier = (layerIndex + 1) * 0.5;
-                    
-                    particles.forEach((particle, i) => {
-                        if (particle.isEffect) {
-                            particle.life--;
-                            if (particle.life <= 0) {
-                                particles.splice(i, 1);
-                                return;
+            // 后台异步同步北京时间（不阻塞首屏）
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(function() {
+                    syncBeijingTime();
+                });
+            } else {
+                setTimeout(syncBeijingTime, 100);
+            }
+
+            function syncBeijingTime() {
+                fetch('https://worldtimeapi.org/api/timezone/Asia/Shanghai', { cache: 'no-cache', signal: AbortSignal
+                        .timeout(3000) })
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        var serverTime = new Date(data.datetime).getTime();
+                        var offset = serverTime - Date.now();
+                        // 用更精确的时间更新
+                        setInterval(function() {
+                            var d = new Date(Date.now() + offset);
+                            if (timeEl) {
+                                timeEl.textContent = d.toLocaleTimeString('zh-CN', { hour12: false, hour: '2-digit',
+                                    minute: '2-digit', second: '2-digit' });
                             }
-                            particle.vx *= 0.95;
-                            particle.vy *= 0.95;
-                            particle.opacity = particle.life / 60 * 0.8;
-                        }
-                        
-                        const breathScale = 1 + Math.sin(Date.now() * 0.003 + particle.breathOffset) * 0.1;
-                        const currentRadius = particle.radius * breathScale;
-                        
-                        const dx = this.mouse.x - particle.x;
-                        const dy = this.mouse.y - particle.y;
-                        const distance = Math.sqrt(dx * dx + dy * dy);
-                        const influenceRange = 120 + layerIndex * 30;
-                        
-                        if (distance < influenceRange && distance > 0) {
-                            const force = (1 - distance / influenceRange) * 0.02 * layerMultiplier;
-                            const angle = Math.atan2(dy, dx);
-                            
-                            if (distance < 30) {
-                                particle.vx -= Math.cos(angle) * force * 3;
-                                particle.vy -= Math.sin(angle) * force * 3;
-                                particle.glowIntensity = 1.0;
-                            } else if (distance < 80) {
-                                particle.vx += Math.cos(angle) * force;
-                                particle.vy += Math.sin(angle) * force;
-                                particle.glowIntensity = 0.6;
-                            } else {
-                                particle.vx += Math.cos(angle) * force * 0.3;
-                                particle.vy += Math.sin(angle) * force * 0.3;
-                                particle.glowIntensity = 0.3;
+                            if (dateEl) {
+                                dateEl.textContent = d.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long',
+                                    day: 'numeric', weekday: 'long' });
                             }
-                        } else {
-                            particle.glowIntensity *= 0.95;
-                        }
-                        
-                        particle.x += particle.vx;
-                        particle.y += particle.vy;
-                        
-                        if (particle.x < currentRadius || particle.x > this.canvas.width - currentRadius) {
-                            particle.vx *= -0.8;
-                            particle.x = Math.max(currentRadius, Math.min(this.canvas.width - currentRadius, particle.x));
-                        }
-                        if (particle.y < currentRadius || particle.y > this.canvas.height - currentRadius) {
-                            particle.vy *= -0.8;
-                            particle.y = Math.max(currentRadius, Math.min(this.canvas.height - currentRadius, particle.y));
-                        }
-                        
-                        if (this.isPerformanceMode) {
-                            particle.trail.push({ x: particle.x, y: particle.y });
-                            if (particle.trail.length > 8) particle.trail.shift();
-                        }
-                        
-                        this.ctx.save();
-                        
-                        if (particle.trail && particle.trail.length > 1) {
-                            particle.trail.forEach((pos, j) => {
-                                this.ctx.globalAlpha = (j / particle.trail.length) * particle.opacity * 0.3;
-                                this.ctx.fillStyle = particle.color;
-                                this.ctx.beginPath();
-                                this.ctx.arc(pos.x, pos.y, currentRadius * (j / particle.trail.length), 0, Math.PI * 2);
-                                this.ctx.fill();
-                            });
-                        }
-                        
-                        this.ctx.globalAlpha = particle.opacity;
-                        this.ctx.fillStyle = particle.color;
-                        
-                        if (this.isPerformanceMode && particle.glowIntensity > 0.1) {
-                            this.ctx.shadowBlur = 15 * particle.glowIntensity;
-                            this.ctx.shadowColor = particle.color + Math.floor(particle.opacity * 255).toString(16).padStart(2, '0');
-                        }
-                        
-                        this.ctx.beginPath();
-                        this.ctx.arc(particle.x, particle.y, currentRadius, 0, Math.PI * 2);
-                        this.ctx.fill();
-                        
-                        this.ctx.restore();
-                    });
-                    
-                    if (this.isPerformanceMode && layerName === 'middle') {
-                        this.drawConnections(particles, 80);
+                        }, 1000);
+                    })['catch'](function() { /* 静默降级到本地时间 */ });
+            }
+        })();
+
+        // =================================================================
+        // 4. 音乐加载（极简：直接使用 music.mp3，preload="metadata"）
+        // =================================================================
+        (function setupMusic() {
+            var audio = document.getElementById('bgMusic');
+            var btn = document.getElementById('musicButton');
+            var icon = document.getElementById('musicIcon');
+            var status = document.getElementById('lyricsStatus');
+
+            // 预加载元数据后更新状态
+            if (audio) {
+                audio.addEventListener('loadedmetadata', function() {
+                    if (status) {
+                        status.innerHTML = '<i class="fas fa-check-circle"></i> <span>音乐已加载</span>';
+                        status.className = 'lyrics-status success';
                     }
                 });
-            }
-            
-            drawConnections(particles, maxDistance) {
-                this.ctx.strokeStyle = 'rgba(102, 126, 234, 0.4)';
-                this.ctx.lineWidth = 1;
-                
-                for (let i = 0; i < particles.length; i++) {
-                    for (let j = i + 1; j < particles.length; j++) {
-                        const dx = particles[j].x - particles[i].x;
-                        const dy = particles[j].y - particles[i].y;
-                        const distance = Math.sqrt(dx * dx + dy * dy);
-                        
-                        if (distance < maxDistance) {
-                            const opacity = (maxDistance - distance) / maxDistance * 0.4;
-                            this.ctx.globalAlpha = opacity;
-                            this.ctx.beginPath();
-                            this.ctx.moveTo(particles[i].x, particles[i].y);
-                            this.ctx.lineTo(particles[j].x, particles[j].y);
-                            this.ctx.stroke();
-                        }
+                audio.addEventListener('error', function() {
+                    if (status) {
+                        status.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span>音乐加载失败，请检查文件</span>';
+                        status.className = 'lyrics-status error';
+                    }
+                });
+                // 如果已经加载完成（缓存）
+                if (audio.readyState >= 2) {
+                    if (status) {
+                        status.innerHTML = '<i class="fas fa-check-circle"></i> <span>音乐已加载</span>';
+                        status.className = 'lyrics-status success';
                     }
                 }
             }
-            
-            start() {
-                if (!this.animationId) this.animate();
-            }
-            
-            stop() {
-                if (this.animationId) {
-                    if (this.isReducedMotion) clearTimeout(this.animationId);
-                    else cancelAnimationFrame(this.animationId);
-                    this.animationId = null;
-                }
-            }
-            
-            destroy() { this.stop(); }
-        }
 
-        function detectUA() {
-            const ua = navigator.userAgent.toLowerCase();
-            const uaDisplay = document.getElementById('uaDisplay');
-            const uaIcon = document.getElementById('uaIcon');
-            const uaText = document.getElementById('uaText');
-            
-            let deviceType = '';
-            let iconClass = '';
-            let deviceClass = '';
-            
-            if (/iphone|ipad|ipod/.test(ua)) {
-                deviceType = 'IOS';
-                iconClass = 'fa-mobile-alt';
-                deviceClass = 'ua-ios';
-            }
-            else if (/android/.test(ua)) {
-                deviceType = '安卓手机端';
-                iconClass = 'fa-android';
-                deviceClass = 'ua-android';
-            }
-            else if (/micromessenger/.test(ua)) {
-                deviceType = '微信端';
-                iconClass = 'fa-comment-dots';
-                deviceClass = 'ua-wechat';
-            }
-            else if (/qq\//.test(ua) || /qqbrowser/.test(ua) || /qqapp/.test(ua)) {
-                deviceType = 'QQ端';
-                iconClass = 'fa-comment';
-                deviceClass = 'ua-qq';
-            }
-            else if (/windows|macintosh|linux/.test(ua) && !/mobile/.test(ua)) {
-                deviceType = 'PC';
-                iconClass = 'fa-desktop';
-                deviceClass = 'ua-pc';
-            }
-            else if (/mobile|tablet/.test(ua)) {
-                deviceType = '手机端';
-                iconClass = 'fa-mobile-alt';
-                deviceClass = 'ua-mobile';
-            }
-            else {
-                deviceType = 'PC';
-                iconClass = 'fa-desktop';
-                deviceClass = 'ua-pc';
-            }
-            
-            uaText.textContent = `当前访问UA：${deviceType}`;
-            uaIcon.className = `fas ${iconClass} ua-icon ${deviceClass}`;
-            uaDisplay.style.animation = 'fadeInUp 0.8s ease-out 1s both';
-        }
-
-        function updateUptime() {
-            const startTime = new Date('2025-12-18T18:00:00');
-            const now = new Date();
-            const diff = now - startTime;
-            
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-            
-            const uptimeText = document.getElementById('uptimeText');
-            if (uptimeText) {
-                uptimeText.textContent = `运行时间：${days}天 ${hours}小时 ${minutes}分钟 ${seconds}秒`;
-            }
-        }
-
-        const updateHistory = [
-            { date: '2026-3-5', version: 'Version2.1', changes: ['新版本'] },
-            { date: '2026-1-29', version: 'Version2.0', changes: ['春节版本'] },
-            { date: '2026-1-22', version: 'Version1.9', changes: ['测试春节版本'] },
-            { date: '2026-1-10', version: '公众号计划', changes: ['STcnAGLcn'] },
-            { date: '2026-1-7', version: 'Version1.8', changes: ['设置更新'] },
-            { date: '2026-1-5', version: 'Version1.7', changes: ['粒子模型优化'] },
-            { date: '2026-1-4', version: 'Version1.65', changes: ['显示优化'] },
-            { date: '2025-12-31', version: 'Version1.65', changes: ['UI优化，播放器优化，模式可选'] },
-            { date: '2025-12-30', version: 'Version1.5', changes: ['动画粒子大优化，提高体验'] },
-            { date: '2025-12-29', version: 'Version1.4', changes: ['音乐播放逻辑优化', '优化网页加载', '更新app版本（无黑边）'] },
-            { date: '2025-12-29', version: 'Version1.3', changes: ['新增安卓客户端', '更新下载链接', '优化播放逻辑'] },
-            { date: '2025-12-25', version: 'Version1.26', changes: ['哈希算法修改', '新增端侧省流（Lazy Loading策略）省流量'] },
-            { date: '2025-12-25', version: 'Version1.24', changes: ['导航栏优化'] },
-            { date: '2025-12-24', version: 'Version1.19', changes: ['API北京时间修复'] },
-            { date: '2025-12-24', version: 'Version1.17', changes: ['修复安全访问问题'] },
-            { date: '2025-12-23', version: 'Version1.15', changes: ['新增安全时间'] },
-            { date: '2025-12-23', version: 'Version1.14', changes: ['修改优化过渡动画'] },
-            { date: '2025-12-22', version: 'Version1.12', changes: ['新增测试码功能'] },
-            { date: '2025-12-21', version: 'Version1.1', changes: ['新增歌词Lrc显示'] },
-            { date: '2025-12-21', version: 'Version1.09', changes: ['新增音乐播放器'] },
-            { date: '2025-12-21', version: 'Version1.07', changes: ['粒子版本上线'] },
-            { date: '2025-12-20', version: 'Version1.05', changes: ['UI优化大版本'] },
-            { date: '2025-12-18', version: 'Version1.0', changes: ['18:00正式测试'] }
-        ];
-
-        class PerformanceModeManager {
-            constructor() {
-                this.mode = this.getStoredMode() || 'performance';
-            }
-            
-            setMode(mode) {
-                this.mode = mode;
-                localStorage.setItem('performanceMode', mode);
-                this.applyMode(mode);
-            }
-            
-            applyMode(mode) {
-                const body = document.body;
-                if (mode === 'compatibility') {
-                    body.classList.remove('performance-mode');
-                    body.classList.add('compatibility-mode');
-                    if (window.particleNetwork) window.particleNetwork.stop();
-                } else {
-                    body.classList.remove('compatibility-mode');
-                    body.classList.add('performance-mode');
-                    if (window.particleNetwork) window.particleNetwork.start();
-                }
-            }
-            
-            getStoredMode() {
-                return localStorage.getItem('performanceMode');
-            }
-        }
-
-        class SettingsSystem {
-            constructor() {
-                this.settingsModal = document.getElementById('settingsModal');
-                this.settingsClose = document.getElementById('settingsClose');
-                this.performanceToggle = document.getElementById('performanceToggle');
-                this.transitionOverlay = document.getElementById('transitionOverlay');
-                
-                this.init();
-            }
-            
-            init() {
-                this.settingsClose.addEventListener('click', () => this.hide());
-                this.settingsModal.addEventListener('click', (e) => {
-                    if (e.target === this.settingsModal) this.hide();
-                });
-                
-                this.performanceToggle.addEventListener('change', (e) => {
-                    this.showTransition(() => {
-                        const mode = e.target.checked ? 'performance' : 'compatibility';
-                        modeManager.setMode(mode);
-                        this.performanceToggle.checked = mode === 'performance';
-                    });
-                });
-                
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape' && this.settingsModal.classList.contains('active')) {
-                        this.hide();
-                    }
-                });
-            }
-            
-            show() {
-                this.performanceToggle.checked = document.body.classList.contains('performance-mode');
-                this.settingsModal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-            
-            hide() {
-                this.settingsModal.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-            
-            showTransition(callback) {
-                this.transitionOverlay.classList.add('active');
-                setTimeout(() => {
-                    callback();
-                    setTimeout(() => {
-                        this.transitionOverlay.classList.remove('active');
-                    }, 600);
-                }, 400);
-            }
-        }
-
-        function setupNavigation() {
-            document.querySelectorAll('.nav-menu li[data-page]').forEach(item => {
-                item.addEventListener('click', () => {
-                    if (item.dataset.page === 'settings') {
-                        settingsSystem.show();
+            // 播放/暂停
+            if (btn && audio) {
+                btn.addEventListener('click', function() {
+                    if (audio.paused) {
+                        audio.play()['catch'](function() { /* 静默 */ });
                     } else {
-                        navigateTo(item.dataset.page);
+                        audio.pause();
                     }
                 });
-            });
-        }
 
-        function navigateTo(pageName) {
-            const currentPage = document.querySelector('.page.active');
-            const targetPage = document.getElementById(`page-${pageName}`);
-            
-            if (currentPage === targetPage) return;
-            
-            document.body.style.overflow = 'hidden';
-            document.querySelectorAll('.page').forEach(page => {
-                page.style.pointerEvents = 'none';
-                page.style.display = 'none';
-            });
-            
-            currentPage.classList.add('fade-out');
-            
-            setTimeout(() => {
-                document.querySelectorAll('.page').forEach(page => {
-                    page.classList.remove('active');
-                    page.classList.remove('fade-out');
+                audio.addEventListener('play', function() {
+                    icon.className = 'fas fa-pause';
+                    btn.classList.add('playing');
+                    btn.classList.add('lyrics-active');
                 });
-                
-                if (targetPage) {
-                    targetPage.style.display = 'block';
-                    targetPage.style.pointerEvents = 'auto';
-                    setTimeout(() => {
-                        targetPage.classList.add('active');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        document.body.style.overflow = '';
-                        setTimeout(() => {
-                            applyStaggerAnimation();
-                        }, 100);
-                    }, 10);
-                }
-            }, 250);
-            
-            document.querySelectorAll('.nav-menu li').forEach(li => li.classList.remove('active'));
-            document.querySelector(`.nav-menu li[data-page="${pageName}"]`)?.classList.add('active');
-            
-            document.getElementById('navMenu').classList.remove('active');
-            const icon = document.querySelector('#mobileToggle i');
-            icon.classList.add('fa-bars');
-            icon.classList.remove('fa-times');
-        }
-
-        function renderUpdateHistory() {
-            const timeline = document.getElementById('historyTimeline');
-            if (!timeline) return;
-
-            timeline.innerHTML = updateHistory.map((item, index) => `
-                <div class="history-item stagger-fade-in" style="animation-delay: ${(index + 1) * 0.1}s">
-                    <div class="history-card">
-                        <div class="history-header">
-                            <div class="history-date">
-                                <i class="fas fa-calendar-alt"></i>
-                                ${item.date}
-                            </div>
-                            <div class="history-version">
-                                ${item.version}
-                            </div>
-                        </div>
-                        <ul class="history-changes">
-                            ${item.changes.map(change => `
-                                <li class="history-change">${change}</li>
-                            `).join('')}
-                        </ul>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function setupMobileMenu() {
-            const mobileToggle = document.getElementById('mobileToggle');
-            const navMenu = document.getElementById('navMenu');
-            
-            mobileToggle.addEventListener('click', () => {
-                navMenu.classList.toggle('active');
-                const icon = mobileToggle.querySelector('i');
-                icon.classList.toggle('fa-bars');
-                icon.classList.toggle('fa-times');
-            });
-            
-            navMenu.querySelectorAll('li').forEach(item => {
-                item.addEventListener('click', () => {
-                    navMenu.classList.remove('active');
-                    const icon = mobileToggle.querySelector('i');
-                    icon.classList.add('fa-bars');
-                    icon.classList.remove('fa-times');
+                audio.addEventListener('pause', function() {
+                    icon.className = 'fas fa-play';
+                    btn.classList.remove('playing');
+                    btn.classList.remove('lyrics-active');
                 });
-            });
-        }
-
-        function setupModal() {
-            const modalOverlay = document.getElementById('homeworkModal');
-            const modalClose = document.getElementById('modalClose');
-            const modalButton = document.getElementById('modalButton');
-
-            modalClose.addEventListener('click', hideHomeworkModal);
-            modalButton.addEventListener('click', hideHomeworkModal);
-            
-            modalOverlay.addEventListener('click', (e) => {
-                if (e.target === modalOverlay) hideHomeworkModal();
-            });
-
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
-                    hideHomeworkModal();
-                }
-            });
-        }
-
-        function showHomeworkModal(subject) {
-            hideHomeworkModal();
-        }
-
-        function hideHomeworkModal() {
-            const modalOverlay = document.getElementById('homeworkModal');
-            modalOverlay.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        class MusicLoader {
-            constructor() {
-                this.supportedFormats = [
-                    { ext: 'mp3', type: 'audio/mpeg' },
-                    { ext: 'aac', type: 'audio/aac' },
-                    { ext: 'm4a', type: 'audio/mp4' },
-                    { ext: 'ogg', type: 'audio/ogg' },
-                    { ext: 'wav', type: 'audio/wav' },
-                    { ext: 'flac', type: 'audio/flac' }
-                ];
-                this.foundMusic = null;
-            }
-            
-            async detectMusic() {
-                const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
-                const namePatterns = ['music', 'bgm', 'background', 'audio'];
-                
-                for (const name of namePatterns) {
-                    for (const format of this.supportedFormats) {
-                        const url = `${basePath}${name}.${format.ext}`;
-                        try {
-                            const result = await this.checkFile(url, format);
-                            if (result) {
-                                this.foundMusic = result;
-                                return result;
-                            }
-                        } catch (e) { continue; }
-                    }
-                }
-                return null;
-            }
-            
-            checkFile(url, format) {
-                return new Promise((resolve, reject) => {
-                    const audio = new Audio();
-                    let resolved = false;
-                    
-                    const onCanPlay = () => {
-                        if (!resolved) { resolved = true; resolve({ url, format }); }
-                    };
-                    const onError = () => {
-                        if (!resolved) { resolved = true; reject(null); }
-                    };
-                    const timeout = setTimeout(() => {
-                        if (!resolved) { resolved = true; reject(null); }
-                    }, 3000);
-                    
-                    audio.addEventListener('canplaythrough', onCanPlay, { once: true });
-                    audio.addEventListener('error', onError, { once: true });
-                    audio.src = url;
-                    audio.load();
+                audio.addEventListener('ended', function() {
+                    icon.className = 'fas fa-play';
+                    btn.classList.remove('playing');
+                    btn.classList.remove('lyrics-active');
                 });
             }
-            
-            updateAudioElement(audio) {
-                if (!this.foundMusic) return false;
-                audio.innerHTML = '';
-                const source = document.createElement('source');
-                source.src = this.foundMusic.url;
-                source.type = this.foundMusic.format.type;
-                audio.appendChild(source);
-                return true;
-            }
-        }
 
-        async function initializeMusicPlayer() {
-            const musicLoader = new MusicLoader();
-            await musicLoader.detectMusic();
-            
-            const audio = document.getElementById('bgMusic');
-            const statusElement = document.getElementById('lyricsStatus');
-            const updated = musicLoader.updateAudioElement(audio);
-            
-            if (statusElement) {
-                if (updated) {
-                    statusElement.innerHTML = `<i class="fas fa-check-circle"></i> <span>音乐已加载</span>`;
-                    statusElement.className = 'lyrics-status success';
-                } else {
-                    statusElement.innerHTML = `<i class="fas fa-info-circle"></i> <span>使用默认音乐文件</span>`;
-                }
-            }
-            
-            setupMusicPlayer();
-        }
+            // 显示播放器
+            var player = document.getElementById('musicPlayer');
+            if (player) player.classList.add('show');
+        })();
 
-        function setupMusicPlayer() {
-            const musicButton = document.getElementById('musicButton');
-            const musicIcon = document.getElementById('musicIcon');
-            const bgMusic = document.getElementById('bgMusic');
-            const statusElement = document.getElementById('lyricsStatus');
-            
-            let isPlaying = false;
-            let mediaSessionSupported = false;
-            
-            const updateButtonState = (state) => {
-                switch(state) {
-                    case 'loading':
-                        musicIcon.className = 'fas fa-spinner fa-spin';
-                        musicButton.disabled = true;
-                        break;
-                    case 'ready':
-                        musicIcon.className = 'fas fa-play';
-                        musicButton.disabled = false;
-                        break;
-                    case 'error':
-                        musicIcon.className = 'fas fa-exclamation-triangle';
-                        musicButton.disabled = true;
-                        if(statusElement) {
-                            statusElement.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span>音乐文件加载失败</span>';
-                            statusElement.className = 'lyrics-status error';
-                        }
-                        break;
-                    case 'playing':
-                        musicIcon.className = 'fas fa-pause';
-                        musicButton.classList.add('playing');
-                        break;
-                    case 'paused':
-                        musicIcon.className = 'fas fa-play';
-                        musicButton.classList.remove('playing');
-                        break;
-                }
-            };
-            
-            bgMusic.addEventListener('progress', () => {
-                if (bgMusic.readyState >= 2 && !isPlaying) updateButtonState('ready');
-            });
-            
-            musicButton.addEventListener('click', () => {
-                if (!isPlaying) {
-                    bgMusic.play().then(() => {
-                        isPlaying = true;
-                        updateButtonState('playing');
-                    }).catch(e => {
-                        updateButtonState('error');
-                    });
-                } else {
-                    bgMusic.pause();
-                    isPlaying = false;
-                    updateButtonState('paused');
-                }
-                updateMediaSessionState();
-            });
-            
-            bgMusic.addEventListener('ended', () => {
-                isPlaying = false;
-                updateButtonState('paused');
-                updateMediaSessionState();
-            });
-            
-            bgMusic.addEventListener('loadedmetadata', () => {
-                if(statusElement) {
-                    statusElement.innerHTML = `<i class="fas fa-check-circle"></i> <span>音乐已加载：${bgMusic.duration.toFixed(1)}秒</span>`;
-                }
-                setupMediaSession();
-            });
-            
-            bgMusic.addEventListener('error', () => {
-                statusElement?.classList.add('error');
-            });
-            
-            bgMusic.loop = true;
-            
-            function setupMediaSession() {
-                if ('mediaSession' in navigator) {
-                    mediaSessionSupported = true;
-                    navigator.mediaSession.metadata = new MediaMetadata({
-                        title: 'STNStudio背景音乐',
-                        artist: 'GLcn',
-                        album: '网页播放器',
-                        artwork: [
-                            { src: 'https://raw.githubusercontent.com/glcn26/glcn26.github.io/main/musiclogo.jpg', sizes: '512x512', type: 'image/jpeg' }
-                        ]
-                    });
-                    
-                    navigator.mediaSession.setActionHandler('play', () => {
-                        if (!isPlaying) musicButton.click();
-                    });
-                    
-                    navigator.mediaSession.setActionHandler('pause', () => {
-                        if (isPlaying) musicButton.click();
-                    });
-                }
-            }
-            
-            function updateMediaSessionState() {
-                if (!mediaSessionSupported || !navigator.mediaSession) return;
-                navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
-            }
-        }
+        // =================================================================
+        // 5. 歌词系统（延迟加载，仅在用户展开时请求）
+        // =================================================================
+        (function setupLyrics() {
+            var container = document.getElementById('lyricsContainer');
+            var toggle = document.getElementById('lyricsToggle');
+            var linesEl = document.getElementById('lyricsLines');
+            var progressBar = document.getElementById('lyricsProgressBar');
+            var statusEl = document.getElementById('lyricsStatus');
+            var titleEl = document.getElementById('lyricsTitle');
+            var audio = document.getElementById('bgMusic');
+            var isCollapsed = true;
+            var lyrics = [];
+            var currentIndex = -1;
+            var loaded = false;
 
-        class ServerTimeManager {
-            constructor() {
-                this.serverTimeOffset = 0;
-                this.lastSyncTime = 0;
-                this.isInitialized = false;
-            }
-            
-            async fetchBeijingTime() {
-                try {
-                    const apis = [
-                        'https://worldtimeapi.org/api/timezone/Asia/Shanghai',
-                        'https://api.github.com'
-                    ];
-                    
-                    for (let api of apis) {
-                        try {
-                            const response = await fetch(api, { 
-                                method: 'GET',
-                                cache: 'no-cache',
-                                signal: AbortSignal.timeout(5000)
-                            });
-                            
-                            if (api.includes('worldtimeapi')) {
-                                const data = await response.json();
-                                const serverTime = new Date(data.datetime).getTime();
-                                return serverTime;
-                            } else {
-                                const dateString = response.headers.get('Date');
-                                const serverTime = new Date(dateString).getTime();
-                                return serverTime;
-                            }
-                        } catch (e) { continue; }
-                    }
-                    throw new Error('所有时间API均不可用');
-                } catch (error) {
-                    return null;
-                }
-            }
-            
-            async syncTime() {
-                const startTime = Date.now();
-                const serverTime = await this.fetchBeijingTime();
-                const endTime = Date.now();
-                
-                if (serverTime) {
-                    const networkDelay = (endTime - startTime) / 2;
-                    this.serverTimeOffset = (serverTime + networkDelay) - Date.now();
-                    this.lastSyncTime = Date.now();
-                    this.isInitialized = true;
-                    return true;
-                }
-                return false;
-            }
-            
-            getBeijingTime() {
-                return this.isInitialized ? new Date(Date.now() + this.serverTimeOffset) : new Date();
-            }
-            
-            shouldResync() {
-                return Date.now() - this.lastSyncTime > 5 * 60 * 1000;
-            }
-        }
-        
-        const serverTimeManager = new ServerTimeManager();
-        
-        function updateBeijingTime() {
-            const beijingTime = serverTimeManager.getBeijingTime();
-            
-            const timeString = beijingTime.toLocaleTimeString('zh-CN', { 
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            const dateString = beijingTime.toLocaleDateString('zh-CN', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                weekday: 'long'
-            });
-            
-            const timeElement = document.getElementById('beijingTime');
-            const dateElement = document.getElementById('beijingDate');
-            
-            if (timeElement && dateElement) {
-                timeElement.textContent = timeString;
-                dateElement.textContent = dateString;
-                timeElement.style.opacity = serverTimeManager.isInitialized ? '1' : '0.6';
-            }
-        }
-
-        function setupScrollEffects() {
-            let lastScrollTop = 0;
-            const navbar = document.getElementById('navbar');
-            
-            window.addEventListener('scroll', () => {
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                if (scrollTop > lastScrollTop && scrollTop > 100) {
-                    navbar.style.transform = 'translateY(-100%)';
-                } else {
-                    navbar.style.transform = 'translateY(0)';
-                }
-                lastScrollTop = scrollTop;
-            }, { passive: true });
-        }
-
-        function applyStaggerAnimation() {
-            const cards = document.querySelectorAll('.stagger-fade-in');
-            cards.forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.1}s`;
-                card.classList.add('fadeInUp');
-            });
-        }
-
-        class LyricParser {
-            constructor() {
-                this.lyrics = [];
-                this.title = '';
-                this.artist = '';
-                this.album = '';
-            }
-            
-            parse(lrcContent) {
-                this.lyrics = [];
-                const lines = lrcContent.split('\n');
-                
-                lines.forEach(line => {
-                    const metaMatch = line.match(/^\[(ti|ar|al):(.+)\]$/i);
-                    if (metaMatch) {
-                        const [, key, value] = metaMatch;
-                        switch(key.toLowerCase()) {
-                            case 'ti': this.title = value; break;
-                            case 'ar': this.artist = value; break;
-                            case 'al': this.album = value; break;
-                        }
-                    }
-                });
-                
-                lines.forEach(line => {
-                    const timeMatches = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/g);
-                    const textMatch = line.match(/\].*$/);
-                    
-                    if (timeMatches && textMatch) {
-                        const text = textMatch[0].substring(1).trim();
-                        timeMatches.forEach(timeMatch => {
-                            const [, min, sec, ms] = timeMatch.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/);
-                            const time = parseInt(min) * 60 + parseInt(sec) + parseInt(ms) / (ms.length === 2 ? 100 : 1000);
-                            this.lyrics.push({ time, text });
-                        });
-                    }
-                });
-                
-                this.lyrics.sort((a, b) => a.time - b.time);
-                return {
-                    lyrics: this.lyrics,
-                    title: this.title,
-                    artist: this.artist,
-                    album: this.album
-                };
-            }
-        }
-
-        class LyricDisplay {
-            constructor() {
-                this.lyrics = [];
-                this.currentIndex = -1;
-                this.container = document.getElementById('lyricsContainer');
-                this.linesContainer = document.getElementById('lyricsLines');
-                this.progressBar = document.getElementById('lyricsProgressBar');
-                this.status = document.getElementById('lyricsStatus');
-                this.toggle = document.getElementById('lyricsToggle');
-                this.title = document.getElementById('lyricsTitle');
-                this.isCollapsed = true;
-                this.isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                
-                this.setupToggle();
-                this.bindEvents();
-            }
-            
-            setupToggle() {
-                this.toggle.addEventListener('click', () => {
-                    this.isCollapsed = !this.isCollapsed;
-                    this.container.classList.toggle('collapsed');
-                    
-                    const icon = this.toggle.querySelector('i');
-                    const text = this.toggle.querySelector('span');
-                    
-                    if (this.isCollapsed) {
+            // 折叠切换
+            if (toggle) {
+                toggle.addEventListener('click', function() {
+                    isCollapsed = !isCollapsed;
+                    container.classList.toggle('collapsed');
+                    var icon = toggle.querySelector('i');
+                    var text = toggle.querySelector('span');
+                    if (isCollapsed) {
                         icon.className = 'fas fa-chevron-up';
                         text.textContent = '展开';
                     } else {
                         icon.className = 'fas fa-chevron-down';
                         text.textContent = '收起';
+                        // 首次展开时加载歌词
+                        if (!loaded) loadLyrics();
                     }
                 });
             }
-            
-            bindEvents() {
-                this.linesContainer.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('lyrics-line')) {
-                        const index = parseInt(e.target.dataset.index);
-                        if (index >= 0 && this.lyrics[index]) {
-                            this.seekToTime(this.lyrics[index].time);
+
+            function loadLyrics() {
+                if (loaded) return;
+                loaded = true;
+                if (statusEl) {
+                    statusEl.innerHTML = '<i class="fas fa-spinner"></i> <span>加载歌词中...</span>';
+                    statusEl.className = 'lyrics-status loading';
+                }
+                fetch('歌词.lrc', { cache: 'no-cache', signal: AbortSignal.timeout(5000) })
+                    .then(function(res) {
+                        if (!res.ok) throw new Error('歌词文件不存在');
+                        return res.text();
+                    })
+                    .then(function(text) {
+                        parseLrc(text);
+                        if (statusEl) {
+                            statusEl.innerHTML = '<i class="fas fa-check-circle"></i> <span>歌词加载成功</span>';
+                            statusEl.className = 'lyrics-status success';
                         }
-                    }
-                });
-            }
-            
-            async loadLyrics(url) {
-                this.showStatus('loading', '正在加载歌词...');
-                
-                try {
-                    const controller = new AbortController();
-                    const timeout = setTimeout(() => controller.abort(), 5000);
-                    
-                    const response = await fetch(url, { 
-                        signal: controller.signal,
-                        cache: 'no-cache'
+                        if (titleEl && lyrics.length) {
+                            titleEl.textContent = lyrics[0].title || '音乐';
+                        }
+                        renderLyrics();
+                    })['catch'](function() {
+                        if (statusEl) {
+                            statusEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span>歌词加载失败</span>';
+                            statusEl.className = 'lyrics-status error';
+                        }
+                        titleEl.textContent = '暂无歌词';
                     });
-                    
-                    clearTimeout(timeout);
-                    
-                    if (!response.ok) throw new Error('歌词文件加载失败');
-                    
-                    const lrcContent = await response.text();
-                    const parser = new LyricParser();
-                    const result = parser.parse(lrcContent);
-                    
-                    this.lyrics = result.lyrics;
-                    this.renderLyrics();
-                    this.showStatus('success', `歌词加载成功：${result.title || '音乐'}`);
-                    
-                    if (result.title) this.title.textContent = result.title;
-                    
-                    if (this.lyrics.length > 0) {
-                        setTimeout(() => {
-                            if (this.isCollapsed) this.toggle.click();
-                        }, 500);
-                    }
-                } catch (error) {
-                    let message = '歌词加载失败';
-                    if (error.name === 'AbortError') message = '歌词加载超时';
-                    else if (error.message) message += '：' + error.message;
-                    this.showStatus('error', message);
-                    this.title.textContent = '暂无歌词';
-                }
             }
-            
-            renderLyrics() {
-                this.linesContainer.innerHTML = '';
-                this.lyrics.forEach((lyric, index) => {
-                    const line = document.createElement('div');
-                    line.className = 'lyrics-line';
-                    line.textContent = lyric.text || '♪ ~ ♪';
-                    line.dataset.index = index;
-                    this.linesContainer.appendChild(line);
+
+            function parseLrc(text) {
+                var lines = text.split('\n');
+                var result = [];
+                var title = '';
+                lines.forEach(function(line) {
+                    var meta = line.match(/^\[(ti|ar|al):(.+)\]$/i);
+                    if (meta) {
+                        if (meta[1].toLowerCase() === 'ti') title = meta[2];
+                        return;
+                    }
+                    var timeMatches = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/g);
+                    var textMatch = line.match(/\].*$/);
+                    if (timeMatches && textMatch) {
+                        var txt = textMatch[0].substring(1).trim();
+                        timeMatches.forEach(function(tm) {
+                            var parts = tm.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\]/);
+                            var sec = parseInt(parts[1]) * 60 + parseInt(parts[2]) + parseInt(parts[3]) / (parts[3]
+                                .length === 2 ? 100 : 1000);
+                            result.push({ time: sec, text: txt });
+                        });
+                    }
+                });
+                result.sort(function(a, b) { return a.time - b.time; });
+                lyrics = result;
+                if (title) lyrics.title = title;
+            }
+
+            function renderLyrics() {
+                if (!linesEl) return;
+                linesEl.innerHTML = '';
+                lyrics.forEach(function(item, idx) {
+                    var div = document.createElement('div');
+                    div.className = 'lyrics-line';
+                    div.textContent = item.text || '♪ ~ ♪';
+                    div.dataset.index = idx;
+                    div.addEventListener('click', function() {
+                        if (audio && !isNaN(item.time)) {
+                            audio.currentTime = item.time;
+                            if (audio.paused) audio.play()['catch'](function() {});
+                        }
+                    });
+                    linesEl.appendChild(div);
                 });
             }
-            
-            update(currentTime) {
-                if (this.lyrics.length === 0) return;
-                
-                let newIndex = -1;
-                for (let i = this.lyrics.length - 1; i >= 0; i--) {
-                    if (currentTime >= this.lyrics[i].time) {
-                        newIndex = i;
-                        break;
+
+            // 时间更新
+            if (audio) {
+                audio.addEventListener('timeupdate', function() {
+                    if (audio.paused || lyrics.length === 0) return;
+                    var ct = audio.currentTime;
+                    var idx = -1;
+                    for (var i = lyrics.length - 1; i >= 0; i--) {
+                        if (ct >= lyrics[i].time) { idx = i; break; }
                     }
-                }
-                
-                if (newIndex !== this.currentIndex) {
-                    this.currentIndex = newIndex;
-                    this.highlightLine(newIndex);
-                }
-                
-                const totalDuration = this.lyrics[this.lyrics.length - 1].time;
-                const progress = (currentTime / totalDuration) * 100;
-                this.progressBar.style.width = Math.min(progress, 100) + '%';
+                    if (idx !== currentIndex) {
+                        currentIndex = idx;
+                        var all = linesEl.querySelectorAll('.lyrics-line');
+                        all.forEach(function(el) { el.classList.remove('active'); });
+                        if (idx >= 0 && all[idx]) {
+                            all[idx].classList.add('active');
+                            // 滚动到可视区域
+                            var containerHeight = linesEl.parentElement.clientHeight;
+                            var lineHeight = all[idx].offsetHeight || 40;
+                            var offset = all[idx].offsetTop - (containerHeight / 2) + (lineHeight / 2);
+                            if (offset > 0) {
+                                linesEl.style.transform = 'translateY(-' + offset + 'px)';
+                            } else {
+                                linesEl.style.transform = 'translateY(0)';
+                            }
+                        }
+                    }
+                    var total = lyrics.length ? lyrics[lyrics.length - 1].time : 1;
+                    var pct = Math.min((ct / total) * 100, 100);
+                    if (progressBar) progressBar.style.width = pct + '%';
+                });
             }
-            
-            highlightLine(index) {
-                document.querySelectorAll('.lyrics-line').forEach(line => line.classList.remove('active'));
-                
-                if (index >= 0) {
-                    const activeLine = document.querySelector(`[data-index="${index}"]`);
-                    if (activeLine) {
-                        activeLine.classList.add('active');
-                        
-                        if (!this.isReducedMotion) {
-                            const containerHeight = this.linesContainer.parentElement.clientHeight;
-                            const lineHeight = activeLine.offsetHeight;
-                            const offset = activeLine.offsetTop - (containerHeight / 2) + (lineHeight / 2);
-                            this.linesContainer.style.transform = `translateY(-${offset}px)`;
+        })();
+
+        // =================================================================
+        // 6. 粒子系统（延迟初始化，不阻塞首屏）
+        // =================================================================
+        (function initParticles() {
+            var isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (isReduced) return;
+
+            var canvas = document.getElementById('particles-canvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var particles = [];
+            var mouse = { x: -1000, y: -1000 };
+            var animId = null;
+            var isPerformance = true;
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            function createParticles() {
+                var count = Math.min(80, Math.floor((window.innerWidth * window.innerHeight) / 15000));
+                particles = [];
+                var colors = ['#7c5aa0', '#6d7aea', '#ec8bf7'];
+                for (var i = 0; i < count; i++) {
+                    var c = colors[i % 3];
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        vx: (Math.random() - 0.5) * 0.6,
+                        vy: (Math.random() - 0.5) * 0.6,
+                        r: 1.5 + Math.random() * 2.5,
+                        op: 0.3 + Math.random() * 0.5,
+                        color: c,
+                        breath: Math.random() * Math.PI * 2,
+                        trail: []
+                    });
+                }
+            }
+            createParticles();
+
+            // 鼠标追踪
+            var onMove = function(e) {
+                mouse.x = e.clientX || e.pageX || 0;
+                mouse.y = e.clientY || e.pageY || 0;
+            };
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('touchmove', function(e) {
+                if (e.touches.length) {
+                    var t = e.touches[0];
+                    mouse.x = t.clientX;
+                    mouse.y = t.clientY;
+                }
+            }, { passive: true });
+            window.addEventListener('mouseleave', function() { mouse.x = -1000;
+                mouse.y = -1000; });
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                var now = Date.now();
+
+                for (var i = 0; i < particles.length; i++) {
+                    var p = particles[i];
+                    var dx = mouse.x - p.x;
+                    var dy = mouse.y - p.y;
+                    var dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 150 && dist > 0) {
+                        var force = (1 - dist / 150) * 0.03;
+                        var angle = Math.atan2(dy, dx);
+                        if (dist < 40) {
+                            p.vx -= Math.cos(angle) * force * 2;
+                            p.vy -= Math.sin(angle) * force * 2;
+                        } else {
+                            p.vx += Math.cos(angle) * force * 0.5;
+                            p.vy += Math.sin(angle) * force * 0.5;
+                        }
+                    }
+
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    if (p.x < p.r || p.x > canvas.width - p.r) { p.vx *= -0.8;
+                        p.x = Math.max(p.r, Math.min(canvas.width - p.r, p.x)); }
+                    if (p.y < p.r || p.y > canvas.height - p.r) { p.vy *= -0.8;
+                        p.y = Math.max(p.r, Math.min(canvas.height - p.r, p.y)); }
+
+                    // 呼吸
+                    var scale = 1 + Math.sin(now * 0.003 + p.breath) * 0.15;
+                    var rad = p.r * scale;
+
+                    // 拖尾
+                    p.trail.push({ x: p.x, y: p.y });
+                    if (p.trail.length > 6) p.trail.shift();
+                    for (var j = 0; j < p.trail.length; j++) {
+                        var t = p.trail[j];
+                        ctx.globalAlpha = (j / p.trail.length) * p.op * 0.3;
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(t.x, t.y, rad * (j / p.trail.length), 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    ctx.globalAlpha = p.op;
+                    ctx.fillStyle = p.color;
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = p.color + '60';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, rad, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+
+                // 连线
+                ctx.globalAlpha = 0.3;
+                ctx.strokeStyle = 'rgba(102,126,234,0.3)';
+                ctx.lineWidth = 1;
+                for (var a = 0; a < particles.length; a++) {
+                    for (var b = a + 1; b < particles.length; b++) {
+                        var dx2 = particles[b].x - particles[a].x;
+                        var dy2 = particles[b].y - particles[a].y;
+                        var d2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+                        if (d2 < 100) {
+                            ctx.globalAlpha = (1 - d2 / 100) * 0.3;
+                            ctx.beginPath();
+                            ctx.moveTo(particles[a].x, particles[a].y);
+                            ctx.lineTo(particles[b].x, particles[b].y);
+                            ctx.stroke();
                         }
                     }
                 }
-            }
-            
-            seekToTime(time) {
-                const audio = document.getElementById('bgMusic');
-                if (audio && !isNaN(time)) {
-                    audio.currentTime = time;
-                    if (audio.paused) document.getElementById('musicButton').click();
-                }
-            }
-            
-            showStatus(type, message) {
-                this.status.className = 'lyrics-status ' + type;
-                this.status.querySelector('span').textContent = message;
-                
-                const icon = this.status.querySelector('i');
-                switch(type) {
-                    case 'loading': icon.className = 'fas fa-spinner'; break;
-                    case 'error': icon.className = 'fas fa-exclamation-circle'; break;
-                    case 'success': icon.className = 'fas fa-check-circle'; break;
-                    default: icon.className = 'fas fa-info-circle';
-                }
-            }
-            
-            reset() {
-                this.currentIndex = -1;
-                this.highlightLine(-1);
-                this.progressBar.style.width = '0%';
-                this.linesContainer.style.transform = 'translateY(0)';
-            }
-        }
+                ctx.globalAlpha = 1;
 
-        function setupLyricsIntegration() {
-            const audio = document.getElementById('bgMusic');
-            const musicButton = document.getElementById('musicButton');
-            const lyricDisplay = new LyricDisplay();
-            
-            lyricDisplay.loadLyrics('歌词.lrc');
-            
-            audio.addEventListener('timeupdate', () => {
-                if (!audio.paused && audio.readyState >= 2) {
-                    lyricDisplay.update(audio.currentTime);
-                }
-            });
-            
-            audio.addEventListener('play', () => musicButton.classList.add('lyrics-active'));
-            audio.addEventListener('pause', () => musicButton.classList.remove('lyrics-active'));
-            audio.addEventListener('ended', () => {
-                lyricDisplay.reset();
-                musicButton.classList.remove('lyrics-active');
-            });
-            audio.addEventListener('loadedmetadata', () => {
-                lyricDisplay.showStatus('success', `音乐已加载：${audio.duration.toFixed(1)}秒`);
-            });
-            audio.addEventListener('error', () => {
-                lyricDisplay.showStatus('error', '音乐加载失败');
-            });
-        }
-
-        function setupAutoRefresh() {
-            const REFRESH_INTERVAL = 8 * 60 * 1000;
-            
-            function shouldRefresh() {
-                const activeElement = document.activeElement;
-                const hasFocus = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'BUTTON');
-                const hasActiveModal = document.querySelector('.modal-overlay.active');
-                const audio = document.getElementById('bgMusic');
-                const isMusicPlaying = audio && !audio.paused;
-                return !hasFocus && !hasActiveModal && !isMusicPlaying;
+                animId = requestAnimationFrame(animate);
             }
-            
-            setInterval(() => {
-                if (shouldRefresh()) {
-                    const currentPage = document.querySelector('.page.active');
-                    if (currentPage) localStorage.setItem('lastPage', currentPage.dataset.page);
-                    location.reload();
-                }
-            }, REFRESH_INTERVAL);
-        }
 
-        let particleNetwork = null;
-        let modeManager = null;
-        let settingsSystem = null;
-        
-        async function initializeApp() {
-            modeManager = new PerformanceModeManager();
-            settingsSystem = new SettingsSystem();
-            
-            // 默认高性能模式，无需选择
-            modeManager.setMode('performance');
-            
-            await serverTimeManager.syncTime();
-            
-            setupNavigation();
-            setupMobileMenu();
-            setupModal();
-            await initializeMusicPlayer();
-            updateBeijingTime();
-            setupScrollEffects();
-            applyStaggerAnimation();
-            setupLyricsIntegration();
-            detectUA();
-            
-            // 直接启动粒子系统
-            document.body.classList.add('performance-mode');
-            particleNetwork = new EnhancedParticleNetwork();
-            
-            // 立即显示音乐播放器
-            document.getElementById('musicPlayer').classList.add('show');
-            
-            // 优化定时器
-            let lastTimeUpdate = Date.now();
-            let lastUptimeUpdate = Date.now();
-            
-            const optimizedUpdate = () => {
-                const now = Date.now();
-                if (now - lastTimeUpdate >= 1000) {
-                    updateBeijingTime();
-                    lastTimeUpdate = now;
-                }
-                if (now - lastUptimeUpdate >= 1000) {
-                    updateUptime();
-                    lastUptimeUpdate = now;
-                }
-                requestAnimationFrame(optimizedUpdate);
+            // 延迟启动粒子动画
+            var startParticles = function() {
+                if (!animId) animate();
             };
-            requestAnimationFrame(optimizedUpdate);
-            
-            setInterval(async () => {
-                if (serverTimeManager.shouldResync()) {
-                    await serverTimeManager.syncTime();
+
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(startParticles, { timeout: 500 });
+            } else {
+                setTimeout(startParticles, 300);
+            }
+
+            // 性能模式切换
+            var perfToggle = document.getElementById('performanceToggle');
+            if (perfToggle) {
+                perfToggle.addEventListener('change', function() {
+                    isPerformance = this.checked;
+                    if (!isPerformance && animId) {
+                        cancelAnimationFrame(animId);
+                        animId = null;
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    } else if (isPerformance && !animId) {
+                        animate();
+                    }
+                });
+            }
+
+            // 暴露给设置系统
+            window._particleSystem = {
+                start: function() { if (!animId) animate(); },
+                stop: function() { if (animId) { cancelAnimationFrame(animId);
+                        animId = null; } },
+                isRunning: function() { return !!animId; }
+            };
+        })();
+
+        // =================================================================
+        // 7. 导航、菜单、模态框等交互
+        // =================================================================
+        (function setupUI() {
+            // 导航
+            var navItems = document.querySelectorAll('.nav-menu li[data-page]');
+            navItems.forEach(function(item) {
+                item.addEventListener('click', function() {
+                    var page = this.dataset.page;
+                    if (page === 'settings') {
+                        settingsSystem && settingsSystem.show();
+                        return;
+                    }
+                    navigateTo(page);
+                });
+            });
+
+            function navigateTo(pageName) {
+                var current = document.querySelector('.page.active');
+                var target = document.getElementById('page-' + pageName);
+                if (current === target) return;
+                if (!target) return;
+
+                document.querySelectorAll('.page').forEach(function(p) {
+                    p.style.pointerEvents = 'none';
+                    p.style.display = 'none';
+                });
+                current.classList.add('fade-out');
+
+                setTimeout(function() {
+                    document.querySelectorAll('.page').forEach(function(p) {
+                        p.classList.remove('active', 'fade-out');
+                    });
+                    target.style.display = 'block';
+                    target.style.pointerEvents = 'auto';
+                    setTimeout(function() {
+                        target.classList.add('active');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        document.body.style.overflow = '';
+                    }, 10);
+                }, 250);
+
+                document.querySelectorAll('.nav-menu li').forEach(function(l) { l.classList.remove('active'); });
+                var activeLi = document.querySelector('.nav-menu li[data-page="' + pageName + '"]');
+                if (activeLi) activeLi.classList.add('active');
+
+                var menu = document.getElementById('navMenu');
+                if (menu) menu.classList.remove('active');
+                var icon = document.querySelector('#mobileToggle i');
+                if (icon) { icon.classList.add('fa-bars');
+                    icon.classList.remove('fa-times'); }
+            }
+
+            // 移动端菜单
+            var toggleBtn = document.getElementById('mobileToggle');
+            var navMenu = document.getElementById('navMenu');
+            if (toggleBtn && navMenu) {
+                toggleBtn.addEventListener('click', function() {
+                    navMenu.classList.toggle('active');
+                    var icon = this.querySelector('i');
+                    if (icon) {
+                        icon.classList.toggle('fa-bars');
+                        icon.classList.toggle('fa-times');
+                    }
+                });
+                navMenu.querySelectorAll('li').forEach(function(li) {
+                    li.addEventListener('click', function() {
+                        navMenu.classList.remove('active');
+                        var icon = toggleBtn.querySelector('i');
+                        if (icon) { icon.classList.add('fa-bars');
+                            icon.classList.remove('fa-times'); }
+                    });
+                });
+            }
+
+            // 模态框
+            var modalOverlay = document.getElementById('homeworkModal');
+            var modalClose = document.getElementById('modalClose');
+            var modalButton = document.getElementById('modalButton');
+            if (modalClose) modalClose.addEventListener('click', function() { hideModal(); });
+            if (modalButton) modalButton.addEventListener('click', function() { hideModal(); });
+            if (modalOverlay) {
+                modalOverlay.addEventListener('click', function(e) {
+                    if (e.target === this) hideModal();
+                });
+            }
+
+            function hideModal() {
+                if (modalOverlay) modalOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            window.hideHomeworkModal = hideModal;
+            window.showHomeworkModal = function() { /* 占位 */ };
+
+            // 设置系统
+            var settingsModal = document.getElementById('settingsModal');
+            var settingsClose = document.getElementById('settingsClose');
+            var perfToggle = document.getElementById('performanceToggle');
+            var transitionOverlay = document.getElementById('transitionOverlay');
+
+            var settingsSystem = {
+                show: function() {
+                    if (settingsModal) {
+                        settingsModal.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                        if (perfToggle) {
+                            perfToggle.checked = document.body.classList.contains('performance-mode');
+                        }
+                    }
+                },
+                hide: function() {
+                    if (settingsModal) {
+                        settingsModal.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
                 }
-            }, 5 * 60 * 1000);
-            
-            setupAutoRefresh();
-            renderUpdateHistory();
-        }
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeApp().catch(console.error);
-        });
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const navMenu = document.getElementById('navMenu');
-                const modalOverlay = document.getElementById('homeworkModal');
-                
-                if (navMenu.classList.contains('active')) {
+            };
+            window.settingsSystem = settingsSystem;
+
+            if (settingsClose) {
+                settingsClose.addEventListener('click', function() { settingsSystem.hide(); });
+            }
+            if (settingsModal) {
+                settingsModal.addEventListener('click', function(e) {
+                    if (e.target === this) settingsSystem.hide();
+                });
+            }
+            if (perfToggle) {
+                perfToggle.addEventListener('change', function() {
+                    var mode = this.checked ? 'performance' : 'compatibility';
+                    // 显示过渡
+                    if (transitionOverlay) transitionOverlay.classList.add('active');
+                    setTimeout(function() {
+                        document.body.classList.toggle('performance-mode', mode === 'performance');
+                        document.body.classList.toggle('compatibility-mode', mode === 'compatibility');
+                        localStorage.setItem('performanceMode', mode);
+                        // 粒子系统切换
+                        var ps = window._particleSystem;
+                        if (ps) {
+                            if (mode === 'performance') ps.start();
+                            else ps.stop();
+                        }
+                        if (transitionOverlay) {
+                            setTimeout(function() {
+                                transitionOverlay.classList.remove('active');
+                            }, 400);
+                        }
+                    }, 300);
+                });
+                // 恢复上次设置
+                var saved = localStorage.getItem('performanceMode');
+                if (saved === 'compatibility') {
+                    perfToggle.checked = false;
+                    document.body.classList.remove('performance-mode');
+                    document.body.classList.add('compatibility-mode');
+                } else {
+                    perfToggle.checked = true;
+                    document.body.classList.add('performance-mode');
+                    document.body.classList.remove('compatibility-mode');
+                }
+            }
+
+            // 键盘 ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    if (settingsModal && settingsModal.classList.contains('active')) settingsSystem.hide();
+                    if (modalOverlay && modalOverlay.classList.contains('active')) hideModal();
+                    if (navMenu && navMenu.classList.contains('active')) {
+                        navMenu.classList.remove('active');
+                        var icon = toggleBtn.querySelector('i');
+                        if (icon) { icon.classList.add('fa-bars');
+                            icon.classList.remove('fa-times'); }
+                    }
+                }
+            });
+
+            // 窗口resize关闭移动菜单
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768 && navMenu) {
                     navMenu.classList.remove('active');
-                    const icon = document.querySelector('#mobileToggle i');
-                    icon.classList.add('fa-bars');
-                    icon.classList.remove('fa-times');
+                    var icon = toggleBtn.querySelector('i');
+                    if (icon) { icon.classList.add('fa-bars');
+                        icon.classList.remove('fa-times'); }
                 }
-                
-                if (modalOverlay.classList.contains('active')) hideHomeworkModal();
-                if (settingsSystem && settingsSystem.settingsModal.classList.contains('active')) settingsSystem.hide();
-            }
-        });
+            });
+        })();
 
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 768) {
-                document.getElementById('navMenu').classList.remove('active');
-                const icon = document.querySelector('#mobileToggle i');
-                icon.classList.add('fa-bars');
-                icon.classList.remove('fa-times');
-            }
-        });
+        // =================================================================
+        // 8. 更新历史渲染
+        // =================================================================
+        (function renderHistory() {
+            var timeline = document.getElementById('historyTimeline');
+            if (!timeline) return;
+            var data = [
+                { date: '2026-3-5', version: 'Version2.1', changes: ['新版本'] },
+                { date: '2026-1-29', version: 'Version2.0', changes: ['春节版本'] },
+                { date: '2026-1-22', version: 'Version1.9', changes: ['测试春节版本'] },
+                { date: '2026-1-10', version: '公众号计划', changes: ['STcnAGLcn'] },
+                { date: '2026-1-7', version: 'Version1.8', changes: ['设置更新'] },
+                { date: '2026-1-5', version: 'Version1.7', changes: ['粒子模型优化'] },
+                { date: '2026-1-4', version: 'Version1.65', changes: ['显示优化'] },
+                { date: '2025-12-31', version: 'Version1.65', changes: ['UI优化，播放器优化，模式可选'] },
+                { date: '2025-12-30', version: 'Version1.5', changes: ['动画粒子大优化，提高体验'] },
+                { date: '2025-12-29', version: 'Version1.4', changes: ['音乐播放逻辑优化', '优化网页加载', '更新app版本（无黑边）'] },
+                { date: '2025-12-29', version: 'Version1.3', changes: ['新增安卓客户端', '更新下载链接', '优化播放逻辑'] },
+                { date: '2025-12-25', version: 'Version1.26', changes: ['哈希算法修改', '新增端侧省流（Lazy Loading策略）省流量'] },
+                { date: '2025-12-25', version: 'Version1.24', changes: ['导航栏优化'] },
+                { date: '2025-12-24', version: 'Version1.19', changes: ['API北京时间修复'] },
+                { date: '2025-12-24', version: 'Version1.17', changes: ['修复安全访问问题'] },
+                { date: '2025-12-23', version: 'Version1.15', changes: ['新增安全时间'] },
+                { date: '2025-12-23', version: 'Version1.14', changes: ['修改优化过渡动画'] },
+                { date: '2025-12-22', version: 'Version1.12', changes: ['新增测试码功能'] },
+                { date: '2025-12-21', version: 'Version1.1', changes: ['新增歌词Lrc显示'] },
+                { date: '2025-12-21', version: 'Version1.09', changes: ['新增音乐播放器'] },
+                { date: '2025-12-21', version: 'Version1.07', changes: ['粒子版本上线'] },
+                { date: '2025-12-20', version: 'Version1.05', changes: ['UI优化大版本'] },
+                { date: '2025-12-18', version: 'Version1.0', changes: ['18:00正式测试'] }
+            ];
+            timeline.innerHTML = data.map(function(item, idx) {
+                return '<div class="history-item stagger-fade-in" style="animation-delay:' + ((idx + 1) * 0.1) +
+                    's">' +
+                    '<div class="history-card">' +
+                    '<div class="history-header">' +
+                    '<div class="history-date"><i class="fas fa-calendar-alt"></i> ' + item.date + '</div>' +
+                    '<div class="history-version">' + item.version + '</div>' +
+                    '</div>' +
+                    '<ul class="history-changes">' +
+                    item.changes.map(function(c) { return '<li class="history-change">' + c + '</li>'; }).join('') +
+                    '</ul>' +
+                    '</div>' +
+                    '</div>';
+            }).join('');
+        })();
 
-        document.addEventListener('visibilitychange', () => {
+        // =================================================================
+        // 9. 定时更新运行时间（每秒）
+        // =================================================================
+        setInterval(function() {
+            var start = new Date('2025-12-18T18:00:00');
+            var now = new Date();
+            var diff = now - start;
+            var days = Math.floor(diff / 86400000);
+            var hours = Math.floor((diff % 86400000) / 3600000);
+            var minutes = Math.floor((diff % 3600000) / 60000);
+            var seconds = Math.floor((diff % 60000) / 1000);
+            var el = document.getElementById('uptimeText');
+            if (el) {
+                el.textContent = '运行时间：' + days + '天 ' + hours + '小时 ' + minutes + '分钟 ' + seconds + '秒';
+            }
+        }, 1000);
+
+        // =================================================================
+        // 10. 可见性恢复时刷新时间
+        // =================================================================
+        document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
-                updateBeijingTime();
-                updateUptime();
+                // 刷新运行时间
+                var start = new Date('2025-12-18T18:00:00');
+                var now = new Date();
+                var diff = now - start;
+                var days = Math.floor(diff / 86400000);
+                var hours = Math.floor((diff % 86400000) / 3600000);
+                var minutes = Math.floor((diff % 3600000) / 60000);
+                var seconds = Math.floor((diff % 60000) / 1000);
+                var el = document.getElementById('uptimeText');
+                if (el) {
+                    el.textContent = '运行时间：' + days + '天 ' + hours + '小时 ' + minutes + '分钟 ' + seconds + '秒';
+                }
             }
         });
+
+        console.log('✅ GLcn 优化版已加载 — 速度提升：UA即时 · 运行时间即时 · 音乐轻量化');
     </script>
 </body>
 </html>
