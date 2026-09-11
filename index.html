@@ -4,10 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
     <title>GLcn - Hello</title>
-
-    <!-- ===== 优化1：提前加载关键CSS，阻塞最小化 ===== -->
     <style>
-        /* ---------- 关键样式：首屏可见部分 ---------- */
         :root {
             --primary: #6d7aea;
             --primary-dark: #5a67d8;
@@ -34,28 +31,23 @@
             --subject-chemistry: #805ad5;
             --subject-politics: #dd6b20;
             --subject-other: #718096;
-
             --transition-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
             --transition-spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
             --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
             --transition-ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-
             --duration-fast: 0.25s;
             --duration-normal: 0.4s;
             --duration-slow: 0.6s;
             --duration-mega-slow: 0.8s;
-
             --border-radius: 16px;
             --border-radius-sm: 8px;
             --border-radius-lg: 24px;
             --border-radius-xl: 32px;
-
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
             --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.15);
             --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.2);
             --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.3);
             --shadow-glow: 0 0 30px rgba(102, 126, 234, 0.4);
-
             --spacing-xs: 0.5rem;
             --spacing-sm: 1rem;
             --spacing-md: 1.5rem;
@@ -63,7 +55,6 @@
             --spacing-xl: 3rem;
             --spacing-xxl: 4rem;
         }
-
         * {
             margin: 0;
             padding: 0;
@@ -114,8 +105,6 @@
                 transform: rotate(3deg) scale(1.05);
             }
         }
-
-        /* 粒子画布占位 — 不阻塞渲染 */
         #particles-canvas {
             position: fixed;
             top: 0;
@@ -126,8 +115,6 @@
             pointer-events: none;
             will-change: transform;
         }
-
-        /* ---------- 导航栏 ---------- */
         .navbar {
             position: fixed;
             top: 0;
@@ -202,6 +189,9 @@
             color: var(--primary);
             transform: translateY(-1px);
         }
+        .nav-menu li.nav-hidden {
+            display: none !important;
+        }
         .mobile-toggle {
             display: none;
             background: rgba(255, 255, 255, 0.2);
@@ -231,8 +221,6 @@
             font-weight: 500;
             white-space: nowrap;
         }
-
-        /* ---------- 页面 ---------- */
         .page {
             display: none;
             flex: 1;
@@ -258,8 +246,6 @@
             display: flex;
             flex-direction: column;
         }
-
-        /* ---------- Hero ---------- */
         .hero {
             background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, var(--secondary) 100%);
             color: white;
@@ -324,7 +310,6 @@
                 transform: translateY(0);
             }
         }
-
         #beijingTime {
             font-size: clamp(2rem, 8vw, 3.2rem);
             font-weight: 800;
@@ -391,7 +376,6 @@
                 transform: scale(1.1);
             }
         }
-
         .ua-display {
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(10px);
@@ -438,7 +422,6 @@
         .ua-qq {
             color: #12B7F5;
         }
-
         .stn-studio-display {
             position: relative;
             margin-top: 1.5rem;
@@ -500,8 +483,6 @@
             transform: translateY(-3px) scale(1.02);
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
-
-        /* ---------- 功能卡片 ---------- */
         .feature-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
@@ -569,21 +550,22 @@
             transform: translateY(-2px) scale(1.03);
             box-shadow: var(--shadow-glow);
         }
-
-        /* ---------- 歌词 ---------- */
         .lyrics-container {
             position: relative;
             max-width: 800px;
             margin: 2rem auto;
             padding: 1rem;
             background: rgba(255, 255, 255, 0.05);
+            background-clip: padding-box;
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: var(--border-radius-lg);
             box-shadow: var(--shadow-lg);
-            overflow: hidden;
-            transition: all var(--duration-normal) var(--transition-smooth);
-            transform: translateY(0);
+            overflow: visible;
+            transition: box-shadow var(--duration-normal) var(--transition-smooth),
+                        opacity var(--duration-normal) var(--transition-smooth);
+            transform: none;
         }
         .lyrics-header {
             display: flex;
@@ -592,6 +574,9 @@
             padding: 0 1rem 1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 1rem;
+            transition: margin-bottom var(--duration-normal) var(--transition-smooth),
+                        padding-bottom var(--duration-normal) var(--transition-smooth),
+                        border-color var(--duration-normal) var(--transition-smooth);
         }
         .lyrics-title {
             font-size: 1.3rem;
@@ -624,9 +609,11 @@
             position: relative;
             height: 300px;
             overflow: hidden;
+            border-radius: var(--border-radius);
             mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
             -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
-            transition: height var(--duration-normal) var(--transition-smooth);
+            transition: height var(--duration-normal) var(--transition-smooth),
+                        opacity var(--duration-normal) var(--transition-smooth);
         }
         .lyrics-lines {
             position: absolute;
@@ -680,9 +667,11 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 0 0 calc(var(--border-radius-lg) - 1px) calc(var(--border-radius-lg) - 1px);
             overflow: hidden;
+            pointer-events: none;
+            transition: opacity var(--duration-normal) var(--transition-smooth);
         }
         .lyrics-progress-bar {
             height: 100%;
@@ -696,10 +685,14 @@
             justify-content: center;
             align-items: center;
             padding: 1rem;
+            max-height: 80px;
+            overflow: hidden;
             color: var(--text-muted);
             font-size: 0.9rem;
             gap: 0.5rem;
-            transition: all var(--duration-fast) var(--transition-smooth);
+            transition: max-height var(--duration-normal) var(--transition-smooth),
+                        padding var(--duration-normal) var(--transition-smooth),
+                        opacity var(--duration-normal) var(--transition-smooth);
         }
         .lyrics-status i {
             font-size: 1.1rem;
@@ -715,9 +708,14 @@
             color: var(--success);
         }
         .lyrics-container.collapsed {
-            transform: translateY(calc(100% - 60px)) scale(0.98);
             box-shadow: var(--shadow-md);
-            opacity: 0.9;
+            opacity: 0.94;
+            transform: none;
+        }
+        .lyrics-container.collapsed .lyrics-header {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom-color: transparent;
         }
         .lyrics-container.collapsed .lyrics-wrapper {
             height: 0;
@@ -727,10 +725,11 @@
             opacity: 0;
         }
         .lyrics-container.collapsed .lyrics-status {
-            padding: 0.5rem;
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            opacity: 0;
         }
-
-        /* ---------- 关于我们 / 历史 ---------- */
         .history-content {
             display: flex;
             flex-direction: column;
@@ -957,8 +956,6 @@
             margin-left: auto;
             margin-right: auto;
         }
-
-        /* ---------- 音乐播放器 ---------- */
         .music-player {
             position: fixed;
             bottom: var(--spacing-lg);
@@ -1033,8 +1030,6 @@
         .music-button.lyrics-active:hover {
             box-shadow: var(--shadow-xl), 0 0 30px rgba(102, 126, 234, 0.6);
         }
-
-        /* ---------- 模态框 ---------- */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -1120,8 +1115,6 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             text-align: center;
         }
-
-        /* ---------- 设置 ---------- */
         .settings-modal {
             max-width: 500px;
             width: 90%;
@@ -1249,8 +1242,6 @@
             color: var(--white);
             transform: scale(1.05);
         }
-
-        /* ---------- 过渡遮罩 ---------- */
         .transition-overlay {
             position: fixed;
             top: 0;
@@ -1300,8 +1291,6 @@
                 transform: rotate(360deg);
             }
         }
-
-        /* ---------- footer ---------- */
         footer {
             background: var(--darkest);
             color: rgba(255, 255, 255, 0.8);
@@ -1331,8 +1320,6 @@
             color: var(--white);
             transform: translateY(-2px);
         }
-
-        /* ---------- 响应式 ---------- */
         @media (max-width: 768px) {
             .nav-menu {
                 position: fixed;
@@ -1423,6 +1410,9 @@
                 padding: 0.4rem 0.8rem;
                 font-size: 0.8rem;
             }
+            .lyrics-progress {
+                border-radius: 0 0 calc(var(--border-radius) - 1px) calc(var(--border-radius) - 1px);
+            }
             .history-timeline {
                 padding-left: var(--spacing-md);
             }
@@ -1511,8 +1501,6 @@
                 font-size: 1.1rem;
             }
         }
-
-        /* ---------- 滚动条 ---------- */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -1564,10 +1552,7 @@
             transform: rotate(30deg) scale(1.2);
         }
     </style>
-
-    <!-- ===== 优化2：UA 检测前置 - 同步执行，立即显示 ===== -->
     <script>
-        // 极速 UA 检测 —— 在 head 中同步执行，不阻塞渲染
         (function() {
             var ua = navigator.userAgent.toLowerCase();
             var type = 'PC',
@@ -1598,19 +1583,14 @@
                 icon = 'fa-mobile-alt';
                 cls = 'ua-mobile';
             }
-            // 暂存到全局，等DOM就绪后渲染
             window._uaInfo = { type: type, icon: icon, cls: cls };
         })();
     </script>
-
-    <!-- ===== 优化3：Font Awesome 异步加载（不阻塞渲染） ===== -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
     <noscript>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     </noscript>
-
     <style>
-        /* 备胎：Font Awesome 加载完成前用纯文本占位 */
         .fa,
         .fas,
         .far,
@@ -1621,11 +1601,7 @@
     </style>
 </head>
 <body>
-
-    <!-- ===== 粒子画布 ===== -->
     <canvas id="particles-canvas"></canvas>
-
-    <!-- ===== 导航栏 ===== -->
     <nav class="navbar" id="navbar">
         <div class="navbar-container">
             <div class="logo">
@@ -1634,8 +1610,9 @@
             </div>
             <ul class="nav-menu" id="navMenu">
                 <li data-page="home" class="active">首页</li>
-                <li data-page="history">关于我们</li>
-                <li data-page="settings" id="settingsMenuItem"><i class="fas fa-cog"></i> 设置</li>
+                <li data-page="history" class="nav-hidden" aria-hidden="true">关于我们</li>
+                <li data-page="settings" id="settingsMenuItem" class="nav-hidden" aria-hidden="true"><i class="fas fa-cog"></i> 设置</li>
+                <li onclick="window.open('https://25gd1.github.io/Card/', '_blank')">免罚卡查询</li>
                 <li onclick="window.open('https://25gd1.github.io', '_blank')">作业网页版</li>
             </ul>
             <button class="mobile-toggle" id="mobileToggle" aria-label="打开菜单">
@@ -1644,11 +1621,7 @@
             </button>
         </div>
     </nav>
-
-    <!-- ===== 页面容器 ===== -->
     <div class="page-content">
-
-        <!-- 首页 -->
         <div class="page active" data-page="home" id="page-home">
             <section class="hero">
                 <div class="hero-content">
@@ -1666,8 +1639,6 @@
                     <div class="stn-studio-display">STNStudio</div>
                 </div>
             </section>
-
-            <!-- 歌词容器（默认折叠） -->
             <div class="lyrics-container collapsed" id="lyricsContainer">
                 <div class="lyrics-header">
                     <div class="lyrics-title">
@@ -1691,8 +1662,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- 关于我们 -->
         <div class="page" data-page="history" id="page-history">
             <div class="history-content">
                 <div class="history-container">
@@ -1722,24 +1691,16 @@
                 </div>
             </div>
         </div>
-
-        <!-- 设置页（由JS控制显示） -->
         <div class="page" data-page="settings" id="page-settings" style="display:none;"></div>
     </div>
-
-    <!-- ===== 音乐播放器 ===== -->
     <div class="music-player" id="musicPlayer">
         <button class="music-button" id="musicButton" aria-label="播放/暂停音乐">
             <i class="fas fa-play" id="musicIcon"></i>
         </button>
     </div>
-
-    <!-- ===== 音频元素（preload="metadata" 仅加载元数据，大幅提速） ===== -->
     <audio id="bgMusic" loop preload="metadata">
-        <source src="music.mp3" type="audio/mpeg">
+        <source src="https://glcn26.github.io/music.mp3" type="audio/mpeg">
     </audio>
-
-    <!-- ===== 模态框 ===== -->
     <div class="modal-overlay" id="homeworkModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1752,8 +1713,6 @@
             </div>
         </div>
     </div>
-
-    <!-- ===== 设置模态框 ===== -->
     <div class="modal-overlay" id="settingsModal">
         <div class="modal-content settings-modal">
             <div class="modal-header">
@@ -1780,28 +1739,18 @@
             </div>
         </div>
     </div>
-
-    <!-- ===== 过渡遮罩 ===== -->
     <div class="transition-overlay" id="transitionOverlay">
         <div class="transition-content">
             <div class="transition-spinner"></div>
             <div class="transition-text">正在应用设置...</div>
         </div>
     </div>
-
-    <!-- ===== Footer ===== -->
     <footer>
         <div class="footer-content">
             <p>&copy; 2025-2026 最终解释权 GLcn | STNStudio</p>
         </div>
     </footer>
-
-    <!-- ============================================================ -->
-    <!-- ===== 优化4：主脚本 defer 加载，不阻塞 HTML 解析 ===== -->
     <script defer>
-        // =================================================================
-        // 1. 立即渲染 UA（利用预存的 _uaInfo）
-        // =================================================================
         (function renderUA() {
             var info = window._uaInfo || { type: 'PC', icon: 'fa-desktop', cls: 'ua-pc' };
             var uaText = document.getElementById('uaText');
@@ -1811,10 +1760,6 @@
                 uaIcon.className = 'fas ' + info.icon + ' ua-icon ' + info.cls;
             }
         })();
-
-        // =================================================================
-        // 2. 运行时间（纯本地计算，零延迟）
-        // =================================================================
         (function updateUptimeNow() {
             var start = new Date('2025-12-18T18:00:00');
             var now = new Date();
@@ -1828,14 +1773,9 @@
                 el.textContent = '运行时间：' + days + '天 ' + hours + '小时 ' + minutes + '分钟 ' + seconds + '秒';
             }
         })();
-
-        // =================================================================
-        // 3. 北京时间（先用本地时间，后台异步同步）
-        // =================================================================
         (function initBeijingTime() {
             var timeEl = document.getElementById('beijingTime');
             var dateEl = document.getElementById('beijingDate');
-
             function updateLocal() {
                 var d = new Date();
                 if (timeEl) {
@@ -1848,11 +1788,7 @@
                 }
             }
             updateLocal();
-
-            // 每秒更新
             setInterval(updateLocal, 1000);
-
-            // 后台异步同步北京时间（不阻塞首屏）
             if ('requestIdleCallback' in window) {
                 requestIdleCallback(function() {
                     syncBeijingTime();
@@ -1860,7 +1796,6 @@
             } else {
                 setTimeout(syncBeijingTime, 100);
             }
-
             function syncBeijingTime() {
                 fetch('https://worldtimeapi.org/api/timezone/Asia/Shanghai', { cache: 'no-cache', signal: AbortSignal
                         .timeout(3000) })
@@ -1868,7 +1803,6 @@
                     .then(function(data) {
                         var serverTime = new Date(data.datetime).getTime();
                         var offset = serverTime - Date.now();
-                        // 用更精确的时间更新
                         setInterval(function() {
                             var d = new Date(Date.now() + offset);
                             if (timeEl) {
@@ -1880,20 +1814,14 @@
                                     day: 'numeric', weekday: 'long' });
                             }
                         }, 1000);
-                    })['catch'](function() { /* 静默降级到本地时间 */ });
+                    })['catch'](function() {});
             }
         })();
-
-        // =================================================================
-        // 4. 音乐加载（极简：直接使用 music.mp3，preload="metadata"）
-        // =================================================================
         (function setupMusic() {
             var audio = document.getElementById('bgMusic');
             var btn = document.getElementById('musicButton');
             var icon = document.getElementById('musicIcon');
             var status = document.getElementById('lyricsStatus');
-
-            // 预加载元数据后更新状态
             if (audio) {
                 audio.addEventListener('loadedmetadata', function() {
                     if (status) {
@@ -1907,7 +1835,6 @@
                         status.className = 'lyrics-status error';
                     }
                 });
-                // 如果已经加载完成（缓存）
                 if (audio.readyState >= 2) {
                     if (status) {
                         status.innerHTML = '<i class="fas fa-check-circle"></i> <span>音乐已加载</span>';
@@ -1915,17 +1842,14 @@
                     }
                 }
             }
-
-            // 播放/暂停
             if (btn && audio) {
                 btn.addEventListener('click', function() {
                     if (audio.paused) {
-                        audio.play()['catch'](function() { /* 静默 */ });
+                        audio.play()['catch'](function() {});
                     } else {
                         audio.pause();
                     }
                 });
-
                 audio.addEventListener('play', function() {
                     icon.className = 'fas fa-pause';
                     btn.classList.add('playing');
@@ -1942,15 +1866,9 @@
                     btn.classList.remove('lyrics-active');
                 });
             }
-
-            // 显示播放器
             var player = document.getElementById('musicPlayer');
             if (player) player.classList.add('show');
         })();
-
-        // =================================================================
-        // 5. 歌词系统（延迟加载，仅在用户展开时请求）
-        // =================================================================
         (function setupLyrics() {
             var container = document.getElementById('lyricsContainer');
             var toggle = document.getElementById('lyricsToggle');
@@ -1963,8 +1881,6 @@
             var lyrics = [];
             var currentIndex = -1;
             var loaded = false;
-
-            // 折叠切换
             if (toggle) {
                 toggle.addEventListener('click', function() {
                     isCollapsed = !isCollapsed;
@@ -1977,12 +1893,10 @@
                     } else {
                         icon.className = 'fas fa-chevron-down';
                         text.textContent = '收起';
-                        // 首次展开时加载歌词
                         if (!loaded) loadLyrics();
                     }
                 });
             }
-
             function loadLyrics() {
                 if (loaded) return;
                 loaded = true;
@@ -1990,7 +1904,7 @@
                     statusEl.innerHTML = '<i class="fas fa-spinner"></i> <span>加载歌词中...</span>';
                     statusEl.className = 'lyrics-status loading';
                 }
-                fetch('歌词.lrc', { cache: 'no-cache', signal: AbortSignal.timeout(5000) })
+                fetch('https://glcn26.github.io/歌词.lrc', { cache: 'no-cache', signal: AbortSignal.timeout(5000) })
                     .then(function(res) {
                         if (!res.ok) throw new Error('歌词文件不存在');
                         return res.text();
@@ -2013,7 +1927,6 @@
                         titleEl.textContent = '暂无歌词';
                     });
             }
-
             function parseLrc(text) {
                 var lines = text.split('\n');
                 var result = [];
@@ -2040,7 +1953,6 @@
                 lyrics = result;
                 if (title) lyrics.title = title;
             }
-
             function renderLyrics() {
                 if (!linesEl) return;
                 linesEl.innerHTML = '';
@@ -2058,8 +1970,6 @@
                     linesEl.appendChild(div);
                 });
             }
-
-            // 时间更新
             if (audio) {
                 audio.addEventListener('timeupdate', function() {
                     if (audio.paused || lyrics.length === 0) return;
@@ -2074,7 +1984,6 @@
                         all.forEach(function(el) { el.classList.remove('active'); });
                         if (idx >= 0 && all[idx]) {
                             all[idx].classList.add('active');
-                            // 滚动到可视区域
                             var containerHeight = linesEl.parentElement.clientHeight;
                             var lineHeight = all[idx].offsetHeight || 40;
                             var offset = all[idx].offsetTop - (containerHeight / 2) + (lineHeight / 2);
@@ -2091,14 +2000,9 @@
                 });
             }
         })();
-
-        // =================================================================
-        // 6. 粒子系统（延迟初始化，不阻塞首屏）
-        // =================================================================
         (function initParticles() {
             var isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             if (isReduced) return;
-
             var canvas = document.getElementById('particles-canvas');
             if (!canvas) return;
             var ctx = canvas.getContext('2d');
@@ -2106,14 +2010,12 @@
             var mouse = { x: -1000, y: -1000 };
             var animId = null;
             var isPerformance = true;
-
             function resize() {
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
             }
             resize();
             window.addEventListener('resize', resize);
-
             function createParticles() {
                 var count = Math.min(80, Math.floor((window.innerWidth * window.innerHeight) / 15000));
                 particles = [];
@@ -2134,8 +2036,6 @@
                 }
             }
             createParticles();
-
-            // 鼠标追踪
             var onMove = function(e) {
                 mouse.x = e.clientX || e.pageX || 0;
                 mouse.y = e.clientY || e.pageY || 0;
@@ -2150,11 +2050,9 @@
             }, { passive: true });
             window.addEventListener('mouseleave', function() { mouse.x = -1000;
                 mouse.y = -1000; });
-
             function animate() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 var now = Date.now();
-
                 for (var i = 0; i < particles.length; i++) {
                     var p = particles[i];
                     var dx = mouse.x - p.x;
@@ -2171,19 +2069,14 @@
                             p.vy += Math.sin(angle) * force * 0.5;
                         }
                     }
-
                     p.x += p.vx;
                     p.y += p.vy;
                     if (p.x < p.r || p.x > canvas.width - p.r) { p.vx *= -0.8;
                         p.x = Math.max(p.r, Math.min(canvas.width - p.r, p.x)); }
                     if (p.y < p.r || p.y > canvas.height - p.r) { p.vy *= -0.8;
                         p.y = Math.max(p.r, Math.min(canvas.height - p.r, p.y)); }
-
-                    // 呼吸
                     var scale = 1 + Math.sin(now * 0.003 + p.breath) * 0.15;
                     var rad = p.r * scale;
-
-                    // 拖尾
                     p.trail.push({ x: p.x, y: p.y });
                     if (p.trail.length > 6) p.trail.shift();
                     for (var j = 0; j < p.trail.length; j++) {
@@ -2194,7 +2087,6 @@
                         ctx.arc(t.x, t.y, rad * (j / p.trail.length), 0, Math.PI * 2);
                         ctx.fill();
                     }
-
                     ctx.globalAlpha = p.op;
                     ctx.fillStyle = p.color;
                     ctx.shadowBlur = 12;
@@ -2204,8 +2096,6 @@
                     ctx.fill();
                     ctx.shadowBlur = 0;
                 }
-
-                // 连线
                 ctx.globalAlpha = 0.3;
                 ctx.strokeStyle = 'rgba(102,126,234,0.3)';
                 ctx.lineWidth = 1;
@@ -2224,22 +2114,16 @@
                     }
                 }
                 ctx.globalAlpha = 1;
-
                 animId = requestAnimationFrame(animate);
             }
-
-            // 延迟启动粒子动画
             var startParticles = function() {
                 if (!animId) animate();
             };
-
             if ('requestIdleCallback' in window) {
                 requestIdleCallback(startParticles, { timeout: 500 });
             } else {
                 setTimeout(startParticles, 300);
             }
-
-            // 性能模式切换
             var perfToggle = document.getElementById('performanceToggle');
             if (perfToggle) {
                 perfToggle.addEventListener('change', function() {
@@ -2253,8 +2137,6 @@
                     }
                 });
             }
-
-            // 暴露给设置系统
             window._particleSystem = {
                 start: function() { if (!animId) animate(); },
                 stop: function() { if (animId) { cancelAnimationFrame(animId);
@@ -2262,36 +2144,28 @@
                 isRunning: function() { return !!animId; }
             };
         })();
-
-        // =================================================================
-        // 7. 导航、菜单、模态框等交互
-        // =================================================================
         (function setupUI() {
-            // 导航
             var navItems = document.querySelectorAll('.nav-menu li[data-page]');
             navItems.forEach(function(item) {
                 item.addEventListener('click', function() {
                     var page = this.dataset.page;
                     if (page === 'settings') {
-                        settingsSystem && settingsSystem.show();
+                        if (window.settingsSystem) window.settingsSystem.show();
                         return;
                     }
                     navigateTo(page);
                 });
             });
-
             function navigateTo(pageName) {
                 var current = document.querySelector('.page.active');
                 var target = document.getElementById('page-' + pageName);
                 if (current === target) return;
                 if (!target) return;
-
                 document.querySelectorAll('.page').forEach(function(p) {
                     p.style.pointerEvents = 'none';
                     p.style.display = 'none';
                 });
-                current.classList.add('fade-out');
-
+                if (current) current.classList.add('fade-out');
                 setTimeout(function() {
                     document.querySelectorAll('.page').forEach(function(p) {
                         p.classList.remove('active', 'fade-out');
@@ -2304,19 +2178,15 @@
                         document.body.style.overflow = '';
                     }, 10);
                 }, 250);
-
                 document.querySelectorAll('.nav-menu li').forEach(function(l) { l.classList.remove('active'); });
                 var activeLi = document.querySelector('.nav-menu li[data-page="' + pageName + '"]');
                 if (activeLi) activeLi.classList.add('active');
-
                 var menu = document.getElementById('navMenu');
                 if (menu) menu.classList.remove('active');
                 var icon = document.querySelector('#mobileToggle i');
                 if (icon) { icon.classList.add('fa-bars');
                     icon.classList.remove('fa-times'); }
             }
-
-            // 移动端菜单
             var toggleBtn = document.getElementById('mobileToggle');
             var navMenu = document.getElementById('navMenu');
             if (toggleBtn && navMenu) {
@@ -2337,8 +2207,6 @@
                     });
                 });
             }
-
-            // 模态框
             var modalOverlay = document.getElementById('homeworkModal');
             var modalClose = document.getElementById('modalClose');
             var modalButton = document.getElementById('modalButton');
@@ -2349,20 +2217,16 @@
                     if (e.target === this) hideModal();
                 });
             }
-
             function hideModal() {
                 if (modalOverlay) modalOverlay.classList.remove('active');
                 document.body.style.overflow = '';
             }
             window.hideHomeworkModal = hideModal;
-            window.showHomeworkModal = function() { /* 占位 */ };
-
-            // 设置系统
+            window.showHomeworkModal = function() {};
             var settingsModal = document.getElementById('settingsModal');
             var settingsClose = document.getElementById('settingsClose');
             var perfToggle = document.getElementById('performanceToggle');
             var transitionOverlay = document.getElementById('transitionOverlay');
-
             var settingsSystem = {
                 show: function() {
                     if (settingsModal) {
@@ -2381,7 +2245,6 @@
                 }
             };
             window.settingsSystem = settingsSystem;
-
             if (settingsClose) {
                 settingsClose.addEventListener('click', function() { settingsSystem.hide(); });
             }
@@ -2393,13 +2256,11 @@
             if (perfToggle) {
                 perfToggle.addEventListener('change', function() {
                     var mode = this.checked ? 'performance' : 'compatibility';
-                    // 显示过渡
                     if (transitionOverlay) transitionOverlay.classList.add('active');
                     setTimeout(function() {
                         document.body.classList.toggle('performance-mode', mode === 'performance');
                         document.body.classList.toggle('compatibility-mode', mode === 'compatibility');
                         localStorage.setItem('performanceMode', mode);
-                        // 粒子系统切换
                         var ps = window._particleSystem;
                         if (ps) {
                             if (mode === 'performance') ps.start();
@@ -2412,7 +2273,6 @@
                         }
                     }, 300);
                 });
-                // 恢复上次设置
                 var saved = localStorage.getItem('performanceMode');
                 if (saved === 'compatibility') {
                     perfToggle.checked = false;
@@ -2424,8 +2284,6 @@
                     document.body.classList.remove('compatibility-mode');
                 }
             }
-
-            // 键盘 ESC
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
                     if (settingsModal && settingsModal.classList.contains('active')) settingsSystem.hide();
@@ -2438,8 +2296,6 @@
                     }
                 }
             });
-
-            // 窗口resize关闭移动菜单
             window.addEventListener('resize', function() {
                 if (window.innerWidth > 768 && navMenu) {
                     navMenu.classList.remove('active');
@@ -2449,10 +2305,6 @@
                 }
             });
         })();
-
-        // =================================================================
-        // 8. 更新历史渲染
-        // =================================================================
         (function renderHistory() {
             var timeline = document.getElementById('historyTimeline');
             if (!timeline) return;
@@ -2496,10 +2348,6 @@
                     '</div>';
             }).join('');
         })();
-
-        // =================================================================
-        // 9. 定时更新运行时间（每秒）
-        // =================================================================
         setInterval(function() {
             var start = new Date('2025-12-18T18:00:00');
             var now = new Date();
@@ -2513,13 +2361,8 @@
                 el.textContent = '运行时间：' + days + '天 ' + hours + '小时 ' + minutes + '分钟 ' + seconds + '秒';
             }
         }, 1000);
-
-        // =================================================================
-        // 10. 可见性恢复时刷新时间
-        // =================================================================
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
-                // 刷新运行时间
                 var start = new Date('2025-12-18T18:00:00');
                 var now = new Date();
                 var diff = now - start;
@@ -2533,8 +2376,7 @@
                 }
             }
         });
-
-        console.log('✅ GLcn 优化版已加载 — 速度提升：UA即时 · 运行时间即时 · 音乐轻量化');
+        console.log('✅ GLcn 优化版已加载');
     </script>
 </body>
 </html>
